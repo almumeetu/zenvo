@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useMemo } from 'react';
+
 import Link from 'next/link';
 import { useApp } from '@/lib/AppStateContext';
 import { formatCurrency } from '@/lib/currency';
@@ -46,7 +46,6 @@ type AdminTab = 'overview' | 'products' | 'orders' | 'users' | 'cms' | 'security
 const CHART_COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
   const {
     products,
     orders,
@@ -66,12 +65,20 @@ export default function AdminDashboardPage() {
   const [searchProd, setSearchProd] = useState('');
   const [searchOrder, setSearchOrder] = useState('');
 
-  // Kick non-admin users back
-  useEffect(() => {
-    if (user.role !== 'admin') {
-      router.push('/');
-    }
-  }, [user.role, router]);
+  if (user.role !== 'admin') {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <ShieldCheck className="w-12 h-12 text-zenvo-error opacity-60" />
+        <h2 className="text-xl font-black text-zenvo-text">Access Restricted</h2>
+        <p className="text-sm text-zenvo-text-secondary max-w-xs">
+          You need admin privileges to view this page.
+        </p>
+        <Link href="/" className="px-5 py-2.5 rounded-xl bg-zenvo-primary text-white text-sm font-bold hover:bg-zenvo-primary-hover transition-colors">
+          Back to Store
+        </Link>
+      </div>
+    );
+  }
 
   const analyticsData = useMemo(() => {
     const revenueOverTime = Array.from({ length: 7 }).map((_, i) => {

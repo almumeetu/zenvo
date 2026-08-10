@@ -470,7 +470,7 @@ export const INITIAL_USER: UserProfile = {
   email: 'gamer@zenvogames.com',
   avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=200',
   walletBalanceUSD: 45.80,
-  role: 'user',
+  role: 'admin',
   joinedDate: 'Jan 2025',
   vipTier: 'Cyber Elite',
   totalOrders: 18,
