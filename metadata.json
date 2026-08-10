@@ -1,0 +1,6 @@
+{
+  "name": "Zenvo Games",
+  "description": "Next-gen gaming e-commerce platform with dynamic top-ups, instant digital delivery, live wallet system, and glowing futuristic cockpit dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
