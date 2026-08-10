@@ -77,28 +77,29 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-[#080e15] border border-cyan-500/40 rounded-2xl shadow-[0_0_50px_rgba(0,229,255,0.25)] overflow-hidden text-slate-100 my-8 flex flex-col h-[75vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zenvo-bg/75 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-zenvo-surface border border-zenvo-border rounded-2xl shadow-xl overflow-hidden text-zenvo-text my-8 flex flex-col h-[75vh]">
         {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-cyan-950 via-[#0a141d] to-[#070b0f] border-b border-cyan-500/30 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold border border-cyan-400/40 shadow-[0_0_10px_rgba(0,229,255,0.4)]">
-              <Bot className="w-4 h-4" />
+        <div className="p-4 bg-zenvo-card/80 border-b border-zenvo-border flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-zenvo-accent-soft to-zenvo-primary-soft border border-zenvo-accent-border/40 flex items-center justify-center shadow-sm">
+              <Bot className="w-[18px] h-[18px] text-zenvo-accent" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-zenvo-accent animate-live-pulse border-2 border-zenvo-surface"></span>
             </div>
             <div>
-              <h2 className="text-base font-black font-mono uppercase text-white flex items-center gap-2">
+              <h2 className="text-base font-black uppercase text-zenvo-text flex items-center gap-2">
                 <span>ZENVO CYBER AI ASSISTANT</span>
-                <span className="px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono text-[9px]">
+                <span className="px-1.5 py-0.2 rounded bg-zenvo-accent-soft text-zenvo-accent text-[9px] font-bold border border-zenvo-accent-border/30">
                   GEMINI 2.5
                 </span>
               </h2>
-              <p className="text-[10px] text-slate-400 font-mono">24/7 AI GAMING & TOP-UP ADVISOR</p>
+              <p className="text-[10px] text-zenvo-muted">24/7 AI GAMING & TOP-UP ADVISOR</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 hover:text-white"
+            className="p-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-zenvo-secondary hover:text-zenvo-accent hover:border-zenvo-accent-border hover:bg-zenvo-accent-soft transition-all"
           >
             <X className="w-5 h-5" />
           </button>
@@ -111,43 +112,43 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
             return (
               <div
                 key={msg.id}
-                className={`max-w-[85%] rounded-2xl p-3 font-mono text-xs space-y-1 ${
+                className={`max-w-[85%] rounded-2xl p-3.5 text-xs space-y-1 ${
                   isUser
-                    ? 'ml-auto bg-cyan-950/80 border border-cyan-500/40 text-cyan-100'
-                    : 'mr-auto bg-[#0a121c] border border-slate-800 text-slate-200'
+                    ? 'ml-auto bg-zenvo-primary text-white border border-zenvo-primary-border/50'
+                    : 'mr-auto bg-zenvo-card border border-zenvo-border text-zenvo-text'
                 }`}
               >
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1">
+                <div className={`flex items-center gap-1.5 text-[10px] ${isUser ? 'text-white/70' : 'text-zenvo-muted'} mb-1`}>
                   {isUser ? (
-                    <span className="text-cyan-400 font-bold">You</span>
+                    <span className="font-bold text-white">You</span>
                   ) : (
-                    <span className="text-cyan-400 font-bold flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-cyan-400" /> Zenvo AI Advisor
+                    <span className="font-bold text-zenvo-accent flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> Zenvo AI Advisor
                     </span>
                   )}
                 </div>
-                <div className="whitespace-pre-line leading-relaxed">{msg.text}</div>
+                <div className="whitespace-pre-line leading-relaxed text-[13px]">{msg.text}</div>
               </div>
             );
           })}
 
           {isTyping && (
-            <div className="mr-auto bg-[#0a121c] border border-slate-800 rounded-2xl p-3 text-xs font-mono text-cyan-400 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-              <span>Zenvo AI is generating gaming response...</span>
+            <div className="mr-auto bg-zenvo-card border border-zenvo-border rounded-2xl p-3 text-xs text-zenvo-accent flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-zenvo-accent animate-ping"></span>
+              <span className="font-medium">Zenvo AI is generating gaming response...</span>
             </div>
           )}
         </div>
 
         {/* Quick Prompts */}
-        <div className="px-4 py-2 bg-[#060a0f] border-t border-slate-800/60 flex items-center gap-2 overflow-x-auto scrollbar-none">
+        <div className="px-4 py-2.5 bg-zenvo-card/40 border-t border-zenvo-border/60 flex items-center gap-2 overflow-x-auto scrollbar-none">
           {quickPrompts.map((prompt, idx) => (
             <button
               key={idx}
               onClick={() => {
                 setInput(prompt);
               }}
-              className="px-2.5 py-1 rounded-lg bg-cyan-950/40 hover:bg-cyan-900/60 text-cyan-300 font-mono text-[10px] whitespace-nowrap border border-cyan-500/30 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-zenvo-surface hover:bg-zenvo-primary-soft text-zenvo-secondary hover:text-zenvo-primary text-[11px] whitespace-nowrap border border-zenvo-border hover:border-zenvo-primary-border/50 transition-colors font-medium shrink-0"
             >
               {prompt}
             </button>
@@ -155,18 +156,18 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Input Bar */}
-        <form onSubmit={handleSend} className="p-3 bg-[#060a0f] border-t border-slate-800 flex gap-2">
+        <form onSubmit={handleSend} className="p-3 bg-zenvo-card/60 border-t border-zenvo-border flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Zenvo AI about game top-ups, UID safety, or prices..."
-            className="flex-1 bg-[#0b121a] border border-slate-700 focus:border-cyan-400 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none font-mono"
+            className="flex-1 bg-zenvo-surface border border-zenvo-border focus:border-zenvo-accent focus:ring-2 focus:ring-zenvo-accent-border rounded-xl px-3.5 py-2.5 text-xs text-zenvo-text focus:outline-none transition-all"
           />
           <button
             type="submit"
             disabled={isTyping}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-mono font-black text-xs uppercase shadow-[0_0_15px_rgba(0,229,255,0.4)] flex items-center gap-1"
+            className="px-5 py-2.5 rounded-xl bg-zenvo-accent hover:bg-zenvo-accent-hover text-zenvo-bg font-black text-xs uppercase shadow-md transition-all active:scale-[0.97] disabled:opacity-50 flex items-center gap-1"
           >
             <Send className="w-4 h-4" />
           </button>

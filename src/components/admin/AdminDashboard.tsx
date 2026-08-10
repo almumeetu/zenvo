@@ -114,25 +114,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setNewProdTitle('');
   };
 
+  const CHART_COLORS = {
+    primary: '#3b82f6',
+    accent: '#f59e0b',
+    success: '#10b981',
+    error: '#ef4444',
+    purple: '#8b5cf6',
+    pink: '#ec4899',
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-lg overflow-y-auto">
-      <div className="relative w-full max-w-6xl bg-[#060a0f] border border-cyan-500/40 rounded-2xl shadow-[0_0_60px_rgba(0,229,255,0.25)] overflow-hidden text-slate-100 my-4 flex flex-col h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-zenvo-bg/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-6xl bg-zenvo-surface border border-zenvo-border rounded-2xl shadow-xl overflow-hidden text-zenvo-text my-4 flex flex-col h-[90vh]">
         {/* Top Cockpit Header */}
-        <div className="p-4 bg-gradient-to-r from-cyan-950 via-[#0a141d] to-[#070b0f] border-b border-cyan-500/30 flex items-center justify-between">
+        <div className="p-4 bg-zenvo-card/80 border-b border-zenvo-border flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400 text-cyan-400 flex items-center justify-center font-bold shadow-[0_0_15px_rgba(0,229,255,0.4)]">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenvo-primary to-zenvo-accent text-zenvo-bg flex items-center justify-center shadow-md">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black font-mono text-white tracking-wide">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg font-black tracking-wide text-zenvo-text">
                   ZENVO ADMIN HUD CONTROL CENTER
                 </h1>
-                <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono text-[10px] font-bold border border-cyan-500/40">
+                <span className="px-2 py-0.5 rounded bg-zenvo-primary-soft text-zenvo-primary text-[10px] font-bold border border-zenvo-primary-border/40">
                   ROOT LEVEL ACCESS
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 font-mono">
+              <p className="text-[10px] text-zenvo-muted">
                 REAL-TIME REVENUE ANALYTICS • FULFILLMENT BOT GATEWAY • INVENTORY ENGINE
               </p>
             </div>
@@ -140,14 +149,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyan-400 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-zenvo-surface border border-zenvo-border hover:border-zenvo-primary-border hover:bg-zenvo-primary-soft text-zenvo-secondary hover:text-zenvo-primary transition-all"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-[#080d14] border-b border-slate-800 px-4 flex items-center gap-2 overflow-x-auto scrollbar-none">
+        <div className="bg-zenvo-card/40 border-b border-zenvo-border px-4 flex items-center gap-2 overflow-x-auto scrollbar-none">
           {[
             { id: 'overview', label: 'ANALYTICS & OVERVIEW', icon: <TrendingUp className="w-4 h-4" /> },
             { id: 'products', label: 'PRODUCT INVENTORY', icon: <Package className="w-4 h-4" /> },
@@ -158,10 +167,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-3 text-xs font-mono font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
+              className={`px-4 py-3 text-xs font-bold flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
                 activeTab === tab.id
-                  ? 'border-cyan-400 text-cyan-400 bg-cyan-950/40 shadow-[0_10px_20px_-10px_rgba(0,229,255,0.5)]'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-zenvo-primary text-zenvo-primary bg-zenvo-primary-soft/40'
+                  : 'border-transparent text-zenvo-muted hover:text-zenvo-text hover:bg-zenvo-primary-soft/20'
               }`}
             >
               {tab.icon}
@@ -176,49 +185,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="space-y-6">
               {/* Top Stats Metrics Bar */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-[#0a121c] border border-cyan-500/30 rounded-2xl p-4 shadow-[0_0_15px_rgba(0,229,255,0.1)]">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                <div className="bg-zenvo-card border border-zenvo-primary-border/30 rounded-2xl p-4">
+                  <span className="text-[10px] text-zenvo-muted uppercase tracking-widest block font-bold">
                     TOTAL REVENUE (ALL TIME)
                   </span>
-                  <span className="text-2xl font-black font-mono text-cyan-400 mt-1 block">
+                  <span className="text-2xl font-black font-mono text-zenvo-primary mt-1 block">
                     {formatCurrency(analyticsData?.totalRevenue || 18950, selectedCurrency)}
                   </span>
-                  <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 mt-1">
+                  <span className="text-[10px] text-zenvo-success flex items-center gap-1 mt-1 font-medium">
                     <TrendingUp className="w-3 h-3" /> +28.4% from last week
                   </span>
                 </div>
 
-                <div className="bg-[#0a121c] border border-emerald-500/30 rounded-2xl p-4 shadow-[0_0_15px_rgba(0,255,102,0.1)]">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                <div className="bg-zenvo-card border border-zenvo-success/30 rounded-2xl p-4">
+                  <span className="text-[10px] text-zenvo-muted uppercase tracking-widest block font-bold">
                     TOTAL DELIVERED ORDERS
                   </span>
-                  <span className="text-2xl font-black font-mono text-emerald-400 mt-1 block">
+                  <span className="text-2xl font-black font-mono text-zenvo-success mt-1 block">
                     {(analyticsData?.totalOrdersCount || 1420).toLocaleString()}
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400 mt-1 block">
+                  <span className="text-[10px] text-zenvo-muted mt-1 block font-medium">
                     Avg delivery speed: 8 seconds
                   </span>
                 </div>
 
-                <div className="bg-[#0a121c] border border-purple-500/30 rounded-2xl p-4">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                <div className="bg-zenvo-card border border-zenvo-accent/30 rounded-2xl p-4">
+                  <span className="text-[10px] text-zenvo-muted uppercase tracking-widest block font-bold">
                     ACTIVE PRODUCTS
                   </span>
-                  <span className="text-2xl font-black font-mono text-purple-400 mt-1 block">
+                  <span className="text-2xl font-black font-mono text-zenvo-accent mt-1 block">
                     {products.length} Items
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400 mt-1 block">100% In-Stock</span>
+                  <span className="text-[10px] text-zenvo-muted mt-1 block font-medium">100% In-Stock</span>
                 </div>
 
-                <div className="bg-[#0a121c] border border-amber-500/30 rounded-2xl p-4">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">
+                <div className="bg-zenvo-card border border-zenvo-border rounded-2xl p-4">
+                  <span className="text-[10px] text-zenvo-muted uppercase tracking-widest block font-bold">
                     REGISTERED GAMERS
                   </span>
-                  <span className="text-2xl font-black font-mono text-amber-400 mt-1 block">
+                  <span className="text-2xl font-black font-mono text-zenvo-text mt-1 block">
                     {(analyticsData?.registeredUsersCount || 12840).toLocaleString()}
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400 mt-1 block">
-                    Wallet Float: $38,920.50
+                  <span className="text-[10px] text-zenvo-muted mt-1 block font-medium">
+                    Wallet Float: {formatCurrency(38920.5, selectedCurrency)}
                   </span>
                 </div>
               </div>
@@ -226,29 +235,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {/* Recharts Graphical Analytics */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Revenue Growth Chart */}
-                <div className="lg:col-span-2 bg-[#090f17] border border-slate-800 rounded-2xl p-5">
-                  <h3 className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider mb-4 flex items-center justify-between">
+                <div className="lg:col-span-2 bg-zenvo-card border border-zenvo-border rounded-2xl p-5">
+                  <h3 className="text-xs font-bold text-zenvo-primary uppercase tracking-wider mb-4 flex items-center justify-between">
                     <span>WEEKLY REVENUE & ORDER VOLUME</span>
-                    <span className="text-[10px] text-slate-500">REAL-TIME TELEMETRY</span>
+                    <span className="text-[10px] text-zenvo-muted">REAL-TIME TELEMETRY</span>
                   </h3>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={analyticsData?.salesByDay || []}>
                         <defs>
                           <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#00e5ff" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#00e5ff" stopOpacity={0} />
+                            <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.75} />
+                            <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
                           </linearGradient>
                         </defs>
                         <XAxis dataKey="day" stroke="#64748b" fontSize={11} fontFamily="monospace" />
                         <YAxis stroke="#64748b" fontSize={11} fontFamily="monospace" />
                         <Tooltip
-                          contentStyle={{ backgroundColor: '#090f16', borderColor: '#00e5ff', color: '#fff' }}
+                          contentStyle={{ backgroundColor: '#0c1119', borderColor: '#3b82f6', color: '#e2e8f0', borderRadius: '12px', fontSize: '12px', fontFamily: 'monospace' }}
                         />
                         <Area
                           type="monotone"
                           dataKey="revenue"
-                          stroke="#00e5ff"
+                          stroke={CHART_COLORS.primary}
+                          strokeWidth={2}
                           fillOpacity={1}
                           fill="url(#colorRev)"
                         />
@@ -258,8 +268,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 {/* Category Pie Breakdown */}
-                <div className="bg-[#090f17] border border-slate-800 rounded-2xl p-5">
-                  <h3 className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider mb-4">
+                <div className="bg-zenvo-card border border-zenvo-border rounded-2xl p-5">
+                  <h3 className="text-xs font-bold text-zenvo-accent uppercase tracking-wider mb-4">
                     SALES BY CATEGORY
                   </h3>
                   <div className="h-64 flex items-center justify-center">
@@ -275,11 +285,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           dataKey="value"
                         >
                           {(analyticsData?.categoryDistribution || []).map((entry: any, index: number) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                            <Cell key={`cell-${index}`} fill={entry.color || Object.values(CHART_COLORS)[index % 6]} />
                           ))}
                         </Pie>
                         <Tooltip
-                          contentStyle={{ backgroundColor: '#090f16', borderColor: '#00e5ff', color: '#fff' }}
+                          contentStyle={{ backgroundColor: '#0c1119', borderColor: '#f59e0b', color: '#e2e8f0', borderRadius: '12px', fontSize: '12px', fontFamily: 'monospace' }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -291,13 +301,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {activeTab === 'products' && (
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xs font-mono font-bold text-cyan-400 uppercase">
+              <div className="flex justify-between items-center gap-3 flex-wrap">
+                <h3 className="text-xs font-bold text-zenvo-primary uppercase">
                   GAME & CARD CATALOG MANAGEMENT ({products.length} ITEMS)
                 </h3>
                 <button
                   onClick={() => setIsAddingProduct(true)}
-                  className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs uppercase flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.4)]"
+                  className="px-4 py-2 rounded-xl bg-zenvo-accent hover:bg-zenvo-accent-hover text-zenvo-bg font-bold text-xs uppercase flex items-center gap-1.5 active:scale-[0.97] transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" /> Add New Item
                 </button>
@@ -307,27 +317,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {isAddingProduct && (
                 <form
                   onSubmit={handleCreateProductSubmit}
-                  className="bg-[#0a121c] border border-cyan-500/40 rounded-2xl p-4 space-y-3 font-mono text-xs"
+                  className="bg-zenvo-card border border-zenvo-primary-border/40 rounded-2xl p-5 space-y-4"
                 >
-                  <h4 className="font-bold text-cyan-400 uppercase">ADD NEW GAME / GIFT CARD TOP-UP</h4>
+                  <h4 className="font-bold text-zenvo-primary uppercase">ADD NEW GAME / GIFT CARD TOP-UP</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-slate-400 block mb-1">Title</label>
+                      <label className="text-zenvo-muted text-xs block mb-1 font-medium">Title</label>
                       <input
                         type="text"
                         value={newProdTitle}
                         onChange={(e) => setNewProdTitle(e.target.value)}
                         placeholder="e.g. Apex Legends Mobile Gold"
-                        className="w-full bg-[#060a0f] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                        className="w-full bg-zenvo-bg border border-zenvo-border focus:border-zenvo-primary focus:ring-2 focus:ring-zenvo-primary-border rounded-xl px-3 py-2.5 text-sm text-zenvo-text focus:outline-none transition-all"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Category</label>
+                      <label className="text-zenvo-muted text-xs block mb-1 font-medium">Category</label>
                       <select
                         value={newProdCategory}
                         onChange={(e) => setNewProdCategory(e.target.value as any)}
-                        className="w-full bg-[#060a0f] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                        className="w-full bg-zenvo-bg border border-zenvo-border focus:border-zenvo-primary focus:ring-2 focus:ring-zenvo-primary-border rounded-xl px-3 py-2.5 text-sm text-zenvo-text focus:outline-none transition-all"
                       >
                         <option value="game-topup">Game Top-Up</option>
                         <option value="social-topup">Social Top-Up</option>
@@ -336,12 +346,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </select>
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Base Price ($)</label>
+                      <label className="text-zenvo-muted text-xs block mb-1 font-medium">Base Price ($)</label>
                       <input
                         type="number"
                         value={newProdPrice}
                         onChange={(e) => setNewProdPrice(e.target.value)}
-                        className="w-full bg-[#060a0f] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none"
+                        className="w-full bg-zenvo-bg border border-zenvo-border focus:border-zenvo-primary focus:ring-2 focus:ring-zenvo-primary-border rounded-xl px-3 py-2.5 text-sm text-zenvo-text focus:outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -349,13 +359,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsAddingProduct(false)}
-                      className="px-4 py-1.5 rounded-xl bg-slate-800 text-white"
+                      className="px-4 py-1.5 rounded-xl bg-zenvo-surface border border-zenvo-border hover:bg-zenvo-bg text-zenvo-text text-xs font-bold transition-all active:scale-[0.97]"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-1.5 rounded-xl bg-cyan-500 text-black font-bold uppercase"
+                      className="px-4 py-1.5 rounded-xl bg-zenvo-primary hover:bg-zenvo-primary-hover text-white text-xs font-bold uppercase transition-all active:scale-[0.97]"
                     >
                       Save Product
                     </button>
@@ -364,33 +374,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               )}
 
               {/* Products Table */}
-              <div className="bg-[#080e15] border border-slate-800 rounded-2xl overflow-hidden font-mono text-xs">
+              <div className="bg-zenvo-card border border-zenvo-border rounded-2xl overflow-hidden text-xs">
                 <table className="w-full text-left">
-                  <thead className="bg-[#0b131d] text-slate-400 border-b border-slate-800 uppercase text-[10px]">
+                  <thead className="bg-zenvo-surface text-zenvo-muted border-b border-zenvo-border uppercase text-[10px]">
                     <tr>
-                      <th className="p-3">Product Name</th>
-                      <th className="p-3">Category</th>
-                      <th className="p-3">Delivery</th>
-                      <th className="p-3">Starting Price</th>
-                      <th className="p-3">Actions</th>
+                      <th className="p-3.5 font-bold tracking-wider">Product Name</th>
+                      <th className="p-3.5 font-bold tracking-wider">Category</th>
+                      <th className="p-3.5 font-bold tracking-wider">Delivery</th>
+                      <th className="p-3.5 font-bold tracking-wider">Starting Price</th>
+                      <th className="p-3.5 font-bold tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-zenvo-border/50">
                     {products.map((p) => (
-                      <tr key={p.id} className="hover:bg-cyan-950/20">
-                        <td className="p-3 font-bold text-white flex items-center gap-2">
-                          <img src={p.image} className="w-8 h-8 rounded object-cover" />
+                      <tr key={p.id} className="hover:bg-zenvo-primary-soft/30 transition-colors">
+                        <td className="p-3.5 font-bold text-zenvo-text flex items-center gap-2.5 text-sm">
+                          <img src={p.image} className="w-9 h-9 rounded-lg object-cover border border-zenvo-border" alt={p.title} />
                           <span>{p.title}</span>
                         </td>
-                        <td className="p-3 text-slate-400 capitalize">{p.category.replace('-', ' ')}</td>
-                        <td className="p-3 text-emerald-400">{p.deliveryType}</td>
-                        <td className="p-3 text-cyan-400 font-bold">
+                        <td className="p-3.5 text-zenvo-secondary capitalize">{p.category.replace('-', ' ')}</td>
+                        <td className="p-3.5 text-zenvo-success font-bold flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" />
+                          {p.deliveryType}
+                        </td>
+                        <td className="p-3.5 text-zenvo-primary font-bold font-mono text-sm">
                           {formatCurrency(p.denominations[0]?.amount || 0, selectedCurrency)}
                         </td>
-                        <td className="p-3">
+                        <td className="p-3.5">
                           <button
                             onClick={() => onDeleteProduct(p.id)}
-                            className="p-1.5 rounded bg-red-950/60 text-red-400 hover:bg-red-900 border border-red-500/30"
+                            className="p-2 rounded-lg bg-zenvo-error-soft text-zenvo-error hover:bg-zenvo-error hover:text-white border border-zenvo-error/30 hover:border-zenvo-error transition-all active:scale-[0.97]"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -405,46 +418,46 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {activeTab === 'orders' && (
             <div className="space-y-4">
-              <h3 className="text-xs font-mono font-bold text-cyan-400 uppercase">
+              <h3 className="text-xs font-bold text-zenvo-primary uppercase">
                 REAL-TIME FULFILLMENT QUEUE ({orders.length} ORDERS)
               </h3>
 
-              <div className="bg-[#080e15] border border-slate-800 rounded-2xl overflow-hidden font-mono text-xs">
+              <div className="bg-zenvo-card border border-zenvo-border rounded-2xl overflow-hidden text-xs">
                 <table className="w-full text-left">
-                  <thead className="bg-[#0b131d] text-slate-400 border-b border-slate-800 uppercase text-[10px]">
+                  <thead className="bg-zenvo-surface text-zenvo-muted border-b border-zenvo-border uppercase text-[10px]">
                     <tr>
-                      <th className="p-3">Order #</th>
-                      <th className="p-3">Player UID</th>
-                      <th className="p-3">Payment Method</th>
-                      <th className="p-3">Total Paid</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Actions</th>
+                      <th className="p-3.5 font-bold tracking-wider">Order #</th>
+                      <th className="p-3.5 font-bold tracking-wider">Player UID</th>
+                      <th className="p-3.5 font-bold tracking-wider">Payment Method</th>
+                      <th className="p-3.5 font-bold tracking-wider">Total Paid</th>
+                      <th className="p-3.5 font-bold tracking-wider">Status</th>
+                      <th className="p-3.5 font-bold tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-zenvo-border/50">
                     {orders.map((o) => (
-                      <tr key={o.id} className="hover:bg-cyan-950/20">
-                        <td className="p-3 font-bold text-cyan-400">{o.orderNumber}</td>
-                        <td className="p-3 text-white">{o.playerId}</td>
-                        <td className="p-3 text-slate-300">{o.paymentMethod}</td>
-                        <td className="p-3 text-emerald-400 font-bold">
+                      <tr key={o.id} className="hover:bg-zenvo-primary-soft/30 transition-colors">
+                        <td className="p-3.5 font-bold text-zenvo-primary font-mono text-sm">{o.orderNumber}</td>
+                        <td className="p-3.5 text-zenvo-text text-sm">{o.playerId}</td>
+                        <td className="p-3.5 text-zenvo-secondary">{o.paymentMethod}</td>
+                        <td className="p-3.5 text-zenvo-success font-bold font-mono text-sm">
                           {formatCurrency(o.totalUSD, selectedCurrency)}
                         </td>
-                        <td className="p-3">
+                        <td className="p-3.5">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
                               o.fulfillmentStatus === 'Delivered'
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : 'bg-amber-500/20 text-amber-400'
+                                ? 'bg-zenvo-success-soft text-zenvo-success border-zenvo-success/30'
+                                : 'bg-zenvo-warning-soft text-zenvo-warning border-zenvo-warning/30'
                             }`}
                           >
                             {o.fulfillmentStatus}
                           </span>
                         </td>
-                        <td className="p-3 flex items-center gap-2">
+                        <td className="p-3.5 flex items-center gap-2">
                           <button
                             onClick={() => onUpdateOrderStatus(o.id, 'Delivered')}
-                            className="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500 hover:text-black font-bold text-[10px]"
+                            className="px-3 py-1.5 bg-zenvo-success-soft text-zenvo-success rounded-lg hover:bg-zenvo-success hover:text-white border border-zenvo-success/30 hover:border-zenvo-success font-bold text-[11px] transition-all active:scale-[0.97]"
                           >
                             Mark Delivered
                           </button>
@@ -459,14 +472,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {activeTab === 'users' && (
             <div className="space-y-4">
-              <h3 className="text-xs font-mono font-bold text-cyan-400 uppercase">REGISTERED GAMERS & VIP TIERS</h3>
-              <div className="bg-[#080e15] border border-slate-800 rounded-2xl p-4 font-mono text-xs space-y-3">
-                <div className="flex items-center justify-between p-3 bg-[#0c141f] rounded-xl border border-slate-700">
+              <h3 className="text-xs font-bold text-zenvo-primary uppercase">REGISTERED GAMERS & VIP TIERS</h3>
+              <div className="bg-zenvo-card border border-zenvo-border rounded-2xl p-4 text-xs space-y-3">
+                <div className="flex items-center justify-between p-3.5 bg-zenvo-surface rounded-xl border border-zenvo-border flex-wrap gap-3">
                   <div>
-                    <p className="font-bold text-white">CyberGamer_99 (gamer@zenvogames.com)</p>
-                    <p className="text-[10px] text-slate-400">VIP Tier: Cyber Elite | Orders: 18</p>
+                    <p className="font-bold text-zenvo-text text-sm">CyberGamer_99 (gamer@zenvogames.com)</p>
+                    <p className="text-[10px] text-zenvo-muted mt-0.5">VIP Tier: <span className="text-zenvo-accent font-bold">Cyber Elite</span> | Orders: 18</p>
                   </div>
-                  <span className="text-emerald-400 font-bold">Wallet: $45.80</span>
+                  <span className="text-zenvo-success font-bold font-mono">Wallet: {formatCurrency(45.8, selectedCurrency)}</span>
                 </div>
               </div>
             </div>
@@ -474,15 +487,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {activeTab === 'security' && (
             <div className="space-y-4">
-              <h3 className="text-xs font-mono font-bold text-cyan-400 uppercase">SYSTEM SECURITY & API AUDIT LOGS</h3>
-              <div className="bg-[#080e15] border border-slate-800 rounded-2xl p-4 font-mono text-xs space-y-2">
+              <h3 className="text-xs font-bold text-zenvo-primary uppercase">SYSTEM SECURITY & API AUDIT LOGS</h3>
+              <div className="bg-zenvo-card border border-zenvo-border rounded-2xl p-4 text-xs space-y-2.5">
                 {(analyticsData?.securityLogs || []).map((log: any) => (
-                  <div key={log.id} className="p-2.5 bg-[#0a111a] rounded-lg border border-slate-800 flex justify-between">
+                  <div key={log.id} className="p-3 bg-zenvo-surface rounded-lg border border-zenvo-border flex justify-between items-start gap-3 flex-wrap">
                     <div>
-                      <span className="text-cyan-400 font-bold">[{log.status}]</span>{' '}
-                      <span className="text-white">{log.event}</span>
+                      <span className={`font-bold ${log.status === 'PASS' ? 'text-zenvo-success' : 'text-zenvo-error'}`}>[{log.status}]</span>{' '}
+                      <span className="text-zenvo-text">{log.event}</span>
                     </div>
-                    <div className="text-slate-500 text-[10px]">
+                    <div className="text-zenvo-muted text-[10px] font-mono whitespace-nowrap">
                       IP: {log.ip} | {log.timestamp}
                     </div>
                   </div>

@@ -3,9 +3,12 @@ export type CategoryType = 'game-topup' | 'social-topup' | 'gift-card' | 'game-a
 export interface ProductDenomination {
   id: string;
   name: string; // e.g. "100 Diamonds", "520+52 Diamonds", "60 UC", "Weekly Pass"
+  label?: string; // alias for name, used in some pages
   amount: number; // base price in USD
   originalAmount?: number;
   bonus?: string; // e.g. "+10% Bonus"
+  bonusLabel?: string; // alias for bonus
+  bonusAmount?: number;
   popular?: boolean;
 }
 
@@ -27,7 +30,10 @@ export interface Product {
   description: string;
   instructions: string;
   playerIdLabel: string; // e.g. "Player ID / User ID" or "Character ID & Zone ID"
+  playerIdPlaceholder?: string;
+  howToFindPlayerId?: string[];
   hasServerId?: boolean;
+  requiresServerId?: boolean; // alias for hasServerId
   serverIdLabel?: string;
   denominations: ProductDenomination[];
   tags: string[];
@@ -53,6 +59,7 @@ export interface CartItem {
 
 export interface WalletTransaction {
   id: string;
+  userId?: string;
   type: 'deposit' | 'purchase' | 'refund' | 'bonus';
   amount: number; // in USD
   currency: CurrencyCode;
@@ -92,6 +99,7 @@ export interface UserProfile {
   joinedDate: string;
   vipTier: 'Bronze' | 'Silver' | 'Gold' | 'Cyber Elite';
   totalOrders: number;
+  phone?: string;
 }
 
 export interface SupportTicket {
@@ -125,6 +133,7 @@ export interface BlogArticle {
   date: string;
   readTime: string;
   tags: string[];
+  slug?: string;
 }
 
 export interface HeroBanner {

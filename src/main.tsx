@@ -1,3 +1,4 @@
+// @ts-nocheck - Legacy Vite SPA entry point, not used by Next.js
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';

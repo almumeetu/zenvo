@@ -211,7 +211,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06090e] text-slate-100 font-sans selection:bg-emerald-500 selection:text-black">
+    <div className="min-h-screen bg-zenvo-bg text-zenvo-text font-sans">
       {/* Header */}
       <Header
         products={products}
@@ -225,7 +225,7 @@ export default function App() {
         onOpenAiAssistant={() => setIsAiAssistantOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenAdmin={() => setIsAdminOpen(true)}
-        onSelectProduct={(product) => setSelectedProductForModal(product)}
+        onSelectProduct={(product: Product) => setSelectedProductForModal(product)}
       />
 
       {/* Main Content Area */}
@@ -250,36 +250,42 @@ export default function App() {
         />
 
         {/* Product Grids */}
-        <ProductGrid
-          products={products}
-          selectedCategory={selectedCategory}
-          selectedCurrency={selectedCurrency}
-          onSelectProduct={(product) => setSelectedProductForModal(product)}
-        />
+        <div id="shop-products">
+          <ProductGrid
+            products={products}
+            selectedCategory={selectedCategory}
+            selectedCurrency={selectedCurrency}
+            onSelectProduct={(product: Product) => setSelectedProductForModal(product)}
+          />
+        </div>
 
         {/* "Why Choose Us" Cockpit Features */}
-        <WhyChooseUs />
+        <div id="why-choose-us">
+          <WhyChooseUs />
+        </div>
 
         {/* Promotions & Gaming Blog Posts */}
-        <PromotionsBlog articles={BLOG_ARTICLES} />
+        <div id="blog-section">
+          <PromotionsBlog articles={BLOG_ARTICLES} />
+        </div>
       </main>
 
-      {/* Floating Action Bar (Mobile & Desktop Quick Access) */}
-      <div className="fixed bottom-4 right-4 z-40 flex flex-col gap-2">
+      <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-2.5">
         <button
           onClick={() => setIsSupportTicketOpen(true)}
-          className="p-3 rounded-full bg-[#0c141f] border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-black shadow-[0_0_20px_rgba(0,255,102,0.4)] transition-all group"
-          title="24/7 Live Support Tickets"
+          className="p-3 rounded-2xl bg-zenvo-card border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-primary hover:border-zenvo-primary-border hover:bg-zenvo-primary-soft shadow-md hover:shadow-primary transition-all duration-200 group"
+          title="24/7 Live Support"
         >
           <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" />
         </button>
 
         <button
           onClick={() => setIsAiAssistantOpen(true)}
-          className="p-3 rounded-full bg-[#0c141f] border border-cyan-500/40 text-cyan-400 hover:bg-cyan-400 hover:text-black shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all group"
+          className="p-3 rounded-2xl bg-zenvo-card border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-accent hover:border-zenvo-accent-border hover:bg-zenvo-accent-soft shadow-md hover:shadow-accent transition-all duration-200 group relative"
           title="Zenvo AI Gaming Assistant"
         >
           <Bot className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-zenvo-accent rounded-full animate-live-pulse" />
         </button>
       </div>
 

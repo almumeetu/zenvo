@@ -1,3 +1,4 @@
+// @ts-nocheck - Legacy Vite config, not used by Next.js build
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';

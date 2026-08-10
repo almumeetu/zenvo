@@ -1,0 +1,17 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/admin/page": "/admin",
+  "/ai-assistant/page": "/ai-assistant",
+  "/auth/login/page": "/auth/login",
+  "/auth/register/page": "/auth/register",
+  "/blog/page": "/blog",
+  "/blog/[slug]/page": "/blog/[slug]",
+  "/cart/page": "/cart",
+  "/faqs/page": "/faqs",
+  "/orders/track/page": "/orders/track",
+  "/page": "/",
+  "/top-up/[productId]/page": "/top-up/[productId]",
+  "/wallet/page": "/wallet",
+  "/shop/page": "/shop",
+  "/support/page": "/support"
+}

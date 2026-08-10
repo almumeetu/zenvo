@@ -24,7 +24,7 @@ export const HERO_BANNERS: HeroBanner[] = [
     badge: 'AUTOMATED 24/7 INSTANT TOP-UP',
     gameId: 'fc-mobile',
     image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=1200',
-    bgGradient: 'from-emerald-900/80 via-slate-900 to-black',
+    bgGradient: 'from-blue-950/80 via-slate-900 to-black',
     ctaText: 'RECHARGE FC POINTS NOW',
   },
   {
@@ -34,7 +34,7 @@ export const HERO_BANNERS: HeroBanner[] = [
     badge: 'HOT EVENT DISCOUNT -15%',
     gameId: 'free-fire',
     image: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&q=80&w=1200',
-    bgGradient: 'from-emerald-950 via-teal-950 to-slate-950',
+    bgGradient: 'from-indigo-950 via-slate-950 to-zenvo-bg',
     ctaText: 'BUY DIAMONDS INSTANTLY',
   },
   {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Flame, CheckCircle2, Zap } from 'lucide-react';
 
 export const NewArrivalMarquee: React.FC = () => {
   const recentPurchases = [
@@ -12,25 +12,25 @@ export const NewArrivalMarquee: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-      <div className="bg-[#090e14] border border-emerald-500/20 rounded-xl p-2.5 flex items-center gap-3 overflow-hidden shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]">
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold whitespace-nowrap border border-emerald-500/30">
-          <Flame className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
-          <span>LIVE TOP-UP FEED</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div className="bg-zenvo-surface border border-zenvo-border rounded-xl p-2.5 pl-3 flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zenvo-accent-soft border border-zenvo-accent-border text-zenvo-accent text-[11px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
+          <Flame className="w-3.5 h-3.5 text-zenvo-accent" />
+          Live Activity
         </div>
 
-        {/* Marquee ticker */}
         <div className="flex-1 overflow-hidden whitespace-nowrap relative">
-          <div className="inline-flex items-center gap-8 animate-[marquee_25s_linear_infinite] text-xs font-mono text-slate-300">
-            {recentPurchases.concat(recentPurchases).map((purchase, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-slate-400">{purchase.user}</span>
-                <span className="text-white font-bold">{purchase.item}</span>
-                <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 text-[10px]">
-                  ⚡ Delivered in {purchase.speed}
+          <div className="inline-flex items-center gap-10 animate-marquee text-xs text-zenvo-text-secondary">
+            {[...recentPurchases, ...recentPurchases].map((purchase, idx) => (
+              <div key={idx} className="inline-flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-zenvo-success shrink-0" />
+                <span className="text-zenvo-text-muted truncate max-w-[100px]">{purchase.user}</span>
+                <span className="font-semibold text-zenvo-text truncate max-w-[180px]">{purchase.item}</span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zenvo-success-soft text-zenvo-success text-[10px] font-semibold whitespace-nowrap">
+                  <Zap className="w-2.5 h-2.5" />
+                  {purchase.speed}
                 </span>
-                <span className="text-slate-600">({purchase.time})</span>
+                <span className="text-zenvo-text-muted text-[11px]">({purchase.time})</span>
               </div>
             ))}
           </div>

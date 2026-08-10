@@ -1,3 +1,4 @@
+// @ts-nocheck - Legacy Vite dev server, not used by Next.js build
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';

@@ -1,0 +1,13 @@
+@import '../index.css';
+
+html,
+body {
+  min-height: 100%;
+  padding: 0;
+  margin: 0;
+  background-color: var(--color-zenvo-bg);
+}
+
+main {
+  min-height: 0;
+}

@@ -28,38 +28,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, user, onClose, onL
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="relative w-full max-w-md bg-[#080e15] border border-emerald-500/40 rounded-2xl shadow-[0_0_50px_rgba(0,255,102,0.2)] overflow-hidden text-slate-100 p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zenvo-bg/75 backdrop-blur-sm">
+      <div className="relative w-full max-w-md bg-zenvo-surface border border-zenvo-border rounded-2xl shadow-xl overflow-hidden text-zenvo-text p-6">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 hover:text-white"
+          className="absolute top-4 right-4 p-1.5 rounded-lg bg-zenvo-card border border-zenvo-border text-zenvo-secondary hover:text-zenvo-primary hover:border-zenvo-primary-border hover:bg-zenvo-primary-soft transition-all z-10"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="text-center space-y-2 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center mx-auto font-mono font-black text-xl shadow-[0_0_15px_#00ff66]">
+        <div className="text-center space-y-2.5 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zenvo-primary to-zenvo-accent text-zenvo-bg flex items-center justify-center mx-auto font-black text-xl shadow-md mb-1">
             Z
           </div>
-          <h2 className="text-xl font-black font-mono text-white uppercase">
+          <h2 className="text-xl font-black text-zenvo-text uppercase tracking-tight">
             {isRegister ? 'JOIN ZENVO COCKPIT' : 'GAMER AUTHENTICATION'}
           </h2>
-          <p className="text-xs text-slate-400 font-mono">
+          <p className="text-xs text-zenvo-muted">
             {isRegister ? 'Create an account for instant VIP cashback & order logs' : 'Welcome back, Commander'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {isRegister && (
             <div>
-              <label className="text-slate-400 block mb-1">Gamer Handle / Username</label>
+              <label className="text-zenvo-secondary block mb-1.5 font-medium">Gamer Handle / Username</label>
               <div className="relative">
-                <User className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-zenvo-primary absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#0b121a] border border-slate-700 focus:border-emerald-400 rounded-xl pl-9 pr-3.5 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-zenvo-card border border-zenvo-border focus:border-zenvo-primary focus:ring-2 focus:ring-zenvo-primary-border rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-zenvo-text focus:outline-none transition-all"
                   required
                 />
               </div>
@@ -67,28 +67,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, user, onClose, onL
           )}
 
           <div>
-            <label className="text-slate-400 block mb-1">Email Address</label>
+            <label className="text-zenvo-secondary block mb-1.5 font-medium">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-zenvo-primary absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#0b121a] border border-slate-700 focus:border-emerald-400 rounded-xl pl-9 pr-3.5 py-2.5 text-white focus:outline-none"
+                className="w-full bg-zenvo-card border border-zenvo-border focus:border-zenvo-primary focus:ring-2 focus:ring-zenvo-primary-border rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-zenvo-text focus:outline-none transition-all"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1">Password</label>
+            <label className="text-zenvo-secondary block mb-1.5 font-medium">Password</label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-zenvo-primary absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#0b121a] border border-slate-700 focus:border-emerald-400 rounded-xl pl-9 pr-3.5 py-2.5 text-white focus:outline-none"
+                className="w-full bg-zenvo-card border border-zenvo-border focus:border-zenvo-primary focus:ring-2 focus:ring-zenvo-primary-border rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-zenvo-text focus:outline-none transition-all"
                 required
               />
             </div>
@@ -96,40 +96,44 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, user, onClose, onL
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 text-black font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,255,102,0.5)] hover:shadow-[0_0_30px_rgba(0,255,102,0.8)] transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-zenvo-accent hover:bg-zenvo-accent-hover text-zenvo-bg font-black text-xs uppercase tracking-wider shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
             <span>{isRegister ? 'REGISTER GAMER ACCOUNT' : 'LOG IN TO COCKPIT'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        <div className="mt-4 pt-4 border-t border-slate-800 text-center space-y-3 font-mono text-xs">
-          <p className="text-slate-500">OR CONTINUE WITH</p>
+        <div className="mt-5 pt-4 border-t border-zenvo-border/60 text-center space-y-3 text-xs">
+          <p className="text-zenvo-muted font-bold uppercase tracking-wider text-[10px]">OR CONTINUE WITH</p>
           <div className="flex justify-center gap-3">
             <button
               onClick={handleSubmit}
-              className="px-4 py-2 rounded-xl bg-[#0b121a] border border-slate-700 hover:border-emerald-400 text-slate-200 flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border hover:border-zenvo-primary-border/50 text-zenvo-text hover:bg-zenvo-primary-soft/50 transition-all flex items-center gap-2 font-medium"
             >
               <span>🌐 Google</span>
             </button>
             <button
               onClick={handleSubmit}
-              className="px-4 py-2 rounded-xl bg-[#0b121a] border border-slate-700 hover:border-emerald-400 text-slate-200 flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border hover:border-zenvo-primary-border/50 text-zenvo-text hover:bg-zenvo-primary-soft/50 transition-all flex items-center gap-2 font-medium"
             >
               <span>📘 Facebook</span>
             </button>
           </div>
 
-          <p className="text-slate-400 pt-2">
+          <p className="text-zenvo-secondary pt-2 text-sm">
             {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
               type="button"
               onClick={() => setIsRegister(!isRegister)}
-              className="text-emerald-400 font-bold underline ml-1"
+              className="text-zenvo-primary font-bold underline-offset-2 hover:underline ml-1"
             >
               {isRegister ? 'Login' : 'Register Now'}
             </button>
           </p>
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-zenvo-muted pt-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-zenvo-success" />
+            <span>256-bit SSL Encrypted • Secure Authentication</span>
+          </div>
         </div>
       </div>
     </div>
