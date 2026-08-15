@@ -21,6 +21,7 @@ import {
   HERO_BANNERS,
   BLOG_ARTICLES,
 } from '../data/initialData';
+import { supabase } from './supabase';
 
 export type PaymentMethod =
   | 'bKash'
@@ -105,6 +106,10 @@ interface AppActions {
   deleteBlog: (id: string) => void;
   adminReplyTicket: (ticketId: string, message: string) => Promise<void>;
   updateTicketStatus: (ticketId: string, status: SupportTicket['status']) => void;
+  signInWithGoogle: (redirectTo?: string) => Promise<{ success: boolean; message?: string }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  signUpWithEmail: (email: string, password: string, name: string, phone?: string) => Promise<{ success: boolean; message?: string; needsConfirmation?: boolean }>;
+  logout: () => Promise<void>;
 }
 
 type AppStateValue = AppState & AppActions;
@@ -188,6 +193,53 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setIsMounted(true);
     }
     initData();
+  }, []);
+
+  // Listen to Supabase Auth State Changes
+  useEffect(() => {
+    if (!supabase) return;
+
+    // Get current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const u = session.user;
+        const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Gamer';
+        const avatar = u.user_metadata?.avatar_url || u.user_metadata?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`;
+        setUser((prev) => ({
+          ...prev,
+          id: u.id,
+          email: u.email || prev.email,
+          name,
+          avatar,
+          role: u.email?.includes('admin') ? 'admin' : (prev.role === 'admin' ? 'admin' : 'user'),
+        }));
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const u = session.user;
+        const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Gamer';
+        const avatar = u.user_metadata?.avatar_url || u.user_metadata?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`;
+        setUser((prev) => ({
+          ...prev,
+          id: u.id,
+          email: u.email || prev.email,
+          name,
+          avatar,
+          role: u.email?.includes('admin') ? 'admin' : (prev.role === 'admin' ? 'admin' : 'user'),
+        }));
+      } else if (event === 'SIGNED_OUT') {
+        setUser(INITIAL_USER);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('zenvo_v3_user');
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Save changes to localStorage (only as fallback sync)
@@ -628,6 +680,91 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const signInWithGoogle = async (redirectTo = '/') => {
+    if (!supabase) {
+      return { success: false, message: 'Supabase is not configured yet.' };
+    }
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+    if (error) {
+      return { success: false, message: error.message };
+    }
+    return { success: true };
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    if (!supabase) {
+      const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      setUser((prev) => ({ ...prev, email, name }));
+      return { success: true };
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      return { success: false, message: error.message };
+    }
+    if (data?.user) {
+      const authUser = data.user;
+      const name = authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Gamer';
+      setUser((prev) => ({
+        ...prev,
+        id: authUser.id,
+        email: authUser.email || email,
+        name,
+      }));
+    }
+    return { success: true };
+  };
+
+  const signUpWithEmail = async (email: string, password: string, name: string, phone?: string) => {
+    if (!supabase) {
+      setUser((prev) => ({ ...prev, email, name, phone: phone || prev.phone }));
+      return { success: true };
+    }
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+          phone: phone || '',
+        },
+      },
+    });
+    if (error) {
+      return { success: false, message: error.message };
+    }
+    if (data?.user) {
+      const authUser = data.user;
+      setUser((prev) => ({
+        ...prev,
+        id: authUser.id,
+        email: authUser.email || email,
+        name,
+        phone: phone || prev.phone,
+      }));
+    }
+    return { success: true, needsConfirmation: data.session === null };
+  };
+
+  const logout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    setUser(INITIAL_USER);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('zenvo_v3_user');
+    }
+  };
+
   const value: AppStateValue = {
     products,
     heroBanners,
@@ -667,6 +804,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     deleteBlog,
     adminReplyTicket,
     updateTicketStatus,
+    signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
+    logout,
   };
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

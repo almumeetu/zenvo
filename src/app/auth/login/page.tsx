@@ -1,19 +1,17 @@
 'use client';
 
 import { Suspense } from 'react';
-
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/lib/AppStateContext';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
   LogIn,
-  Github,
-  Chrome,
   ShieldCheck,
   Zap,
   ChevronRight,
@@ -23,11 +21,11 @@ import {
 function LoginContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { updateUser, user } = useApp();
+  const { signInWithEmail } = useApp();
   const redirect = searchParams.get('redirect') || '/';
 
-  const [email, setEmail] = useState(user?.email || 'guest@zenvo.gg');
-  const [password, setPassword] = useState('zenvo2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -36,18 +34,20 @@ function LoginContent() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || password.length < 4) {
-      setErr('Please enter a valid email and password (min 4 chars).');
+      setErr('Please enter a valid email and password (minimum 4 characters).');
       return;
     }
     setLoading(true);
     setErr(null);
-    await new Promise((r) => setTimeout(r, 700));
-    updateUser({
-      ...user,
-      email,
-      name: email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-    });
+
+    const res = await signInWithEmail(email.trim(), password);
     setLoading(false);
+
+    if (!res.success) {
+      setErr(res.message || 'Login failed. Please check your credentials.');
+      return;
+    }
+
     router.push(redirect);
   };
 
@@ -102,7 +102,7 @@ function LoginContent() {
         </div>
 
         {/* RIGHT: form */}
-        <div className="p-6 sm:p-10">
+        <div className="p-6 sm:p-10 flex flex-col justify-center">
           <div className="mb-7">
             <h1 className="text-3xl font-black text-zenvo-text tracking-tight mb-1.5">Sign In</h1>
             <p className="text-sm text-zenvo-text-secondary">
@@ -111,22 +111,6 @@ function LoginContent() {
                 Create an account <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </p>
-          </div>
-
-          {/* Social login */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <button className="px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border hover:border-zenvo-border-hover text-sm font-semibold text-zenvo-text inline-flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-              <Chrome className="w-4 h-4" /> Google
-            </button>
-            <button className="px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border hover:border-zenvo-border-hover text-sm font-semibold text-zenvo-text inline-flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-              <Github className="w-4 h-4" /> Github
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-zenvo-border" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zenvo-text-muted">Or with email</span>
-            <div className="flex-1 h-px bg-zenvo-border" />
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">
@@ -174,7 +158,7 @@ function LoginContent() {
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
-                  className="accent-zenvo-primary w-4 h-4"
+                  className="accent-zenvo-primary w-4 h-4 rounded"
                 />
                 <span className="text-zenvo-text-secondary font-medium">Remember me</span>
               </label>
@@ -193,20 +177,33 @@ function LoginContent() {
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenvo-primary via-blue-600 to-indigo-600 text-white text-sm font-black uppercase tracking-wider shadow-primary hover:shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2"
             >
               {loading ? (
-                <>Signing in <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
+                <>Signing In <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
               ) : (
                 <>
                   <LogIn className="w-4 h-4" /> Sign In
                 </>
               )}
             </button>
-
-            <p className="text-[10px] text-center text-zenvo-text-muted font-medium leading-relaxed">
-              By signing in you agree to our{' '}
-              <a href="#" className="text-zenvo-text-secondary hover:underline">Terms of Service</a> and{' '}
-              <a href="#" className="text-zenvo-text-secondary hover:underline">Privacy Policy</a>.
-            </p>
           </form>
+
+          {/* OR WITH GOOGLE (AT BOTTOM) */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-zenvo-border" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-zenvo-text-muted">Or Continue With</span>
+            <div className="flex-1 h-px bg-zenvo-border" />
+          </div>
+
+          <GoogleSignInButton
+            label="Sign in with Google"
+            redirectTo={redirect}
+            onError={(msg) => setErr(msg)}
+          />
+
+          <p className="text-[10px] text-center text-zenvo-text-muted font-medium leading-relaxed mt-6">
+            By signing in you agree to our{' '}
+            <a href="#" className="text-zenvo-text-secondary hover:underline">Terms of Service</a> and{' '}
+            <a href="#" className="text-zenvo-text-secondary hover:underline">Privacy Policy</a>.
+          </p>
         </div>
       </div>
     </div>
@@ -220,3 +217,4 @@ export default function LoginPage() {
     </Suspense>
   );
 }
+
