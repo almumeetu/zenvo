@@ -80,11 +80,11 @@ interface AppActions {
   directCheckout: (
     item: CartItem,
     paymentMethod: PaymentMethod,
-    customerInfo?: { name?: string; email?: string; phone?: string }
+    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
   ) => Promise<{ success: boolean; orderNumber?: string; message?: string }>;
   placeOrder: (
     paymentMethod: PaymentMethod,
-    customerInfo?: { name?: string; email?: string; phone?: string }
+    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
   ) => Promise<{ success: boolean; orderNumber?: string; message?: string }>;
   depositWallet: (amountUSD: number, method: string, reference: string) => Promise<{ success: boolean; message: string }>;
   searchOrder: (orderId: string) => Promise<Order | null>;
@@ -93,7 +93,11 @@ interface AppActions {
   addProduct: (p: Product) => void;
   updateProduct: (p: Product) => void;
   deleteProduct: (id: string) => void;
-  updateOrderStatus: (orderId: string, status: 'Processing' | 'Delivered' | 'Refunded') => void;
+  updateOrderStatus: (
+    orderId: string,
+    status: 'Processing' | 'Delivered' | 'Refunded' | 'Pending Verification',
+    paymentStatus?: 'Paid' | 'Pending' | 'Failed' | 'Pending Verification'
+  ) => void;
   updateUser: (u: UserProfile) => void;
   createUser: (u: UserProfile) => void;
   deleteUser: (id: string) => void;
@@ -292,15 +296,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const directCheckout = async (
     item: CartItem,
     paymentMethod: PaymentMethod,
-    customerInfo?: { name?: string; email?: string; phone?: string }
+    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
   ) => {
     const totalUSD = item.denomination.amount * item.quantity;
     const orderNumber = 'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
-    const transactionId = 'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+    const transactionId = customerInfo?.trxId?.trim() || ('TX-' + Math.random().toString(36).slice(2, 10).toUpperCase());
+    const senderNumber = customerInfo?.senderNumber?.trim() || customerInfo?.phone || '';
 
     const customerName = customerInfo?.name || user.name || 'Guest Gamer';
     const customerEmail = customerInfo?.email || user.email || 'guest@zenvogames.com';
     const customerPhone = customerInfo?.phone || user.phone || '';
+    const isManualVerification = Boolean(customerInfo?.trxId);
 
     const newOrder: Order = {
       id: 'ord_' + Date.now(),
@@ -308,15 +314,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       userId: user.id || 'guest',
       userEmail: customerEmail,
       customerName,
-      customerEmail,
       customerPhone,
+      senderNumber,
       items: [item],
       totalUSD,
       currency: selectedCurrency,
       paidAmountCurrency: totalUSD,
       paymentMethod,
-      paymentStatus: 'Paid',
-      fulfillmentStatus: 'Processing',
+      paymentStatus: isManualVerification ? 'Pending Verification' : 'Paid',
+      fulfillmentStatus: isManualVerification ? 'Pending Verification' : 'Processing',
       createdAt: new Date().toLocaleString(),
       updatedAt: new Date().toLocaleString(),
       playerId: item.playerId || 'PLAYER_GUEST',
@@ -344,22 +350,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       )
     );
 
-    return { success: true, orderNumber, message: 'Instant top-up delivered' };
+    return { success: true, orderNumber, message: 'Order submitted! Payment verification in progress.' };
   };
 
   const placeOrder = async (
     paymentMethod: PaymentMethod,
-    customerInfo?: { name?: string; email?: string; phone?: string }
+    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
   ) => {
     if (cartItems.length === 0) return { success: false, message: 'Your cart is empty' };
 
     const totalUSD = cartItems.reduce((s, it) => s + it.denomination.amount * it.quantity, 0);
     const orderNumber = 'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
-    const transactionId = 'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+    const transactionId = customerInfo?.trxId?.trim() || ('TX-' + Math.random().toString(36).slice(2, 10).toUpperCase());
+    const senderNumber = customerInfo?.senderNumber?.trim() || customerInfo?.phone || '';
 
     const customerName = customerInfo?.name || user.name || 'Guest Gamer';
     const customerEmail = customerInfo?.email || user.email || 'guest@zenvogames.com';
     const customerPhone = customerInfo?.phone || user.phone || '';
+    const isManualVerification = Boolean(customerInfo?.trxId);
 
     const newOrder: Order = {
       id: 'ord_' + Date.now(),
@@ -367,15 +375,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       userId: user.id || 'guest',
       userEmail: customerEmail,
       customerName,
-      customerEmail,
       customerPhone,
+      senderNumber,
       items: [...cartItems],
       totalUSD,
       currency: selectedCurrency,
       paidAmountCurrency: totalUSD,
       paymentMethod,
-      paymentStatus: 'Paid',
-      fulfillmentStatus: 'Processing',
+      paymentStatus: isManualVerification ? 'Pending Verification' : 'Paid',
+      fulfillmentStatus: isManualVerification ? 'Pending Verification' : 'Processing',
       createdAt: new Date().toLocaleString(),
       updatedAt: new Date().toLocaleString(),
       playerId: cartItems[0]?.playerId || 'PLAYER_GUEST',
@@ -396,7 +404,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setOrders((p) => [newOrder, ...p]);
     clearCart();
 
-    return { success: true, orderNumber, message: 'Order placed successfully' };
+    return { success: true, orderNumber, message: 'Order submitted! Payment verification in progress.' };
   };
 
   const depositWallet = async (amountUSD: number, method: string, reference: string) => {
@@ -573,14 +581,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const updateOrderStatus = async (
     orderId: string,
-    status: 'Processing' | 'Delivered' | 'Refunded'
+    status: 'Processing' | 'Delivered' | 'Refunded' | 'Pending Verification',
+    paymentStatus?: 'Paid' | 'Pending' | 'Failed' | 'Pending Verification'
   ) => {
+    const updatedPaymentStatus = paymentStatus || (status === 'Delivered' ? 'Paid' : status === 'Refunded' ? 'Failed' : undefined);
+
     if (isDbConnected) {
       try {
         await fetch(`/api/orders/${orderId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fulfillmentStatus: status }),
+          body: JSON.stringify({
+            fulfillmentStatus: status,
+            ...(updatedPaymentStatus ? { paymentStatus: updatedPaymentStatus } : {}),
+          }),
         });
       } catch (e) {
         console.error('Failed to update order in database API', e);
@@ -590,7 +604,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setOrders((p) =>
       p.map((o) => {
         if (o.id === orderId || (o as any)._id === orderId) {
-          return { ...o, fulfillmentStatus: status, updatedAt: new Date().toLocaleString() };
+          return {
+            ...o,
+            fulfillmentStatus: status,
+            paymentStatus: updatedPaymentStatus || o.paymentStatus,
+            updatedAt: new Date().toLocaleString(),
+          };
         }
         return o;
       })

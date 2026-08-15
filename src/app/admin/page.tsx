@@ -1047,12 +1047,12 @@ export default function AdminDashboardPage() {
                 <input
                   value={searchOrder}
                   onChange={(e) => setSearchOrder(e.target.value)}
-                  placeholder="Search orders by Player ID, order number, or client email..."
+                  placeholder="Search orders by TrxID, Player ID, order number, or phone..."
                   className="w-full min-w-0 bg-transparent text-sm text-zenvo-text focus:outline-none"
                 />
               </div>
               <div className="flex gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-                {['All', 'Processing', 'Delivered', 'Refunded'].map((st) => (
+                {['All', 'Pending Verification', 'Processing', 'Delivered', 'Refunded'].map((st) => (
                   <button
                     key={st}
                     onClick={() => setOrderFilter(st as any)}
@@ -1069,35 +1069,53 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Orders Table (Desktop View) */}
-            <div className="hidden md:block rounded-2xl overflow-hidden bg-zenvo-card border border-zenvo-border">
+            <div className="hidden md:block rounded-2xl overflow-hidden bg-zenvo-card border border-zenvo-border shadow-xl">
               <table className="w-full text-sm text-left">
                 <thead>
                   <tr className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted bg-zenvo-surface/70 border-b border-zenvo-border">
-                    <th className="p-4">Order Details</th>
+                    <th className="p-4">Order & Customer</th>
                     <th className="p-4">UID / Destination</th>
-                    <th className="p-4">Fulfillment Product</th>
-                    <th className="p-4">Gateway</th>
-                    <th className="p-4 text-right">Charge amount</th>
+                    <th className="p-4">Product & Package</th>
+                    <th className="p-4">Payment & TrxID</th>
+                    <th className="p-4 text-right">Amount</th>
                     <th className="p-4 text-center">Status</th>
-                    <th className="p-4 text-right">Fulfillment Control</th>
+                    <th className="p-4 text-right">Verification & Control</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zenvo-border/40">
                   {filteredOrders.map((o) => (
-                    <tr key={o.id} className="hover:bg-zenvo-surface/30">
+                    <tr key={o.id} className="hover:bg-zenvo-surface/30 transition-colors">
                       <td className="p-4">
                         <div className="font-bold text-zenvo-text font-mono text-sm">{o.orderNumber}</div>
                         <div className="text-[10px] text-zenvo-text-muted mt-0.5">{o.createdAt}</div>
-                        <div className="text-[10px] text-zenvo-primary underline mt-0.5">{o.userEmail}</div>
+                        <div className="text-xs font-semibold text-zenvo-text mt-1">{o.customerName || 'Gamer'}</div>
+                        <div className="text-[10px] text-zenvo-primary mt-0.5">{o.userEmail}</div>
+                        {o.customerPhone && (
+                          <div className="text-[10px] text-emerald-400 font-mono mt-0.5">📞 {o.customerPhone}</div>
+                        )}
                       </td>
-                      <td className="p-4 font-mono text-xs text-zenvo-text-secondary">{o.playerId}</td>
+                      <td className="p-4 font-mono text-xs text-zenvo-text-secondary">
+                        <span className="px-2 py-1 rounded bg-zenvo-surface border border-zenvo-border">
+                          {o.playerId}
+                        </span>
+                        {o.serverId && <p className="text-[10px] text-zenvo-text-muted mt-1">Server: {o.serverId}</p>}
+                      </td>
                       <td className="p-4">
                         <p className="font-bold text-zenvo-text text-xs leading-snug">{o.items[0]?.productTitle}</p>
                         <p className="text-[10px] text-zenvo-text-secondary leading-snug">{o.items[0]?.denomination.name} (Qty {o.items[0]?.quantity})</p>
                       </td>
                       <td className="p-4">
-                        <p className="text-xs text-zenvo-text">{o.paymentMethod}</p>
-                        <p className="text-[9px] font-mono text-zenvo-text-muted uppercase mt-0.5">{o.paymentStatus}</p>
+                        <p className="text-xs font-bold text-zenvo-text">{o.paymentMethod}</p>
+                        {o.senderNumber && (
+                          <p className="text-[10px] font-mono text-amber-400 mt-0.5">
+                            Sender: <span className="font-bold">{o.senderNumber}</span>
+                          </p>
+                        )}
+                        {o.transactionId && (
+                          <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 font-mono text-[11px] font-bold">
+                            TrxID: {o.transactionId}
+                          </div>
+                        )}
                       </td>
                       <td className="p-4 text-right font-black font-mono text-sm text-zenvo-success">
                         {formatCurrency(o.totalUSD, o.currency as any)}
@@ -1106,23 +1124,31 @@ export default function AdminDashboardPage() {
                         <span className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold border uppercase tracking-wider ${
                           o.fulfillmentStatus === 'Delivered'
                             ? 'bg-zenvo-success-soft text-zenvo-success border-zenvo-success/20'
-                            : o.fulfillmentStatus === 'Processing'
-                              ? 'bg-zenvo-warning-soft text-zenvo-warning border-zenvo-warning/20'
-                              : 'bg-zenvo-error-soft text-zenvo-error border-zenvo-error/20'
+                            : o.fulfillmentStatus === 'Pending Verification'
+                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 animate-pulse'
+                              : o.fulfillmentStatus === 'Processing'
+                                ? 'bg-zenvo-warning-soft text-zenvo-warning border-zenvo-warning/20'
+                                : 'bg-zenvo-error-soft text-zenvo-error border-zenvo-error/20'
                         }`}>
                           {o.fulfillmentStatus}
                         </span>
                       </td>
                       <td className="p-4 text-right">
-                        <div className="inline-flex gap-1.5 justify-end">
+                        <div className="inline-flex flex-col gap-1.5 items-end">
                           {o.fulfillmentStatus !== 'Delivered' && (
-                            <button onClick={() => updateOrderStatus(o.id, 'Delivered')} className="px-2.5 py-1.5 rounded-lg bg-zenvo-success-soft/30 hover:bg-zenvo-success hover:text-white border border-zenvo-success/20 text-zenvo-success font-bold text-[10px] uppercase transition-all">
-                              Ship
+                            <button
+                              onClick={() => updateOrderStatus(o.id, 'Delivered', 'Paid')}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] uppercase tracking-wider shadow-sm transition-all flex items-center gap-1"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Approve & Deliver
                             </button>
                           )}
                           {o.fulfillmentStatus !== 'Refunded' && (
-                            <button onClick={() => updateOrderStatus(o.id, 'Refunded')} className="px-2.5 py-1.5 rounded-lg bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white border border-zenvo-error/20 text-zenvo-error font-bold text-[10px] uppercase transition-all">
-                              Refund
+                            <button
+                              onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
+                              className="px-2.5 py-1 rounded-lg bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white border border-zenvo-error/20 text-zenvo-error font-semibold text-[10px] uppercase transition-all"
+                            >
+                              Reject / Refund
                             </button>
                           )}
                         </div>
@@ -1136,14 +1162,18 @@ export default function AdminDashboardPage() {
             {/* Orders Cards (Mobile View) */}
             <div className="grid grid-cols-1 gap-3.5 md:hidden">
               {filteredOrders.map((o) => (
-                <div key={o.id} className="p-4 rounded-2xl bg-zenvo-card border border-zenvo-border flex flex-col gap-3">
+                <div key={o.id} className="p-4 rounded-2xl bg-zenvo-card border border-zenvo-border flex flex-col gap-3 shadow-lg">
                   <div className="flex justify-between items-start">
                     <div>
                       <span className="font-mono text-xs font-bold text-zenvo-primary">{o.orderNumber}</span>
                       <p className="text-[10px] text-zenvo-text-muted mt-0.5">{o.createdAt}</p>
                     </div>
                     <span className={`px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
-                      o.fulfillmentStatus === 'Delivered' ? 'bg-zenvo-success-soft text-zenvo-success border-zenvo-success/20' : 'bg-zenvo-warning-soft text-zenvo-warning border-zenvo-warning/20'
+                      o.fulfillmentStatus === 'Delivered'
+                        ? 'bg-zenvo-success-soft text-zenvo-success border-zenvo-success/20'
+                        : o.fulfillmentStatus === 'Pending Verification'
+                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
+                          : 'bg-zenvo-warning-soft text-zenvo-warning border-zenvo-warning/20'
                     }`}>
                       {o.fulfillmentStatus}
                     </span>
@@ -1152,8 +1182,14 @@ export default function AdminDashboardPage() {
                   <div className="bg-zenvo-surface/40 p-3 rounded-xl space-y-1.5 text-xs border border-zenvo-border/30">
                     <div className="flex justify-between">
                       <span className="text-zenvo-text-muted">Client:</span>
-                      <span className="text-zenvo-text truncate max-w-[170px] font-medium">{o.userEmail}</span>
+                      <span className="text-zenvo-text font-medium">{o.customerName || 'Gamer'} ({o.userEmail})</span>
                     </div>
+                    {o.customerPhone && (
+                      <div className="flex justify-between">
+                        <span className="text-zenvo-text-muted">Phone:</span>
+                        <span className="font-mono text-emerald-400 font-bold">{o.customerPhone}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-zenvo-text-muted">Destination:</span>
                       <span className="font-mono text-zenvo-text font-bold">{o.playerId}</span>
@@ -1163,24 +1199,42 @@ export default function AdminDashboardPage() {
                       <span className="text-zenvo-text text-right font-bold">{o.items[0]?.productTitle}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zenvo-text-muted">Pack:</span>
-                      <span className="text-zenvo-text text-right truncate max-w-[175px]">{o.items[0]?.denomination.name} (Qty {o.items[0]?.quantity})</span>
+                      <span className="text-zenvo-text-muted">Gateway:</span>
+                      <span className="text-zenvo-text font-bold">{o.paymentMethod}</span>
                     </div>
+                    {o.senderNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-zenvo-text-muted">Sender Num:</span>
+                        <span className="font-mono text-amber-400 font-bold">{o.senderNumber}</span>
+                      </div>
+                    )}
+                    {o.transactionId && (
+                      <div className="flex justify-between">
+                        <span className="text-zenvo-text-muted">TrxID:</span>
+                        <span className="font-mono text-sky-400 font-black">{o.transactionId}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between border-t border-zenvo-border/30 pt-1.5 mt-1.5 text-zenvo-text">
-                      <span>Gateway: {o.paymentMethod}</span>
+                      <span>Total Amount:</span>
                       <span className="font-black font-mono text-zenvo-success">{formatCurrency(o.totalUSD, o.currency as any)}</span>
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-1.5 mt-0.5">
+                  <div className="flex gap-2 mt-0.5">
                     {o.fulfillmentStatus !== 'Delivered' && (
-                      <button onClick={() => updateOrderStatus(o.id, 'Delivered')} className="px-3.5 py-2 rounded-xl bg-zenvo-success hover:bg-zenvo-success-hover text-white font-bold text-[10px] uppercase shadow-sm transition-all flex-1 text-center">
-                        Ship Order
+                      <button
+                        onClick={() => updateOrderStatus(o.id, 'Delivered', 'Paid')}
+                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase shadow-sm transition-all flex-1 text-center flex items-center justify-center gap-1"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Approve & Deliver
                       </button>
                     )}
                     {o.fulfillmentStatus !== 'Refunded' && (
-                      <button onClick={() => updateOrderStatus(o.id, 'Refunded')} className="px-3.5 py-2 rounded-xl bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white border border-zenvo-error/20 text-zenvo-error font-bold text-[10px] uppercase transition-all flex-1 text-center">
-                        Refund
+                      <button
+                        onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
+                        className="px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-error/40 text-zenvo-error font-bold text-xs uppercase transition-all"
+                      >
+                        Reject
                       </button>
                     )}
                   </div>

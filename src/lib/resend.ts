@@ -145,11 +145,19 @@ export async function sendOrderNotificationEmail(order: any) {
             </tr>` : ''}
             <tr>
               <td class="label">Payment Method</td>
-              <td class="value">${order.paymentMethod || 'bKash / Auto'}</td>
+              <td class="value">${order.paymentMethod || 'bKash'}</td>
+            </tr>
+            <tr>
+              <td class="label">Sender Number / Account</td>
+              <td class="value" style="font-family: monospace; color: #fbbf24; font-weight: bold;">${order.senderNumber || order.customerPhone || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td class="label">Transaction ID (TrxID)</td>
+              <td class="value" style="font-family: monospace; color: #38bdf8; font-weight: 800; font-size: 14px; letter-spacing: 1px;">${order.transactionId || 'N/A'}</td>
             </tr>
             <tr>
               <td class="label">Payment Status</td>
-              <td class="value" style="color: #10b981;">Paid & Processing</td>
+              <td class="value" style="color: ${order.paymentStatus === 'Paid' ? '#10b981' : '#f59e0b'}; font-weight: bold;">${order.paymentStatus || 'Pending Verification'}</td>
             </tr>
             <tr>
               <td class="label">Order Time</td>

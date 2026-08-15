@@ -75,12 +75,16 @@ export interface Order {
   orderNumber: string;
   userId: string;
   userEmail: string;
+  customerName?: string;
+  customerPhone?: string;
+  senderNumber?: string;
+  ipAddress?: string;
   items: CartItem[];
   totalUSD: number;
   currency: CurrencyCode;
   paidAmountCurrency: number;
   paymentMethod: 'bKash' | 'Nagad' | 'Rocket' | 'Visa/Mastercard' | 'Crypto/USDT' | 'Zenov Wallet';
-  paymentStatus: 'Paid' | 'Pending' | 'Failed';
+  paymentStatus: 'Paid' | 'Pending' | 'Failed' | 'Pending Verification';
   fulfillmentStatus: 'Processing' | 'Delivered' | 'Pending Verification' | 'Refunded';
   playerId: string;
   serverId?: string;

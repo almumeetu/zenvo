@@ -29,6 +29,7 @@ import {
   User,
   Mail,
 } from 'lucide-react';
+import ManualPaymentBox from '@/components/payment/ManualPaymentBox';
 
 export default function TopUpPage() {
   const params = useParams<{ productId: string }>() ?? { productId: '' };
@@ -64,6 +65,8 @@ export default function TopUpPage() {
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [senderNumber, setSenderNumber] = useState('');
+  const [trxId, setTrxId] = useState('');
 
   // Sync with user profile
   useEffect(() => {
@@ -109,9 +112,11 @@ export default function TopUpPage() {
   const denom = product.denominations.find((d) => d.id === selectedDenom) || product.denominations[0];
   const unitPrice = denom ? denom.amount : 0;
   const subtotal = unitPrice * quantity;
-  const discount = couponState.applied && couponState.discountPct ? subtotal * (couponState.discountPct / 100) : 0;
   const serviceFee = Math.max(0, subtotal * 0.015);
-  const total = Math.max(0, subtotal - discount + serviceFee);
+  const total = Math.max(0, subtotal + serviceFee);
+
+  const isGiftCard = product.category === 'gift-card' || product.playerIdLabel?.toLowerCase().includes('email');
+  const requiresPlayerId = product.category === 'game-topup' && !isGiftCard;
 
   const verifyPlayer = () => {
     if (!playerId.trim()) return;
@@ -127,22 +132,6 @@ export default function TopUpPage() {
     }, 900);
   };
 
-  const applyCoupon = () => {
-    const code = coupon.trim().toUpperCase();
-    if (!code) return;
-    const map: Record<string, { pct: number }> = {
-      ZENOV2026: { pct: 20 },
-      BONUS10: { pct: 10 },
-      WELCOME5: { pct: 5 },
-      VIP30: { pct: 30 },
-    };
-    if (map[code]) {
-      setCouponState({ applied: true, code, discountPct: map[code].pct, message: `${map[code].pct}% discount applied!` });
-    } else {
-      setCouponState({ applied: false, message: 'Invalid coupon code' });
-    }
-  };
-
   const fireConfetti = () => {
     const end = Date.now() + 1200;
     const frame = () => {
@@ -154,7 +143,19 @@ export default function TopUpPage() {
   };
 
   const onPay = async () => {
-    if (!denom || !playerId.trim()) return;
+    if (!denom) return;
+    if (requiresPlayerId && !playerId.trim()) {
+      alert(`Please enter your ${product.playerIdLabel || 'Player ID / UID'}.`);
+      return;
+    }
+    if (!customerEmail.trim()) {
+      alert('Please enter your email address to receive your order receipt.');
+      return;
+    }
+    if (!trxId.trim()) {
+      alert(`Please send ${paymentMethod} payment to the number above and enter the Transaction ID (TrxID).`);
+      return;
+    }
     setSubmitting(true);
     const item = {
       productId: product.id,
@@ -162,21 +163,23 @@ export default function TopUpPage() {
       productImage: product.image,
       denomination: denom,
       quantity,
-      playerId,
-      serverId,
+      playerId: requiresPlayerId ? playerId.trim() : (customerEmail.trim() || 'GIFT_CARD_ORDER'),
+      serverId: requiresPlayerId ? serverId.trim() : '',
     } as any;
     const result = await directCheckout(item, paymentMethod, {
       name: customerName.trim() || user?.name || 'Gamer',
       email: customerEmail.trim() || user?.email || 'guest@zenvogames.com',
       phone: customerPhone.trim() || user?.phone || '',
+      senderNumber: senderNumber.trim() || customerPhone.trim(),
+      trxId: trxId.trim(),
     });
     setSubmitting(false);
     if (result.success && result.orderNumber) {
       fireConfetti();
       setSuccessResult({
         orderNumber: result.orderNumber,
-        message: result.message || 'Instant top-up delivered successfully',
-        txid: 'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase(),
+        message: result.message || 'Payment submitted! Admin verification in progress.',
+        txid: trxId.trim() || ('TX-' + Math.random().toString(36).slice(2, 10).toUpperCase()),
       });
     }
   };
@@ -189,8 +192,8 @@ export default function TopUpPage() {
       productImage: product.image,
       denomination: denom,
       quantity,
-      playerId,
-      serverId,
+      playerId: requiresPlayerId ? playerId.trim() : (customerEmail.trim() || 'GIFT_CARD_ORDER'),
+      serverId: requiresPlayerId ? serverId.trim() : '',
     } as any);
     router.push('/cart');
   };
@@ -243,63 +246,65 @@ export default function TopUpPage() {
         {/* RIGHT: Checkout form — comes FIRST on mobile */}
         <div className="lg:col-span-2 lg:order-2">
           <div className="lg:sticky lg:top-24 space-y-3 sm:space-y-4">
-            {/* 1. Player ID */}
-            <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-3.5 sm:p-5">
-              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text mb-3 flex items-center gap-2">
-                <Gamepad2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-primary" />
-                {product.playerIdLabel}
-              </h3>
-              <div className="space-y-2.5">
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1.5">
-                    Enter {product.playerIdLabel}
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={playerId}
-                      onChange={(e) => { setPlayerId(e.target.value); setVerifiedPlayer(null); }}
-                      placeholder={product.playerIdPlaceholder || 'Enter ID...'}
-                      className="flex-1 px-3 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none transition-all text-xs sm:text-sm font-mono"
-                    />
-                    <button
-                      onClick={verifyPlayer}
-                      disabled={!playerId.trim() || verifying}
-                      className="px-3 py-2 rounded-lg bg-zenvo-primary-soft hover:bg-zenvo-primary hover:text-white disabled:opacity-50 text-zenvo-primary text-xs font-bold transition-colors inline-flex items-center gap-1 shrink-0"
-                    >
-                      {verifying ? '...' : <><span className="hidden sm:inline">Verify</span> <CheckCircle2 className="w-3 h-3" /></>}
-                    </button>
-                  </div>
-                </div>
-                {verifiedPlayer && (
-                  <div className="p-2.5 rounded-xl bg-zenvo-success-soft/60 border border-zenvo-success/30 flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-zenvo-success shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] text-zenvo-text-muted">Player found:</p>
-                      <p className="text-xs font-bold text-zenvo-text truncate">
-                        {verifiedPlayer.name} <span className="text-zenvo-primary">• {verifiedPlayer.level}</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {(product.requiresServerId || product.hasServerId) && (
+            {/* 1. Player ID / UID (Only for Game Top-Ups, Hidden for Gift Cards) */}
+            {requiresPlayerId && (
+              <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-3.5 sm:p-5">
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text mb-3 flex items-center gap-2">
+                  <Gamepad2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-primary" />
+                  {product.playerIdLabel || 'Player ID / UID'}
+                </h3>
+                <div className="space-y-2.5">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1.5">
-                      Server / Region (optional)
+                      Enter {product.playerIdLabel || 'Player ID'}
                     </label>
-                    <input
-                      type="text"
-                      value={serverId}
-                      onChange={(e) => setServerId(e.target.value)}
-                      placeholder="e.g. NA / EU / Asia"
-                      className="w-full px-3 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none transition-all text-xs sm:text-sm"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={playerId}
+                        onChange={(e) => { setPlayerId(e.target.value); setVerifiedPlayer(null); }}
+                        placeholder={product.playerIdPlaceholder || 'Enter Player UID...'}
+                        className="flex-1 px-3 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none transition-all text-xs sm:text-sm font-mono"
+                      />
+                      <button
+                        onClick={verifyPlayer}
+                        disabled={!playerId.trim() || verifying}
+                        className="px-3 py-2 rounded-lg bg-zenvo-primary-soft hover:bg-zenvo-primary hover:text-white disabled:opacity-50 text-zenvo-primary text-xs font-bold transition-colors inline-flex items-center gap-1 shrink-0"
+                      >
+                        {verifying ? '...' : <><span className="hidden sm:inline">Verify</span> <CheckCircle2 className="w-3 h-3" /></>}
+                      </button>
+                    </div>
                   </div>
-                )}
+                  {verifiedPlayer && (
+                    <div className="p-2.5 rounded-xl bg-zenvo-success-soft/60 border border-zenvo-success/30 flex items-center gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-zenvo-success shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-zenvo-text-muted">Player found:</p>
+                        <p className="text-xs font-bold text-zenvo-text truncate">
+                          {verifiedPlayer.name} <span className="text-zenvo-primary">• {verifiedPlayer.level}</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {(product.requiresServerId || product.hasServerId) && (
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1.5">
+                        Server / Region (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={serverId}
+                        onChange={(e) => setServerId(e.target.value)}
+                        placeholder="e.g. NA / EU / Asia"
+                        className="w-full px-3 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none transition-all text-xs sm:text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* 2. Denominations */}
+            {/* 2. Denominations / Packages */}
             <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-3.5 sm:p-5">
               <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text mb-3">
                 Select Package
@@ -364,35 +369,7 @@ export default function TopUpPage() {
               </div>
             </div>
 
-              {/* 3. Coupon */}
-            <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-3.5 sm:p-5">
-              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text mb-2.5 flex items-center gap-2">
-                <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-accent" /> Promo Code
-              </h3>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={coupon}
-                  onChange={(e) => { setCoupon(e.target.value); if (couponState.applied) setCouponState({ applied: false }); }}
-                  onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
-                  placeholder="e.g. ZENOV2026"
-                  className="flex-1 px-3 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-accent-border focus:ring-2 focus:ring-zenvo-accent-border/40 outline-none transition-all text-xs sm:text-sm font-mono uppercase"
-                />
-                <button
-                  onClick={applyCoupon}
-                  className="px-3.5 py-2 rounded-lg bg-zenvo-accent hover:bg-zenvo-accent-hover text-zenvo-bg text-xs sm:text-sm font-bold transition-colors shrink-0"
-                >
-                  Apply
-                </button>
-              </div>
-              {couponState.message && (
-                <div className={`mt-1.5 text-[10px] sm:text-xs font-semibold ${couponState.applied ? 'text-zenvo-success' : 'text-zenvo-error'}`}>
-                  {couponState.applied ? '✓ ' : '✗ '}{couponState.message}
-                </div>
-              )}
-            </div>
-
-            {/* 4. Customer Contact Details */}
+            {/* 3. Customer Contact Details */}
             <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-3.5 sm:p-5 space-y-3">
               <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text flex items-center gap-2">
                 <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-primary" />
@@ -439,28 +416,29 @@ export default function TopUpPage() {
               </div>
             </div>
 
-            {/* 5. Payment + Summary */}
-            <div className="rounded-2xl bg-zenvo-card border border-zenvo-border overflow-hidden">
+            {/* 4. Payment + Summary */}
+            <div className="rounded-2xl bg-zenvo-card border border-zenvo-border overflow-hidden space-y-4">
               <div className="px-3.5 sm:px-5 pt-3.5 sm:pt-5">
                 <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text mb-2.5 flex items-center gap-2">
-                  <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-primary" /> Payment
+                  <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-primary" /> Select Payment Method
                 </h3>
                 <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                   {[
-                    { id: 'bKash', I: Phone, tag: 'Popular' },
-                    { id: 'Nagad', I: Phone, tag: '' },
-                    { id: 'Rocket', I: Phone, tag: '' },
-                    { id: 'Visa/Mastercard', I: CreditCard, tag: 'Card' },
-                    { id: 'Crypto/USDT', I: Wallet, tag: 'Web3' },
+                    { id: 'bKash', I: Phone, tag: 'Personal' },
+                    { id: 'Nagad', I: Phone, tag: 'Personal' },
+                    { id: 'Rocket', I: Phone, tag: 'Personal' },
+                    { id: 'Visa/Mastercard', I: CreditCard, tag: 'Bank Transfer' },
+                    { id: 'Crypto/USDT', I: Wallet, tag: 'TRC20' },
                   ].map(({ id, I: Ic, tag }) => {
                     const active = paymentMethod === (id as PaymentMethod);
                     return (
                       <button
                         key={id}
+                        type="button"
                         onClick={() => setPaymentMethod(id as PaymentMethod)}
                         className={`relative p-2 sm:p-2.5 rounded-lg sm:rounded-xl border transition-all flex items-center gap-2 text-left ${
                           active
-                            ? 'bg-zenvo-primary-soft/50 border-zenvo-primary-border'
+                            ? 'bg-zenvo-primary-soft/50 border-zenvo-primary-border ring-1 ring-zenvo-primary-border/40'
                             : 'bg-zenvo-surface/60 border-zenvo-border hover:border-zenvo-border-hover'
                         }`}
                       >
@@ -477,8 +455,21 @@ export default function TopUpPage() {
                 </div>
               </div>
 
+              {/* Manual Payment Details & TrxID Input Box */}
+              <div className="px-3.5 sm:px-5">
+                <ManualPaymentBox
+                  paymentMethod={paymentMethod}
+                  totalAmountUSD={total}
+                  selectedCurrency={selectedCurrency}
+                  senderNumber={senderNumber}
+                  setSenderNumber={setSenderNumber}
+                  trxId={trxId}
+                  setTrxId={setTrxId}
+                />
+              </div>
+
               {/* Summary */}
-              <div className="px-3.5 sm:px-5 pt-4 mt-1 space-y-1.5 text-xs sm:text-sm">
+              <div className="px-3.5 sm:px-5 pt-1 space-y-1.5 text-xs sm:text-sm">
                 <div className="flex justify-between text-zenvo-text-secondary">
                   <span>Subtotal ({quantity}×)</span>
                   <span className="font-mono">{formatCurrency(subtotal, selectedCurrency)}</span>
@@ -487,33 +478,27 @@ export default function TopUpPage() {
                   <span>Service fee (1.5%)</span>
                   <span className="font-mono">{formatCurrency(serviceFee, selectedCurrency)}</span>
                 </div>
-                {couponState.applied && couponState.discountPct && (
-                  <div className="flex justify-between text-zenvo-success">
-                    <span>Discount ({couponState.code} −{couponState.discountPct}%)</span>
-                    <span className="font-mono">−{formatCurrency(discount, selectedCurrency)}</span>
-                  </div>
-                )}
                 <div className="h-px bg-zenvo-border my-2" />
                 <div className="flex items-baseline justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-zenvo-text-muted">Total</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-zenvo-text-muted">Total Payable</span>
                   <span className="text-xl sm:text-2xl font-black font-mono text-zenvo-text">
                     {formatCurrency(total, selectedCurrency)}
                   </span>
                 </div>
               </div>
 
-              <div className="p-3.5 sm:p-5 pt-3 space-y-2">
+              <div className="p-3.5 sm:p-5 pt-1 space-y-2">
                 <button
                   onClick={onPay}
-                  disabled={!denom || !playerId.trim() || submitting || total <= 0}
-                  className="w-full py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-zenvo-primary via-blue-600 to-indigo-600 hover:shadow-primary text-white text-xs sm:text-sm font-black uppercase tracking-wider disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md"
+                  disabled={!denom || (requiresPlayerId && !playerId.trim()) || !trxId.trim() || submitting || total <= 0}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenvo-primary via-blue-600 to-indigo-600 hover:shadow-primary text-white text-xs sm:text-sm font-black uppercase tracking-wider disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md"
                 >
                   {submitting ? (
-                    <>Processing <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
+                    <>Submitting Order <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
                   ) : (
                     <>
                       <Zap className="w-3.5 h-3.5 fill-white" />
-                      Pay {formatCurrency(total, selectedCurrency)} & Top-Up
+                      Submit Order with TrxID ({formatCurrency(total, selectedCurrency)})
                     </>
                   )}
                 </button>

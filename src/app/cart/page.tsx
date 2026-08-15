@@ -25,6 +25,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import ManualPaymentBox from '@/components/payment/ManualPaymentBox';
 
 export default function CartPage() {
   const {
@@ -38,12 +39,12 @@ export default function CartPage() {
   } = useApp();
   const router = useRouter();
 
-  const [coupon, setCoupon] = useState('');
-  const [couponState, setCouponState] = useState<{ applied: boolean; code?: string; pct?: number; message?: string }>({ applied: false });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bKash');
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
+  const [senderNumber, setSenderNumber] = useState('');
+  const [trxId, setTrxId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successOrder, setSuccessOrder] = useState<{ orderNumber: string; message: string } | null>(null);
 
@@ -57,20 +58,8 @@ export default function CartPage() {
     (s, it) => s + it.denomination.amount * it.quantity,
     0
   );
-  const discount = couponState.applied && couponState.pct ? subtotal * (couponState.pct / 100) : 0;
   const serviceFee = subtotal * 0.015;
-  const total = Math.max(0, subtotal - discount + serviceFee);
-  const savingsEstimated = subtotal - (subtotal - discount);
-
-  const applyCoupon = () => {
-    const code = coupon.trim().toUpperCase();
-    const map: Record<string, number> = { ZENVO2026: 20, BONUS10: 10, WELCOME5: 5, VIP30: 30 };
-    if (map[code]) {
-      setCouponState({ applied: true, code, pct: map[code], message: `Discount applied (-${map[code]}%)` });
-    } else {
-      setCouponState({ applied: false, message: 'Invalid or expired code' });
-    }
-  };
+  const total = Math.max(0, subtotal + serviceFee);
 
   const fireConfetti = () => {
     const end = Date.now() + 1200;
@@ -88,18 +77,24 @@ export default function CartPage() {
       alert('Please provide your email address for instant order delivery & receipt.');
       return;
     }
+    if (!trxId.trim()) {
+      alert(`Please send ${paymentMethod} payment and provide the Transaction ID (TrxID).`);
+      return;
+    }
     setSubmitting(true);
     const res = await placeOrder(paymentMethod, {
       name: customerName.trim() || user?.name || 'Gamer',
       email: customerEmail.trim() || user?.email || 'guest@zenvogames.com',
       phone: customerPhone.trim() || user?.phone || '',
+      senderNumber: senderNumber.trim() || customerPhone.trim(),
+      trxId: trxId.trim(),
     });
     setSubmitting(false);
     if (res.success && res.orderNumber) {
       fireConfetti();
       setSuccessOrder({
         orderNumber: res.orderNumber,
-        message: res.message || 'Order placed successfully!',
+        message: res.message || 'Order placed successfully! Admin verification in progress.',
       });
     }
   };
@@ -303,7 +298,7 @@ export default function CartPage() {
             </div>
 
             {/* Payment Method Selector */}
-            <div className="p-5 rounded-2xl bg-zenvo-card border border-zenvo-border space-y-3">
+            <div className="p-5 rounded-2xl bg-zenvo-card border border-zenvo-border space-y-4">
               <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-zenvo-primary" /> Select Payment Method
               </h3>
@@ -326,6 +321,17 @@ export default function CartPage() {
                   );
                 })}
               </div>
+
+              {/* Manual Payment Details & TrxID Input Box */}
+              <ManualPaymentBox
+                paymentMethod={paymentMethod}
+                totalAmountUSD={total}
+                selectedCurrency={selectedCurrency}
+                senderNumber={senderNumber}
+                setSenderNumber={setSenderNumber}
+                trxId={trxId}
+                setTrxId={setTrxId}
+              />
             </div>
 
             {/* Trust */}
@@ -350,33 +356,6 @@ export default function CartPage() {
           {/* Summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-5">
-              <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-5">
-                <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-4 flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-zenvo-accent" /> Promo Code
-                </h3>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={coupon}
-                    onChange={(e) => { setCoupon(e.target.value); if (couponState.applied) setCouponState({ applied: false }); }}
-                    onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
-                    placeholder="ZENVO2026"
-                    className="flex-1 px-3.5 py-2.5 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-accent-border focus:ring-2 focus:ring-zenvo-accent-border/40 outline-none text-sm font-mono uppercase"
-                  />
-                  <button
-                    onClick={applyCoupon}
-                    className="px-4 py-2.5 rounded-lg bg-zenvo-accent hover:bg-zenvo-accent-hover text-zenvo-bg text-sm font-bold"
-                  >
-                    Apply
-                  </button>
-                </div>
-                {couponState.message && (
-                  <div className={`mt-2 text-xs font-semibold ${couponState.applied ? 'text-zenvo-success' : 'text-zenvo-error'}`}>
-                    {couponState.applied ? '✓' : '✗'} {couponState.message}
-                  </div>
-                )}
-              </div>
-
               <div className="rounded-3xl bg-zenvo-card border border-zenvo-border overflow-hidden">
                 <div className="px-5 py-4 border-b border-zenvo-border flex items-center justify-between">
                   <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text">Order Summary</h3>
@@ -393,36 +372,25 @@ export default function CartPage() {
                     <span>Service fee (1.5%)</span>
                     <span className="font-mono">{formatCurrency(serviceFee, selectedCurrency)}</span>
                   </div>
-                  {couponState.applied && couponState.pct && (
-                    <div className="flex justify-between text-zenvo-success">
-                      <span>Promo ({couponState.code})</span>
-                      <span className="font-mono">−{formatCurrency(discount, selectedCurrency)}</span>
-                    </div>
-                  )}
                   <div className="h-px bg-zenvo-border my-3" />
                   <div className="flex items-baseline justify-between">
-                    <span className="text-sm font-bold uppercase tracking-wider text-zenvo-text-muted">You Pay</span>
+                    <span className="text-sm font-bold uppercase tracking-wider text-zenvo-text-muted">Total</span>
                     <span className="text-3xl font-black font-mono text-zenvo-text">
                       {formatCurrency(total, selectedCurrency)}
                     </span>
                   </div>
-                  {savingsEstimated > 0 && (
-                    <p className="text-center text-xs font-semibold text-zenvo-success pt-1">
-                      You save {formatCurrency(savingsEstimated, selectedCurrency)} with {couponState.code}
-                    </p>
-                  )}
                 </div>
                 <div className="p-5 pt-0 space-y-2.5">
                   <button
                     onClick={onCheckout}
-                    disabled={submitting || total <= 0}
+                    disabled={submitting || !trxId.trim() || total <= 0}
                     className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenvo-accent via-orange-500 to-zenvo-accent-hover text-zenvo-bg text-sm font-black uppercase tracking-wider shadow-md active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {submitting ? (
                       <>Processing <div className="w-4 h-4 border-2 border-zenvo-bg/30 border-t-zenvo-bg rounded-full animate-spin" /></>
                     ) : (
                       <>
-                        <Zap className="w-4 h-4" /> Complete Checkout
+                        <Zap className="w-4 h-4" /> Submit Order with TrxID
                       </>
                     )}
                   </button>
