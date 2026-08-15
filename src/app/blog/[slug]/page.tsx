@@ -24,7 +24,23 @@ export default function BlogDetailPage() {
   const article = blogArticles.find((a) => a.id === params.slug);
 
   if (!article) {
-    notFound();
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <div className="max-w-md mx-auto p-8 rounded-2xl bg-zenvo-card border border-zenvo-border space-y-4 shadow-xl">
+          <Newspaper className="w-12 h-12 text-zenvo-primary mx-auto opacity-80 animate-pulse" />
+          <h2 className="text-xl font-black text-zenvo-text uppercase tracking-tight">Article Not Found</h2>
+          <p className="text-xs text-zenvo-text-secondary leading-relaxed">
+            The blog article or review guide you are looking for does not exist or has been archived.
+          </p>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zenvo-primary text-slate-950 font-black text-xs uppercase tracking-wide hover:bg-zenvo-primary-hover transition-all active:scale-95 shadow-md shadow-zenvo-primary/20"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Blog Articles
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const related = blogArticles

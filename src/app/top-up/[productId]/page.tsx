@@ -75,7 +75,23 @@ export default function TopUpPage() {
   }, [product?.id]);
 
   if (!product) {
-    notFound();
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <div className="max-w-md mx-auto p-8 rounded-2xl bg-zenvo-card border border-zenvo-border space-y-4 shadow-xl">
+          <Gamepad2 className="w-12 h-12 text-zenvo-primary mx-auto opacity-80 animate-pulse" />
+          <h2 className="text-xl font-black text-zenvo-text uppercase tracking-tight">Catalog Item Not Found</h2>
+          <p className="text-xs text-zenvo-text-secondary leading-relaxed">
+            The top-up game or gift card item you selected is currently unavailable or being updated in our server catalog.
+          </p>
+          <Link
+            href="/shop"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zenvo-primary text-slate-950 font-black text-xs uppercase tracking-wide hover:bg-zenvo-primary-hover transition-all active:scale-95 shadow-md shadow-zenvo-primary/20"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Shop Catalog
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const denom = product.denominations.find((d) => d.id === selectedDenom);
