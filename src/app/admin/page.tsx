@@ -457,7 +457,44 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-zenvo-bg flex flex-col lg:flex-row text-zenvo-text">
+    <div className="admin-panel-wrapper min-h-screen bg-zenvo-bg flex flex-col lg:flex-row text-zenvo-text">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .admin-panel-wrapper {
+          font-size: 15px;
+          line-height: 1.6;
+        }
+        .admin-panel-wrapper .text-xs,
+        .admin-panel-wrapper .text-\\[11px\\],
+        .admin-panel-wrapper .text-\\[10px\\] {
+          font-size: 13px !important;
+        }
+        .admin-panel-wrapper .text-sm {
+          font-size: 15px !important;
+        }
+        .admin-panel-wrapper .text-base {
+          font-size: 17px !important;
+        }
+        .admin-panel-wrapper .text-lg {
+          font-size: 19px !important;
+        }
+        .admin-panel-wrapper .text-xl {
+          font-size: 22px !important;
+        }
+        .admin-panel-wrapper .text-2xl {
+          font-size: 26px !important;
+        }
+        .admin-panel-wrapper p,
+        .admin-panel-wrapper span,
+        .admin-panel-wrapper button,
+        .admin-panel-wrapper label,
+        .admin-panel-wrapper input,
+        .admin-panel-wrapper select,
+        .admin-panel-wrapper textarea,
+        .admin-panel-wrapper td,
+        .admin-panel-wrapper th {
+          letter-spacing: 0.015em;
+        }
+      `}} />
       
       {/* 1. Mobile Header Bar */}
       <header className="lg:hidden w-full bg-zenvo-card border-b border-zenvo-border px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">

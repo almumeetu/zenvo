@@ -262,25 +262,25 @@ export const Footer: React.FC = () => {
               </h4>
               <ul className="space-y-2.5 text-xs">
                 <li>
-                  <FooterLink href="/faqs">
+                  <FooterLink href="/faqs?tab=refund">
                     <ShieldCheck className="w-3.5 h-3.5 text-zenvo-success mt-0.5 shrink-0" />
                     <span>Refund & Return Policy</span>
                   </FooterLink>
                 </li>
                 <li>
-                  <FooterLink href="/faqs">
+                  <FooterLink href="/faqs?tab=privacy">
                     <Lock className="w-3.5 h-3.5 text-zenvo-primary mt-0.5 shrink-0" />
                     <span>Privacy Policy</span>
                   </FooterLink>
                 </li>
                 <li>
-                  <FooterLink href="/faqs">
+                  <FooterLink href="/faqs?tab=terms">
                     <FileText className="w-3.5 h-3.5 text-zenvo-primary mt-0.5 shrink-0" />
                     <span>Terms & Conditions</span>
                   </FooterLink>
                 </li>
                 <li>
-                  <FooterLink href="/faqs">
+                  <FooterLink href="/faqs?tab=faqs">
                     <HelpCircle className="w-3.5 h-3.5 text-zenvo-accent mt-0.5 shrink-0" />
                     <span>FAQ & Help Center</span>
                   </FooterLink>
