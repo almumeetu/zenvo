@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { INITIAL_TICKETS } from '@/data/initialData';
+import { sendContactUsEmail } from '@/lib/resend';
 
 export async function GET() {
   try {
@@ -65,12 +66,20 @@ export async function POST(request: Request) {
       ticketNumber,
       userId: body.userId || 'guest',
       userEmail: body.userEmail || 'guest@zenvo.gg',
+      userName: body.userName || 'Gamer',
       subject: body.subject || 'Support Request',
       category: body.category || 'General Query',
       status: body.status || 'Open',
       priority: body.priority || 'Medium',
       messages: body.messages || [],
     };
+
+    // Trigger email notification asynchronously
+    try {
+      await sendContactUsEmail(newTicket);
+    } catch (mailErr) {
+      console.error('Ticket email notification error (non-fatal):', mailErr);
+    }
 
     if (!supabase) {
       return NextResponse.json({ success: true, ticketNumber, ticket: newTicket });

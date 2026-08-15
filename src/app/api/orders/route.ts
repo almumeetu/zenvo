@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { INITIAL_ORDERS } from '@/data/initialData';
+import { sendOrderNotificationEmail } from '@/lib/resend';
 
 export async function GET() {
   try {
@@ -83,6 +84,13 @@ export async function POST(request: Request) {
       serverId: body.serverId || '',
       transactionId,
     };
+
+    // Trigger email notification asynchronously (non-blocking)
+    try {
+      await sendOrderNotificationEmail(newOrder);
+    } catch (mailErr) {
+      console.error('Order email notification error (non-fatal):', mailErr);
+    }
 
     if (!supabase) {
       return NextResponse.json({ success: true, orderNumber, order: newOrder });
