@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useApp } from '@/lib/AppStateContext';
+import { useApp, PaymentMethod } from '@/lib/AppStateContext';
 import { formatCurrency } from '@/lib/currency';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import {
   ShoppingBag,
   ArrowLeft,
@@ -17,6 +18,11 @@ import {
   Tag,
   ChevronRight,
   ShoppingCart as CartIcon,
+  User,
+  Mail,
+  Phone,
+  CheckCircle2,
+  Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -27,12 +33,25 @@ export default function CartPage() {
     updateCartQuantity,
     removeCartItem,
     clearCart,
+    placeOrder,
     user,
   } = useApp();
   const router = useRouter();
 
   const [coupon, setCoupon] = useState('');
   const [couponState, setCouponState] = useState<{ applied: boolean; code?: string; pct?: number; message?: string }>({ applied: false });
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bKash');
+  const [customerName, setCustomerName] = useState(user?.name || '');
+  const [customerEmail, setCustomerEmail] = useState(user?.email || '');
+  const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
+  const [submitting, setSubmitting] = useState(false);
+  const [successOrder, setSuccessOrder] = useState<{ orderNumber: string; message: string } | null>(null);
+
+  useEffect(() => {
+    if (user?.name && !customerName) setCustomerName(user.name);
+    if (user?.email && !customerEmail) setCustomerEmail(user.email);
+    if (user?.phone && !customerPhone) setCustomerPhone(user.phone);
+  }, [user]);
 
   const subtotal = cartItems.reduce(
     (s, it) => s + it.denomination.amount * it.quantity,
@@ -53,11 +72,36 @@ export default function CartPage() {
     }
   };
 
-  const onCheckout = () => {
+  const fireConfetti = () => {
+    const end = Date.now() + 1200;
+    const frame = () => {
+      confetti({ particleCount: 5, angle: 60, spread: 75, origin: { x: 0 }, colors: ['#3b82f6', '#f59e0b', '#10b981'] });
+      confetti({ particleCount: 5, angle: 120, spread: 75, origin: { x: 1 }, colors: ['#3b82f6', '#f59e0b', '#10b981'] });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  };
+
+  const onCheckout = async () => {
     if (cartItems.length === 0) return;
-    // For demo, just jump to first item's top-up page with cart context, or process via summary
-    // Since this is a demo, simulate and show a message - or redirect to first item
-    router.push(`/top-up/${cartItems[0].productId}`);
+    if (!customerEmail.trim()) {
+      alert('Please provide your email address for instant order delivery & receipt.');
+      return;
+    }
+    setSubmitting(true);
+    const res = await placeOrder(paymentMethod, {
+      name: customerName.trim() || user?.name || 'Gamer',
+      email: customerEmail.trim() || user?.email || 'guest@zenvogames.com',
+      phone: customerPhone.trim() || user?.phone || '',
+    });
+    setSubmitting(false);
+    if (res.success && res.orderNumber) {
+      fireConfetti();
+      setSuccessOrder({
+        orderNumber: res.orderNumber,
+        message: res.message || 'Order placed successfully!',
+      });
+    }
   };
 
   return (
@@ -83,7 +127,39 @@ export default function CartPage() {
         </Link>
       </div>
 
-      {cartItems.length === 0 ? (
+      {successOrder ? (
+        <div className="max-w-xl mx-auto py-12 px-6 rounded-3xl bg-zenvo-card border border-zenvo-border text-center space-y-5 shadow-2xl">
+          <div className="w-20 h-20 rounded-full bg-zenvo-success/15 border border-zenvo-success/40 text-zenvo-success flex items-center justify-center mx-auto shadow-lg">
+            <CheckCircle2 className="w-10 h-10" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-zenvo-text">Order Confirmed!</h2>
+            <p className="text-sm text-zenvo-text-secondary mt-1">
+              Your digital game top-up is being processed. An email receipt has been sent to <span className="text-zenvo-primary font-bold">{customerEmail}</span>.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-zenvo-surface border border-zenvo-border font-mono text-center">
+            <p className="text-[10px] uppercase font-bold text-zenvo-text-muted">Order Tracking Number</p>
+            <p className="text-xl font-black text-zenvo-accent mt-0.5">#{successOrder.orderNumber}</p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Link
+              href={`/orders/track?orderId=${encodeURIComponent(successOrder.orderNumber)}`}
+              className="flex-1 py-3 rounded-xl bg-zenvo-primary hover:bg-zenvo-primary-hover text-white text-xs font-black uppercase tracking-wider transition-all"
+            >
+              Track This Order
+            </Link>
+            <Link
+              href="/shop"
+              className="flex-1 py-3 rounded-xl bg-zenvo-surface border border-zenvo-border hover:border-zenvo-primary-border text-zenvo-text text-xs font-bold uppercase tracking-wider transition-all"
+            >
+              Back to Catalog
+            </Link>
+          </div>
+        </div>
+      ) : cartItems.length === 0 ? (
         <div className="py-20 text-center rounded-3xl bg-zenvo-card border border-zenvo-border">
           <div className="w-20 h-20 rounded-2xl bg-zenvo-surface border border-zenvo-border flex items-center justify-center mx-auto mb-5">
             <CartIcon className="w-9 h-9 text-zenvo-text-muted" />
@@ -101,7 +177,7 @@ export default function CartPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-2 space-y-3">
+          <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => (
               <div
                 key={`${item.productId}-${item.denomination.id}`}
@@ -180,8 +256,80 @@ export default function CartPage() {
               <X className="w-3.5 h-3.5" /> Clear cart
             </button>
 
+            {/* Customer Details Form */}
+            <div className="p-5 rounded-2xl bg-zenvo-card border border-zenvo-border space-y-4">
+              <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text flex items-center gap-2">
+                <User className="w-4 h-4 text-zenvo-primary" /> Customer Contact Information
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="John Doe"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none text-xs sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    required
+                    placeholder="john@example.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none text-xs sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                    Phone / WhatsApp
+                  </label>
+                  <input
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="017XXXXXXXX"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none text-xs sm:text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method Selector */}
+            <div className="p-5 rounded-2xl bg-zenvo-card border border-zenvo-border space-y-3">
+              <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-zenvo-primary" /> Select Payment Method
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {['bKash', 'Nagad', 'Rocket', 'Visa/Mastercard'].map((method) => {
+                  const active = paymentMethod === method;
+                  return (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setPaymentMethod(method as PaymentMethod)}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        active
+                          ? 'bg-zenvo-primary-soft/50 border-zenvo-primary-border text-zenvo-primary font-bold ring-1 ring-zenvo-primary-border/40'
+                          : 'bg-zenvo-surface border-zenvo-border text-zenvo-text hover:border-zenvo-border-hover'
+                      }`}
+                    >
+                      <p className="text-xs font-bold">{method}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Trust */}
-            <div className="mt-6 p-5 rounded-2xl bg-zenvo-surface/50 border border-zenvo-border grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-center">
+            <div className="p-5 rounded-2xl bg-zenvo-surface/50 border border-zenvo-border grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-center">
               {[
                 { I: ShieldCheck, t: 'Secure SSL', s: 'Payments' },
                 { I: CreditCard, t: 'All Methods', s: 'Supported' },
@@ -267,15 +415,22 @@ export default function CartPage() {
                 <div className="p-5 pt-0 space-y-2.5">
                   <button
                     onClick={onCheckout}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenvo-accent via-orange-500 to-zenvo-accent-hover text-zenvo-bg text-sm font-black uppercase tracking-wider shadow-md active:scale-[0.98] transition-all"
+                    disabled={submitting || total <= 0}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenvo-accent via-orange-500 to-zenvo-accent-hover text-zenvo-bg text-sm font-black uppercase tracking-wider shadow-md active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    Proceed to Checkout
+                    {submitting ? (
+                      <>Processing <div className="w-4 h-4 border-2 border-zenvo-bg/30 border-t-zenvo-bg rounded-full animate-spin" /></>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4" /> Complete Checkout
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => router.push('/wallet')}
                     className="w-full py-3 rounded-xl bg-zenvo-surface border border-zenvo-border hover:border-zenvo-primary-border hover:bg-zenvo-primary-soft/40 text-sm font-bold text-zenvo-text-secondary hover:text-zenvo-primary transition-all"
                   >
-                    Use Wallet Balance (${user.walletBalanceUSD.toFixed(2)})
+                    Use Wallet Balance (${user?.walletBalanceUSD?.toFixed(2) || '0.00'})
                   </button>
                 </div>
               </div>

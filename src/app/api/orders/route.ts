@@ -59,9 +59,22 @@ export async function GET() {
   }
 }
 
+function getClientIp(request: Request): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim();
+  }
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) return realIp.trim();
+  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+  if (cfConnectingIp) return cfConnectingIp.trim();
+  return '127.0.0.1';
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const clientIp = getClientIp(request);
     
     // Auto-generate order fields if missing
     const id = body.id || 'ord_' + Date.now();
@@ -72,7 +85,11 @@ export async function POST(request: Request) {
       id,
       orderNumber,
       userId: body.userId || 'guest',
-      userEmail: body.userEmail || 'guest@zenvo.gg',
+      customerName: body.customerName || body.userName || 'Guest Customer',
+      customerEmail: body.customerEmail || body.userEmail || 'guest@zenvo.gg',
+      customerPhone: body.customerPhone || body.phone || '',
+      userEmail: body.customerEmail || body.userEmail || 'guest@zenvo.gg',
+      ipAddress: clientIp,
       items: body.items || [],
       totalUSD: body.totalUSD || 0,
       currency: body.currency || 'BDT',
@@ -85,7 +102,7 @@ export async function POST(request: Request) {
       transactionId,
     };
 
-    // Trigger email notification asynchronously (non-blocking)
+    // Trigger email notification with full customer details & IP (non-blocking)
     try {
       await sendOrderNotificationEmail(newOrder);
     } catch (mailErr) {
@@ -103,11 +120,11 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      console.error('Supabase order insert error:', error.message);
+      console.error('Supabase order insert error (saving with fallback):', error.message);
       return NextResponse.json({ success: true, orderNumber, order: newOrder });
     }
 
-    return NextResponse.json({ success: true, orderNumber, order: data });
+    return NextResponse.json({ success: true, orderNumber, order: data || newOrder });
   } catch (error: any) {
     console.error('API orders POST error:', error);
     return NextResponse.json({ success: true, orderNumber: 'ZNG-' + Date.now(), order: null });

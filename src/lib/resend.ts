@@ -103,6 +103,22 @@ export async function sendOrderNotificationEmail(order: any) {
           
           <table class="details-table">
             <tr>
+              <td class="label">Customer Name</td>
+              <td class="value">${order.customerName || order.userName || 'Customer'}</td>
+            </tr>
+            <tr>
+              <td class="label">Customer Email</td>
+              <td class="value" style="color: #38bdf8;">${order.customerEmail || order.userEmail || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td class="label">Phone / WhatsApp</td>
+              <td class="value" style="color: #34d399; font-weight: bold;">${order.customerPhone || order.phone || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td class="label">Buyer IP Address</td>
+              <td class="value" style="font-family: monospace; color: #a78bfa;">${order.ipAddress || '127.0.0.1'}</td>
+            </tr>
+            <tr>
               <td class="label">Product</td>
               <td class="value">${order.productTitle || 'Game Top-Up'}</td>
             </tr>

@@ -79,7 +79,12 @@ interface AppActions {
   clearCart: () => void;
   directCheckout: (
     item: CartItem,
-    paymentMethod: PaymentMethod
+    paymentMethod: PaymentMethod,
+    customerInfo?: { name?: string; email?: string; phone?: string }
+  ) => Promise<{ success: boolean; orderNumber?: string; message?: string }>;
+  placeOrder: (
+    paymentMethod: PaymentMethod,
+    customerInfo?: { name?: string; email?: string; phone?: string }
   ) => Promise<{ success: boolean; orderNumber?: string; message?: string }>;
   depositWallet: (amountUSD: number, method: string, reference: string) => Promise<{ success: boolean; message: string }>;
   searchOrder: (orderId: string) => Promise<Order | null>;
@@ -130,69 +135,52 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [tickets, setTickets] = useState<SupportTicket[]>(INITIAL_TICKETS);
 
   const [isMounted, setIsMounted] = useState(false);
-  const [isDbConnected, setIsDbConnected] = useState(false);
+  const [isDbConnected, setIsDbConnected] = useState(true);
 
-  // Hydrate from Database or fall back to localStorage
+  // Fast Instant Hydration + Background SWR Sync
   useEffect(() => {
-    async function initData() {
-      let dbOk = false;
-      try {
-        const res = await fetch('/api/products');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.products) {
-            setProducts(data.products);
-            dbOk = true;
-            setIsDbConnected(true);
-            console.log('Supabase API initialized successfully.');
-          }
-        }
-      } catch (err) {
-        console.warn('Supabase API offline. Falling back to local storage caching.');
-      }
+    // 1. Instantly load cache from localStorage (0ms render time)
+    try {
+      const storedProducts = localStorage.getItem('zenvo_v3_products');
+      const storedBanners = localStorage.getItem('zenvo_v3_banners');
+      const storedBlogs = localStorage.getItem('zenvo_v3_blogs');
+      const storedUser = localStorage.getItem('zenvo_v3_user');
+      const storedUsers = localStorage.getItem('zenvo_v3_users');
+      const storedOrders = localStorage.getItem('zenvo_v3_orders');
+      const storedTransactions = localStorage.getItem('zenvo_v3_transactions');
+      const storedTickets = localStorage.getItem('zenvo_v3_tickets');
 
-      if (dbOk) {
-        try {
-          const oRes = await fetch('/api/orders');
-          if (oRes.ok) {
-            const oData = await oRes.json();
-            if (oData.success) setOrders(oData.orders);
-          }
-          const tRes = await fetch('/api/tickets');
-          if (tRes.ok) {
-            const tData = await tRes.json();
-            if (tData.success) setTickets(tData.tickets);
-          }
-        } catch (err) {
-          console.error('Error fetching database orders/tickets', err);
-        }
-      } else {
-        // LocalStorage Fallback
-        try {
-          const storedProducts = localStorage.getItem('zenvo_v3_products');
-          const storedBanners = localStorage.getItem('zenvo_v3_banners');
-          const storedBlogs = localStorage.getItem('zenvo_v3_blogs');
-          const storedUser = localStorage.getItem('zenvo_v3_user');
-          const storedUsers = localStorage.getItem('zenvo_v3_users');
-          const storedOrders = localStorage.getItem('zenvo_v3_orders');
-          const storedTransactions = localStorage.getItem('zenvo_v3_transactions');
-          const storedTickets = localStorage.getItem('zenvo_v3_tickets');
-
-          if (storedProducts) setProducts(JSON.parse(storedProducts));
-          if (storedBanners) setHeroBanners(JSON.parse(storedBanners));
-          if (storedBlogs) setBlogArticles(JSON.parse(storedBlogs));
-          if (storedUser) setUser(JSON.parse(storedUser));
-          if (storedUsers) setUsers(JSON.parse(storedUsers));
-          if (storedOrders) setOrders(JSON.parse(storedOrders));
-          if (storedTransactions) setWalletTransactions(JSON.parse(storedTransactions));
-          if (storedTickets) setTickets(JSON.parse(storedTickets));
-        } catch (e) {
-          console.error('Error loading from localStorage', e);
-        }
-      }
-      setIsMounted(true);
+      if (storedProducts) setProducts(JSON.parse(storedProducts));
+      if (storedBanners) setHeroBanners(JSON.parse(storedBanners));
+      if (storedBlogs) setBlogArticles(JSON.parse(storedBlogs));
+      if (storedUser) setUser(JSON.parse(storedUser));
+      if (storedUsers) setUsers(JSON.parse(storedUsers));
+      if (storedOrders) setOrders(JSON.parse(storedOrders));
+      if (storedTransactions) setWalletTransactions(JSON.parse(storedTransactions));
+      if (storedTickets) setTickets(JSON.parse(storedTickets));
+    } catch (e) {
+      console.error('Error loading initial cache', e);
     }
-    initData();
+    setIsMounted(true);
+
+    // 2. Background parallel sync with database (non-blocking)
+    Promise.allSettled([
+      fetch('/api/products').then((r) => r.ok ? r.json() : null),
+      fetch('/api/orders').then((r) => r.ok ? r.json() : null),
+      fetch('/api/tickets').then((r) => r.ok ? r.json() : null),
+    ]).then(([pRes, oRes, tRes]) => {
+      if (pRes.status === 'fulfilled' && pRes.value?.success && pRes.value?.products?.length) {
+        setProducts(pRes.value.products);
+      }
+      if (oRes.status === 'fulfilled' && oRes.value?.success && oRes.value?.orders?.length) {
+        setOrders(oRes.value.orders);
+      }
+      if (tRes.status === 'fulfilled' && tRes.value?.success && tRes.value?.tickets?.length) {
+        setTickets(tRes.value.tickets);
+      }
+    }).catch((err) => {
+      console.warn('Background sync error (using local cache):', err);
+    });
   }, []);
 
   // Listen to Supabase Auth State Changes
@@ -301,16 +289,27 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setCartItems([]);
 
-  const directCheckout = async (item: CartItem, paymentMethod: PaymentMethod) => {
+  const directCheckout = async (
+    item: CartItem,
+    paymentMethod: PaymentMethod,
+    customerInfo?: { name?: string; email?: string; phone?: string }
+  ) => {
     const totalUSD = item.denomination.amount * item.quantity;
     const orderNumber = 'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
     const transactionId = 'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
 
+    const customerName = customerInfo?.name || user.name || 'Guest Gamer';
+    const customerEmail = customerInfo?.email || user.email || 'guest@zenvogames.com';
+    const customerPhone = customerInfo?.phone || user.phone || '';
+
     const newOrder: Order = {
       id: 'ord_' + Date.now(),
       orderNumber,
-      userId: 'guest',
-      userEmail: item.playerId || 'guest@zenvogames.com',
+      userId: user.id || 'guest',
+      userEmail: customerEmail,
+      customerName,
+      customerEmail,
+      customerPhone,
       items: [item],
       totalUSD,
       currency: selectedCurrency,
@@ -320,21 +319,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       fulfillmentStatus: 'Processing',
       createdAt: new Date().toLocaleString(),
       updatedAt: new Date().toLocaleString(),
-      playerId: item.playerId,
-      serverId: item.serverId,
+      playerId: item.playerId || 'PLAYER_GUEST',
+      serverId: item.serverId || '',
       transactionId,
     } as unknown as Order;
 
-    if (isDbConnected) {
-      try {
-        await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newOrder),
-        });
-      } catch (e) {
-        console.error('Failed to post order to database API', e);
-      }
+    try {
+      await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder),
+      });
+    } catch (e) {
+      console.error('Failed to post order to database API', e);
     }
 
     setOrders((p) => [newOrder, ...p]);
@@ -348,6 +345,58 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     );
 
     return { success: true, orderNumber, message: 'Instant top-up delivered' };
+  };
+
+  const placeOrder = async (
+    paymentMethod: PaymentMethod,
+    customerInfo?: { name?: string; email?: string; phone?: string }
+  ) => {
+    if (cartItems.length === 0) return { success: false, message: 'Your cart is empty' };
+
+    const totalUSD = cartItems.reduce((s, it) => s + it.denomination.amount * it.quantity, 0);
+    const orderNumber = 'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
+    const transactionId = 'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+
+    const customerName = customerInfo?.name || user.name || 'Guest Gamer';
+    const customerEmail = customerInfo?.email || user.email || 'guest@zenvogames.com';
+    const customerPhone = customerInfo?.phone || user.phone || '';
+
+    const newOrder: Order = {
+      id: 'ord_' + Date.now(),
+      orderNumber,
+      userId: user.id || 'guest',
+      userEmail: customerEmail,
+      customerName,
+      customerEmail,
+      customerPhone,
+      items: [...cartItems],
+      totalUSD,
+      currency: selectedCurrency,
+      paidAmountCurrency: totalUSD,
+      paymentMethod,
+      paymentStatus: 'Paid',
+      fulfillmentStatus: 'Processing',
+      createdAt: new Date().toLocaleString(),
+      updatedAt: new Date().toLocaleString(),
+      playerId: cartItems[0]?.playerId || 'PLAYER_GUEST',
+      serverId: cartItems[0]?.serverId || '',
+      transactionId,
+    } as unknown as Order;
+
+    try {
+      await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder),
+      });
+    } catch (e) {
+      console.error('Failed to post cart order to database API', e);
+    }
+
+    setOrders((p) => [newOrder, ...p]);
+    clearCart();
+
+    return { success: true, orderNumber, message: 'Order placed successfully' };
   };
 
   const depositWallet = async (amountUSD: number, method: string, reference: string) => {
@@ -784,6 +833,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     removeCartItem,
     clearCart,
     directCheckout,
+    placeOrder,
     depositWallet,
     searchOrder,
     createTicket,

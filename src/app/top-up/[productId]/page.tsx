@@ -26,6 +26,8 @@ import {
   Gamepad2,
   Download,
   MessageCircle,
+  User,
+  Mail,
 } from 'lucide-react';
 
 export default function TopUpPage() {
@@ -59,6 +61,16 @@ export default function TopUpPage() {
   const [submitting, setSubmitting] = useState(false);
   const [successResult, setSuccessResult] = useState<{ orderNumber: string; message?: string; txid: string } | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+
+  // Sync with user profile
+  useEffect(() => {
+    if (user?.email && !customerEmail) setCustomerEmail(user.email);
+    if (user?.name && !customerName) setCustomerName(user.name);
+    if (user?.phone && !customerPhone) setCustomerPhone(user.phone);
+  }, [user]);
 
   // reset denom if product changes
   useEffect(() => {
@@ -94,8 +106,9 @@ export default function TopUpPage() {
     );
   }
 
-  const denom = product.denominations.find((d) => d.id === selectedDenom);
-  const subtotal = (denom?.amount || 0) * quantity;
+  const denom = product.denominations.find((d) => d.id === selectedDenom) || product.denominations[0];
+  const unitPrice = denom ? denom.amount : 0;
+  const subtotal = unitPrice * quantity;
   const discount = couponState.applied && couponState.discountPct ? subtotal * (couponState.discountPct / 100) : 0;
   const serviceFee = Math.max(0, subtotal * 0.015);
   const total = Math.max(0, subtotal - discount + serviceFee);
@@ -152,7 +165,11 @@ export default function TopUpPage() {
       playerId,
       serverId,
     } as any;
-    const result = await directCheckout(item, paymentMethod);
+    const result = await directCheckout(item, paymentMethod, {
+      name: customerName.trim() || user?.name || 'Gamer',
+      email: customerEmail.trim() || user?.email || 'guest@zenvogames.com',
+      phone: customerPhone.trim() || user?.phone || '',
+    });
     setSubmitting(false);
     if (result.success && result.orderNumber) {
       fireConfetti();
@@ -347,7 +364,7 @@ export default function TopUpPage() {
               </div>
             </div>
 
-            {/* 3. Coupon */}
+              {/* 3. Coupon */}
             <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-3.5 sm:p-5">
               <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text mb-2.5 flex items-center gap-2">
                 <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-accent" /> Promo Code
@@ -375,7 +392,54 @@ export default function TopUpPage() {
               )}
             </div>
 
-            {/* 4. Payment + Summary */}
+            {/* 4. Customer Contact Details */}
+            <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-3.5 sm:p-5 space-y-3">
+              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text flex items-center gap-2">
+                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-primary" />
+                Customer Details
+              </h3>
+              <div className="space-y-2.5">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="e.g. Shakib Ahmed"
+                    className="w-full px-3 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none text-xs sm:text-sm transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                    Email Address (For Instant Receipt) *
+                  </label>
+                  <input
+                    type="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    required
+                    placeholder="e.g. shakib@example.com"
+                    className="w-full px-3 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none text-xs sm:text-sm transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                    Phone / WhatsApp Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="e.g. 017XXXXXXXX"
+                    className="w-full px-3 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none text-xs sm:text-sm transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Payment + Summary */}
             <div className="rounded-2xl bg-zenvo-card border border-zenvo-border overflow-hidden">
               <div className="px-3.5 sm:px-5 pt-3.5 sm:pt-5">
                 <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text mb-2.5 flex items-center gap-2">
