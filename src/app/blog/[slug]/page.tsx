@@ -18,10 +18,10 @@ import {
 } from 'lucide-react';
 
 export default function BlogDetailPage() {
-  const params = useParams<{ slug: string }>();
+  const params = useParams<{ slug: string }>() ?? { slug: '' };
   const router = useRouter();
   const { blogArticles } = useApp();
-  const article = blogArticles.find((a) => a.id === params.slug);
+  const article = blogArticles.find((a) => a.id === params?.slug);
 
   if (!article) {
     return (

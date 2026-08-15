@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 export default function TopUpPage() {
-  const params = useParams<{ productId: string }>();
+  const params = useParams<{ productId: string }>() ?? { productId: '' };
   const router = useRouter();
   const {
     products,
@@ -40,8 +40,8 @@ export default function TopUpPage() {
   } = useApp();
 
   const product = useMemo(
-    () => products.find((p) => p.id === params.productId),
-    [products, params.productId]
+    () => products.find((p) => p.id === params?.productId),
+    [products, params?.productId]
   );
 
   // form state
