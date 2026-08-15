@@ -250,23 +250,58 @@ export default function AdminDashboardPage() {
     const deliveryType = data.get('deliveryType') as any;
     const description = data.get('description') as string;
     const instructions = data.get('instructions') as string;
-    const playerIdLabel = data.get('playerIdLabel') as string;
-    const image = data.get('image') as string || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=600';
+    const playerIdLabel = (data.get('playerIdLabel') as string) || 'Player ID / Email';
+    const image = (data.get('image') as string) || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=600';
     const inStock = data.get('inStock') === 'true';
     const isHot = data.get('isHot') === 'true';
     const isNew = data.get('isNew') === 'true';
+    const discountPercent = parseFloat(data.get('discountPercent') as string) || 0;
 
     const baseDenomAmount = parseFloat(data.get('price') as string) || 1.0;
+
+    // Parse Tags
+    const tagsRaw = (data.get('tags') as string) || '';
+    const tags = tagsRaw ? tagsRaw.split(',').map((t) => t.trim()).filter(Boolean) : ['Gaming', category];
+
+    // Parse Steps
+    const stepsRaw = (data.get('howToFindPlayerId') as string) || '';
+    const howToFindPlayerId = stepsRaw ? stepsRaw.split('\n').map((s) => s.trim()).filter(Boolean) : [];
+
+    // Parse Denominations
+    const denomsRaw = (data.get('denominations') as string) || '';
+    let parsedDenoms: any[] = [];
+    if (denomsRaw.trim()) {
+      parsedDenoms = denomsRaw
+        .split('\n')
+        .map((line, idx) => {
+          const parts = line.split(',').map((p) => p.trim());
+          if (!parts[0]) return null;
+          const name = parts[0];
+          const amount = parseFloat(parts[1]) || baseDenomAmount;
+          const priceBDT = parts[2] ? parseFloat(parts[2]) : Math.round(amount * 120);
+          const bonus = parts[3] || undefined;
+          return {
+            id: `denom_${idx + 1}_${Date.now()}`,
+            name,
+            amount,
+            priceBDT,
+            bonus,
+          };
+        })
+        .filter(Boolean);
+    }
+
+    if (parsedDenoms.length === 0) {
+      parsedDenoms = editingProduct?.denominations || [
+        { id: `d1_${Date.now()}`, name: 'Standard Package', amount: baseDenomAmount, priceBDT: Math.round(baseDenomAmount * 120) },
+        { id: `d2_${Date.now()}`, name: 'Pro Value Pack', amount: baseDenomAmount * 5, priceBDT: Math.round(baseDenomAmount * 5 * 120), bonus: '+15% BONUS' },
+      ];
+    }
 
     const baseProd = editingProduct || {
       id: `prod_${Date.now()}`,
       rating: 5.0,
-      reviewCount: 1,
-      tags: ['NewItem'],
-      denominations: [
-        { id: `d1_${Date.now()}`, name: 'Standard Package', amount: baseDenomAmount },
-        { id: `d2_${Date.now()}`, name: 'Bonus Value Pack', amount: baseDenomAmount * 5, bonus: '+15% BONUS' },
-      ],
+      reviewCount: 0,
     };
 
     const newP: Product = {
@@ -283,6 +318,10 @@ export default function AdminDashboardPage() {
       inStock,
       isHot,
       isNew,
+      discountPercent,
+      tags,
+      howToFindPlayerId,
+      denominations: parsedDenoms,
     } as Product;
 
     if (editingProduct) {
@@ -767,7 +806,7 @@ export default function AdminDashboardPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Product Title</label>
-                    <input name="title" defaultValue={editingProduct?.title || ''} placeholder="e.g. Valorant Points" required className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border" />
+                    <input name="title" defaultValue={editingProduct?.title || ''} placeholder="e.g. Free Fire Diamonds" required className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border" />
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Category</label>
@@ -779,56 +818,94 @@ export default function AdminDashboardPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Price Override ($)</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Base Price ($)</label>
                     <input name="price" type="number" step="0.01" defaultValue={editingProduct?.denominations?.[0]?.amount || '1.00'} className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border" />
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Publisher</label>
-                    <input name="publisher" defaultValue={editingProduct?.publisher || ''} placeholder="e.g. Riot Games" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                    <input name="publisher" defaultValue={editingProduct?.publisher || ''} placeholder="e.g. Garena / Krafton" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Region</label>
-                    <input name="region" defaultValue={editingProduct?.region || 'Global'} placeholder="e.g. Global" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                    <input name="region" defaultValue={editingProduct?.region || 'Global'} placeholder="e.g. Global / BD / US" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Fulfillment Delivery</label>
                     <select name="deliveryType" defaultValue={editingProduct?.deliveryType || 'Instant'} className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none">
-                      <option value="Instant">Instant (Automated)</option>
-                      <option value="Manual (5-10 min)">Manual Dispatch</option>
+                      <option value="Instant">Instant (Automated ≤30s)</option>
+                      <option value="Manual (5-10 min)">Manual Dispatch (5-10m)</option>
                       <option value="Pre-Order">Pre-Order Queue</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">User input label</label>
-                    <input name="playerIdLabel" defaultValue={editingProduct?.playerIdLabel || 'Player UID'} placeholder="e.g. Riot Tag / Player ID" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">User Input Label</label>
+                    <input name="playerIdLabel" defaultValue={editingProduct?.playerIdLabel || 'Player ID / Email'} placeholder="e.g. Player ID / UID or Email" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Image URL</label>
-                    <input name="image" defaultValue={editingProduct?.image || ''} placeholder="https://unsplash..." className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Image URL / Supabase Storage</label>
+                    <input name="image" defaultValue={editingProduct?.image || ''} placeholder="https://... or /play-store.jpeg" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
                   </div>
-                  <div className="flex gap-4 items-center h-full pt-4 flex-wrap">
-                    <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
-                      <input type="checkbox" name="inStock" value="true" defaultChecked={editingProduct ? editingProduct.inStock : true} className="rounded accent-zenvo-primary" />
-                      In Stock
-                    </label>
-                    <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
-                      <input type="checkbox" name="isHot" value="true" defaultChecked={editingProduct?.isHot || false} className="rounded accent-zenvo-primary" />
-                      Hot Event
-                    </label>
-                    <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
-                      <input type="checkbox" name="isNew" value="true" defaultChecked={editingProduct?.isNew || false} className="rounded accent-zenvo-primary" />
-                      New Arrival
-                    </label>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Discount % OFF (e.g. 10 for -10%)</label>
+                    <input name="discountPercent" type="number" min="0" max="99" defaultValue={editingProduct?.discountPercent || 0} placeholder="0" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-center pt-1 pb-1 flex-wrap">
+                  <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
+                    <input type="checkbox" name="inStock" value="true" defaultChecked={editingProduct ? editingProduct.inStock : true} className="rounded accent-zenvo-primary" />
+                    In Stock
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
+                    <input type="checkbox" name="isHot" value="true" defaultChecked={editingProduct?.isHot || false} className="rounded accent-zenvo-primary" />
+                    Trending / Hot
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
+                    <input type="checkbox" name="isNew" value="true" defaultChecked={editingProduct?.isNew || false} className="rounded accent-zenvo-primary" />
+                    New Arrival
+                  </label>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                    Packages & Denominations (1 Package per line: Name, USD Price, BDT Price, Bonus Label)
+                  </label>
+                  <textarea
+                    name="denominations"
+                    rows={4}
+                    defaultValue={editingProduct?.denominations ? editingProduct.denominations.map(d => `${d.name}, ${d.amount}, ${d.priceBDT || Math.round(d.amount * 120)}, ${d.bonus || ''}`).join('\n') : '$5 Package, 5.42, 650, +5% BONUS\n$10 Package, 10.83, 1300\n$25 Package, 27.08, 3250'}
+                    placeholder={`100 Diamonds, 1.00, 120, +5% Bonus\n520 Diamonds, 5.00, 600\n1060 Diamonds, 10.00, 1200, Popular`}
+                    className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-mono text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Product Description</label>
+                    <textarea name="description" defaultValue={editingProduct?.description || ''} rows={3} placeholder="Full product summary details..." className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Instructions / Delivery Guide</label>
+                    <textarea name="instructions" defaultValue={editingProduct?.instructions || ''} rows={3} placeholder="Steps to receive or redeem top-up..." className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Product Description</label>
-                  <textarea name="description" defaultValue={editingProduct?.description || ''} rows={3} placeholder="Full product summary details..." className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border" />
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                    Steps to Find Player ID (1 Step per line)
+                  </label>
+                  <textarea
+                    name="howToFindPlayerId"
+                    rows={2}
+                    defaultValue={editingProduct?.howToFindPlayerId ? editingProduct.howToFindPlayerId.join('\n') : 'Open the game on your mobile device\nTap your avatar in top left corner to view Player ID\nEnter your UID in the box to checkout'}
+                    placeholder="Step 1: Open game profile\nStep 2: Copy your Player UID"
+                    className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                  />
                 </div>
+
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Fulfillment Instructions</label>
-                  <textarea name="instructions" defaultValue={editingProduct?.instructions || ''} rows={3} placeholder="Steps to receive top-up..." className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Search Tags (comma separated)</label>
+                  <input name="tags" defaultValue={editingProduct?.tags ? editingProduct.tags.join(', ') : ''} placeholder="e.g. Free Fire, Diamond, Topup, Garena" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
                 </div>
 
                 <div className="flex gap-2 pt-2">

@@ -485,24 +485,24 @@ export default function TopUpPage() {
               <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
               <div className="absolute top-2 left-2 flex flex-col gap-1">
                 {product.deliveryType === 'Instant' && (
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zenvo-success text-zenvo-bg text-[9px] font-bold uppercase shadow-sm">
-                    <Zap className="w-2 h-2 fill-zenvo-bg" /> Instant
+                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-zenvo-success text-zenvo-bg text-[9px] font-bold uppercase shadow-sm">
+                    <Zap className="w-2.5 h-2.5 fill-zenvo-bg" /> Instant
                   </span>
                 )}
                 {product.isHot && (
-                  <span className="px-1.5 py-0.5 rounded bg-zenvo-accent text-zenvo-bg text-[9px] font-bold uppercase shadow-sm">
+                  <span className="px-2 py-0.5 rounded-md bg-zenvo-accent text-zenvo-bg text-[9px] font-bold uppercase shadow-sm">
                     TRENDING
                   </span>
                 )}
-                {product.discountPercent && (
-                  <span className="px-1.5 py-0.5 rounded bg-zenvo-error text-white text-[9px] font-bold">
+                {Boolean(product.discountPercent && product.discountPercent > 0) && (
+                  <span className="px-2 py-0.5 rounded-md bg-zenvo-error text-white text-[9px] font-bold shadow-sm">
                     -{product.discountPercent}% OFF
                   </span>
                 )}
               </div>
               <button
                 onClick={() => setIsWishlisted((w) => !w)}
-                className={`absolute top-2 right-2 p-1.5 rounded border transition-all ${
+                className={`absolute top-2 right-2 p-1.5 rounded-lg border transition-all ${
                   isWishlisted
                     ? 'bg-zenvo-error/20 border-zenvo-error/40 text-zenvo-error'
                     : 'bg-zenvo-bg/70 border-zenvo-border text-zenvo-text-muted hover:text-zenvo-error'
@@ -522,12 +522,18 @@ export default function TopUpPage() {
                   {product.title}
                 </h1>
                 <div className="flex items-center gap-2 mb-2 text-[10px] sm:text-xs flex-wrap">
-                  <div className="flex items-center gap-0.5 text-zenvo-text-secondary">
-                    <Star className="w-3 h-3 fill-zenvo-accent text-zenvo-accent" />
-                    <span className="font-semibold text-zenvo-text">{product.rating}</span>
-                    <span className="text-zenvo-text-muted hidden sm:inline">({product.reviewCount.toLocaleString()})</span>
-                  </div>
-                  <span className="text-zenvo-text-muted capitalize hidden sm:inline">{product.region}</span>
+                  {product.reviewCount && product.reviewCount > 0 ? (
+                    <div className="flex items-center gap-0.5 text-zenvo-text-secondary">
+                      <Star className="w-3 h-3 fill-zenvo-accent text-zenvo-accent" />
+                      <span className="font-semibold text-zenvo-text">{product.rating}</span>
+                      <span className="text-zenvo-text-muted hidden sm:inline">({product.reviewCount.toLocaleString()} Verified Reviews)</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-zenvo-success uppercase">
+                      <ShieldCheck className="w-3.5 h-3.5" /> 100% Genuine Partner
+                    </div>
+                  )}
+                  <span className="text-zenvo-text-muted capitalize hidden sm:inline">• {product.region}</span>
                 </div>
                 <p className="text-[10px] sm:text-sm text-zenvo-text-secondary leading-relaxed line-clamp-3 sm:line-clamp-none">
                   {product.description}
@@ -550,21 +556,40 @@ export default function TopUpPage() {
             </div>
           </div>
 
-          {/* How to Top-Up */}
+          {/* How to Top-Up & Instructions */}
           <div className="rounded-2xl bg-zenvo-card border border-zenvo-border overflow-hidden">
-            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-zenvo-border flex gap-4 text-xs sm:text-sm font-semibold">
-              <div className="text-zenvo-primary border-b-2 border-zenvo-primary pb-2.5 sm:pb-3 -mb-[13px] sm:-mb-4">How to Top-Up</div>
-              <div className="text-zenvo-text-secondary">Reviews</div>
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-zenvo-border flex items-center justify-between">
+              <div className="text-xs sm:text-sm font-black text-zenvo-text uppercase tracking-wider flex items-center gap-2">
+                <Zap className="w-4 h-4 text-zenvo-primary" /> How to Top-Up & Redeem
+              </div>
+              <span className="text-[10px] font-bold uppercase text-zenvo-primary bg-zenvo-primary-soft px-2.5 py-0.5 rounded-full border border-zenvo-primary-border/30">
+                Instant Automated Delivery
+              </span>
             </div>
-            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-              {product.howToFindPlayerId?.map((s, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-zenvo-primary-soft text-zenvo-primary font-bold flex items-center justify-center text-xs sm:text-sm">
-                    {i + 1}
-                  </div>
-                  <p className="text-xs sm:text-sm text-zenvo-text-secondary pt-0.5 sm:pt-1.5">{s}</p>
+
+            <div className="p-4 sm:p-6 space-y-4">
+              {product.instructions && (
+                <div className="p-3.5 rounded-xl bg-zenvo-surface/70 border border-zenvo-border text-xs sm:text-sm text-zenvo-text leading-relaxed">
+                  <p className="font-bold text-zenvo-primary mb-1 text-[10px] uppercase tracking-wider">Instructions:</p>
+                  <p className="text-zenvo-text-secondary">{product.instructions}</p>
                 </div>
-              ))}
+              )}
+
+              {product.howToFindPlayerId && product.howToFindPlayerId.length > 0 && (
+                <div className="space-y-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted">
+                    Steps to complete order:
+                  </p>
+                  {product.howToFindPlayerId.map((s, i) => (
+                    <div key={i} className="flex gap-3 items-start">
+                      <div className="shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-zenvo-primary-soft text-zenvo-primary font-bold flex items-center justify-center text-xs">
+                        {i + 1}
+                      </div>
+                      <p className="text-xs sm:text-sm text-zenvo-text-secondary pt-0.5 sm:pt-1">{s}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
