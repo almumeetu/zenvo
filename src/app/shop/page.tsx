@@ -96,9 +96,6 @@ function ShopContent() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <CategoryFilter selectedCategory={currentCat} onSelectCategory={setSelectedCategory} />
-
       {/* Toolbar: search, sort, view */}
       <div className="mt-6 mb-4 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
         <div className="relative lg:max-w-sm w-full">

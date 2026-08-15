@@ -82,11 +82,8 @@ export const Footer: React.FC = () => {
   };
 
   const quickLinks = [
-    { label: 'Gaming Top-Ups', href: '/shop?cat=game-topup', icon: <Gamepad2 className="w-3.5 h-3.5 text-zenvo-primary" /> },
-    { label: 'Gift Cards', href: '/shop?cat=gift-card', icon: <Gift className="w-3.5 h-3.5 text-zenvo-accent" /> },
-    { label: 'Subscriptions', href: '/shop?cat=subscription', icon: <Crown className="w-3.5 h-3.5 text-zenvo-accent" /> },
+    { label: 'Gift Cards Catalog', href: '/shop', icon: <Gift className="w-3.5 h-3.5 text-zenvo-accent" /> },
     { label: 'Order Tracker', href: '/orders/track', icon: <Zap className="w-3.5 h-3.5 text-zenvo-primary" /> },
-    { label: 'AI Assistant', href: '/ai-assistant', icon: <Zap className="w-3.5 h-3.5 text-zenvo-success" /> },
     { label: 'Blog & Deals', href: '/blog', icon: <Star className="w-3.5 h-3.5 text-zenvo-accent" /> },
   ];
 
@@ -265,19 +262,19 @@ export const Footer: React.FC = () => {
               </h4>
               <ul className="space-y-2.5 text-xs">
                 <li>
-                  <FooterLink href="#">
+                  <FooterLink href="/faqs">
                     <ShieldCheck className="w-3.5 h-3.5 text-zenvo-success mt-0.5 shrink-0" />
                     <span>Refund & Return Policy</span>
                   </FooterLink>
                 </li>
                 <li>
-                  <FooterLink href="#">
+                  <FooterLink href="/faqs">
                     <Lock className="w-3.5 h-3.5 text-zenvo-primary mt-0.5 shrink-0" />
                     <span>Privacy Policy</span>
                   </FooterLink>
                 </li>
                 <li>
-                  <FooterLink href="#">
+                  <FooterLink href="/faqs">
                     <FileText className="w-3.5 h-3.5 text-zenvo-primary mt-0.5 shrink-0" />
                     <span>Terms & Conditions</span>
                   </FooterLink>

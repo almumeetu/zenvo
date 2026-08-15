@@ -317,12 +317,6 @@ export const QuickTopUpModal: React.FC<QuickTopUpModalProps> = ({
                   { id: 'Rocket', label: 'Rocket', badge: 'BD Bank', icon: '🚀' },
                   { id: 'Visa/Mastercard', label: 'Cards (Visa/MC)', badge: 'Global', icon: '💳' },
                   { id: 'Crypto/USDT', label: 'Crypto USDT', badge: 'Web3', icon: '🪙' },
-                  {
-                    id: 'Zenov Wallet',
-                    label: `ZENOV Wallet (${formatCurrency(user.walletBalanceUSD, selectedCurrency)})`,
-                    badge: 'Zero Fee',
-                    icon: '👛',
-                  },
                 ].map((pm) => {
                   const isSelected = selectedPayment === pm.id;
                   return (

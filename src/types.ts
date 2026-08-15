@@ -5,6 +5,7 @@ export interface ProductDenomination {
   name: string; // e.g. "100 Diamonds", "520+52 Diamonds", "60 UC", "Weekly Pass"
   label?: string; // alias for name, used in some pages
   amount: number; // base price in USD
+  priceBDT?: number; // Custom price in BDT
   originalAmount?: number;
   bonus?: string; // e.g. "+10% Bonus"
   bonusLabel?: string; // alias for bonus

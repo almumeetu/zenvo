@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
   Product,
   CategoryType,
@@ -10,6 +10,8 @@ import {
   Order,
   SupportTicket,
   WalletTransaction,
+  HeroBanner,
+  BlogArticle,
 } from '../types';
 import {
   INITIAL_PRODUCTS,
@@ -28,20 +30,46 @@ export type PaymentMethod =
   | 'Crypto/USDT'
   | 'Zenov Wallet';
 
-export interface AppState {
+const MOCK_USERS: UserProfile[] = [
+  {
+    id: 'usr_789012',
+    name: 'CyberGamer_99',
+    email: 'gamer@zenvogames.com',
+    avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=200',
+    walletBalanceUSD: 45.80,
+    role: 'admin',
+    joinedDate: 'Jan 2025',
+    vipTier: 'Cyber Elite',
+    totalOrders: 18,
+  },
+  {
+    id: 'usr_112233',
+    name: 'ApexPredator',
+    email: 'apex@predator.gg',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200',
+    walletBalanceUSD: 120.50,
+    role: 'user',
+    joinedDate: 'Feb 2025',
+    vipTier: 'Gold',
+    totalOrders: 5,
+  },
+];
+
+interface AppState {
   products: Product[];
-  heroBanners: typeof HERO_BANNERS;
-  blogArticles: typeof BLOG_ARTICLES;
+  heroBanners: HeroBanner[];
+  blogArticles: BlogArticle[];
   selectedCategory: CategoryType | 'all';
   selectedCurrency: CurrencyCode;
   user: UserProfile;
+  users: UserProfile[];
   cartItems: CartItem[];
   orders: Order[];
   walletTransactions: WalletTransaction[];
   tickets: SupportTicket[];
 }
 
-export interface AppActions {
+interface AppActions {
   setSelectedCategory: (c: CategoryType | 'all') => void;
   setSelectedCurrency: (c: CurrencyCode) => void;
   addToCart: (item: CartItem) => void;
@@ -52,23 +80,31 @@ export interface AppActions {
     item: CartItem,
     paymentMethod: PaymentMethod
   ) => Promise<{ success: boolean; orderNumber?: string; message?: string }>;
-  depositWallet: (
-    amountUSD: number,
-    method: string,
-    reference: string
-  ) => Promise<{ success: boolean; message?: string }>;
+  depositWallet: (amountUSD: number, method: string, reference: string) => Promise<{ success: boolean; message: string }>;
   searchOrder: (orderId: string) => Promise<Order | null>;
-  createTicket: (
-    subject: string,
-    category: any,
-    priority: any,
-    message: string
-  ) => Promise<void>;
+  createTicket: (subject: string, category: any, priority: any, message: string) => Promise<void>;
   replyTicket: (ticketId: string, message: string) => Promise<void>;
   addProduct: (p: Product) => void;
+  updateProduct: (p: Product) => void;
   deleteProduct: (id: string) => void;
   updateOrderStatus: (orderId: string, status: 'Processing' | 'Delivered' | 'Refunded') => void;
   updateUser: (u: UserProfile) => void;
+  createUser: (u: UserProfile) => void;
+  deleteUser: (id: string) => void;
+  adjustUserWallet: (
+    userId: string,
+    amountUSD: number,
+    type: 'deposit' | 'deduction',
+    reference: string
+  ) => Promise<{ success: boolean; message: string }>;
+  addBanner: (b: HeroBanner) => void;
+  updateBanner: (b: HeroBanner) => void;
+  deleteBanner: (id: string) => void;
+  addBlog: (b: BlogArticle) => void;
+  updateBlog: (b: BlogArticle) => void;
+  deleteBlog: (id: string) => void;
+  adminReplyTicket: (ticketId: string, message: string) => Promise<void>;
+  updateTicketStatus: (ticketId: string, status: SupportTicket['status']) => void;
 }
 
 type AppStateValue = AppState & AppActions;
@@ -77,13 +113,123 @@ const AppCtx = createContext<AppStateValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(HERO_BANNERS);
+  const [blogArticles, setBlogArticles] = useState<BlogArticle[]>(BLOG_ARTICLES);
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('BDT');
   const [user, setUser] = useState<UserProfile>(INITIAL_USER);
+  const [users, setUsers] = useState<UserProfile[]>(MOCK_USERS);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
   const [tickets, setTickets] = useState<SupportTicket[]>(INITIAL_TICKETS);
+
+  const [isMounted, setIsMounted] = useState(false);
+  const [isDbConnected, setIsDbConnected] = useState(false);
+
+  // Hydrate from Database or fall back to localStorage
+  useEffect(() => {
+    async function initData() {
+      let dbOk = false;
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.products) {
+            setProducts(data.products);
+            dbOk = true;
+            setIsDbConnected(true);
+            console.log('Supabase API initialized successfully.');
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase API offline. Falling back to local storage caching.');
+      }
+
+      if (dbOk) {
+        try {
+          const oRes = await fetch('/api/orders');
+          if (oRes.ok) {
+            const oData = await oRes.json();
+            if (oData.success) setOrders(oData.orders);
+          }
+          const tRes = await fetch('/api/tickets');
+          if (tRes.ok) {
+            const tData = await tRes.json();
+            if (tData.success) setTickets(tData.tickets);
+          }
+        } catch (err) {
+          console.error('Error fetching database orders/tickets', err);
+        }
+      } else {
+        // LocalStorage Fallback
+        try {
+          const storedProducts = localStorage.getItem('zenvo_v3_products');
+          const storedBanners = localStorage.getItem('zenvo_v3_banners');
+          const storedBlogs = localStorage.getItem('zenvo_v3_blogs');
+          const storedUser = localStorage.getItem('zenvo_v3_user');
+          const storedUsers = localStorage.getItem('zenvo_v3_users');
+          const storedOrders = localStorage.getItem('zenvo_v3_orders');
+          const storedTransactions = localStorage.getItem('zenvo_v3_transactions');
+          const storedTickets = localStorage.getItem('zenvo_v3_tickets');
+
+          if (storedProducts) setProducts(JSON.parse(storedProducts));
+          if (storedBanners) setHeroBanners(JSON.parse(storedBanners));
+          if (storedBlogs) setBlogArticles(JSON.parse(storedBlogs));
+          if (storedUser) setUser(JSON.parse(storedUser));
+          if (storedUsers) setUsers(JSON.parse(storedUsers));
+          if (storedOrders) setOrders(JSON.parse(storedOrders));
+          if (storedTransactions) setWalletTransactions(JSON.parse(storedTransactions));
+          if (storedTickets) setTickets(JSON.parse(storedTickets));
+        } catch (e) {
+          console.error('Error loading from localStorage', e);
+        }
+      }
+      setIsMounted(true);
+    }
+    initData();
+  }, []);
+
+  // Save changes to localStorage (only as fallback sync)
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_products', JSON.stringify(products));
+  }, [products, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_banners', JSON.stringify(heroBanners));
+  }, [heroBanners, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_blogs', JSON.stringify(blogArticles));
+  }, [blogArticles, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_user', JSON.stringify(user));
+  }, [user, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_users', JSON.stringify(users));
+  }, [users, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_orders', JSON.stringify(orders));
+  }, [orders, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_transactions', JSON.stringify(walletTransactions));
+  }, [walletTransactions, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_tickets', JSON.stringify(tickets));
+  }, [tickets, isMounted]);
 
   const addToCart = (item: CartItem) => setCartItems((p) => [...p, item]);
 
@@ -105,41 +251,60 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const directCheckout = async (item: CartItem, paymentMethod: PaymentMethod) => {
     const totalUSD = item.denomination.amount * item.quantity;
-    const orderNumber =
-      'ZNG-' +
-      Math.floor(100000 + Math.random() * 900000).toString() +
-      '-' +
-      Date.now().toString().slice(-3);
+    const orderNumber = 'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
+    const transactionId = 'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+
     const newOrder: Order = {
       id: 'ord_' + Date.now(),
       orderNumber,
-      userId: user.id,
-      userEmail: user.email,
+      userId: 'guest',
+      userEmail: item.playerId || 'guest@zenvogames.com',
       items: [item],
       totalUSD,
       currency: selectedCurrency,
       paidAmountCurrency: totalUSD,
       paymentMethod,
       paymentStatus: 'Paid',
-      fulfillmentStatus: 'Delivered',
+      fulfillmentStatus: 'Processing',
       createdAt: new Date().toLocaleString(),
       updatedAt: new Date().toLocaleString(),
       playerId: item.playerId,
       serverId: item.serverId,
-      transactionId: 'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase(),
+      transactionId,
     } as unknown as Order;
+
+    if (isDbConnected) {
+      try {
+        await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newOrder),
+        });
+      } catch (e) {
+        console.error('Failed to post order to database API', e);
+      }
+    }
+
     setOrders((p) => [newOrder, ...p]);
+
+    // Clear item from cart
     setCartItems((p) =>
       p.filter(
         (ci) =>
           !(ci.productId === item.productId && ci.denomination.id === item.denomination.id)
       )
     );
+
     return { success: true, orderNumber, message: 'Instant top-up delivered' };
   };
 
   const depositWallet = async (amountUSD: number, method: string, reference: string) => {
-    setUser((u) => ({ ...u, walletBalanceUSD: u.walletBalanceUSD + amountUSD }));
+    const newBal = parseFloat((user.walletBalanceUSD + amountUSD).toFixed(2));
+    setUser((curr) => ({ ...curr, walletBalanceUSD: newBal }));
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, walletBalanceUSD: newBal } : u))
+    );
+
     const tx: WalletTransaction = {
       id: 'tx_' + Date.now(),
       userId: user.id,
@@ -151,6 +316,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       status: 'Completed',
       createdAt: new Date().toLocaleString(),
     };
+
     setWalletTransactions((p) => [tx, ...p]);
     return { success: true, message: `Successfully deposited $${amountUSD.toFixed(2)}` };
   };
@@ -177,7 +343,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const newTicket: SupportTicket = {
       id,
       ticketNumber: 'TCK-' + Math.floor(10000 + Math.random() * 90000),
-      userId: user.id,
+      userId: 'guest',
       userEmail: user.email,
       subject,
       category,
@@ -204,54 +370,272 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         } as any,
       ],
     } as SupportTicket;
+
+    if (isDbConnected) {
+      try {
+        await fetch('/api/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newTicket),
+        });
+      } catch (e) {
+        console.error('Failed to post ticket to database API', e);
+      }
+    }
+
     setTickets((p) => [newTicket, ...p]);
   };
 
   const replyTicket = async (ticketId: string, message: string) => {
+    let updatedTicketObj: any = null;
+    setTickets((prev) =>
+      prev.map((t) => {
+        if (t.id === ticketId || (t as any)._id === ticketId) {
+          const updated = {
+            ...t,
+            status: 'Open' as any,
+            updatedAt: new Date().toLocaleString(),
+            messages: [
+              ...t.messages,
+              {
+                id: 'm_' + Date.now(),
+                ticketId,
+                sender: 'user',
+                senderName: user.name,
+                message,
+                timestamp: new Date().toLocaleString(),
+              } as any,
+            ],
+          };
+          updatedTicketObj = updated;
+          return updated;
+        }
+        return t;
+      })
+    );
+
+    if (isDbConnected && updatedTicketObj) {
+      try {
+        await fetch(`/api/tickets/${ticketId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedTicketObj),
+        });
+      } catch (e) {
+        console.error('Failed to update ticket reply in database API', e);
+      }
+    }
+  };
+
+  const addProduct = async (np: Product) => {
+    if (isDbConnected) {
+      try {
+        await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(np),
+        });
+      } catch (e) {
+        console.error('Failed to create product in database API', e);
+      }
+    }
+    setProducts((p) => [np, ...p]);
+  };
+
+  const updateProduct = async (updatedProd: Product) => {
+    if (isDbConnected) {
+      try {
+        await fetch(`/api/products/${updatedProd.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedProd),
+        });
+      } catch (e) {
+        console.error('Failed to update product in database API', e);
+      }
+    }
+    setProducts((prev) =>
+      prev.map((p) => (p.id === updatedProd.id ? updatedProd : p))
+    );
+  };
+
+  const deleteProduct = async (id: string) => {
+    if (isDbConnected) {
+      try {
+        await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      } catch (e) {
+        console.error('Failed to delete product in database API', e);
+      }
+    }
+    setProducts((p) => p.filter((x) => x.id !== id));
+  };
+
+  const updateOrderStatus = async (
+    orderId: string,
+    status: 'Processing' | 'Delivered' | 'Refunded'
+  ) => {
+    if (isDbConnected) {
+      try {
+        await fetch(`/api/orders/${orderId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fulfillmentStatus: status }),
+        });
+      } catch (e) {
+        console.error('Failed to update order in database API', e);
+      }
+    }
+
+    setOrders((p) =>
+      p.map((o) => {
+        if (o.id === orderId || (o as any)._id === orderId) {
+          return { ...o, fulfillmentStatus: status, updatedAt: new Date().toLocaleString() };
+        }
+        return o;
+      })
+    );
+  };
+
+  const createUser = (newUsr: UserProfile) => {
+    setUsers((prev) => [...prev, newUsr]);
+  };
+
+  const deleteUser = (id: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+  };
+
+  const adjustUserWallet = async (
+    userId: string,
+    amountUSD: number,
+    type: 'deposit' | 'deduction',
+    reference: string
+  ) => {
+    let success = false;
+    let message = '';
+    
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          const currentBalance = u.walletBalanceUSD;
+          let newBalance = currentBalance;
+          if (type === 'deposit') {
+            newBalance = parseFloat((currentBalance + amountUSD).toFixed(2));
+            message = `Successfully deposited $${amountUSD.toFixed(2)} to ${u.name}'s wallet.`;
+            success = true;
+          } else {
+            if (currentBalance < amountUSD) {
+              message = `Insufficient user balance ($${currentBalance.toFixed(2)} available).`;
+              success = false;
+              return u;
+            }
+            newBalance = parseFloat((currentBalance - amountUSD).toFixed(2));
+            message = `Successfully deducted $${amountUSD.toFixed(2)} from ${u.name}'s wallet.`;
+            success = true;
+          }
+          
+          if (u.id === user.id) {
+            setUser((curr) => ({ ...curr, walletBalanceUSD: newBalance }));
+          }
+          
+          const tx: WalletTransaction = {
+            id: 'wtx_' + Date.now(),
+            userId: u.id,
+            type: type === 'deposit' ? 'deposit' : 'purchase',
+            amount: amountUSD,
+            currency: 'USD',
+            paymentMethod: 'Admin Dashboard',
+            status: 'Completed',
+            createdAt: new Date().toLocaleString(),
+            reference,
+          };
+          setWalletTransactions((prevTxs) => [tx, ...prevTxs]);
+          
+          return { ...u, walletBalanceUSD: newBalance };
+        }
+        return u;
+      })
+    );
+    
+    return { success, message };
+  };
+
+  const addBanner = (b: HeroBanner) => setHeroBanners((prev) => [b, ...prev]);
+  const updateBanner = (updatedB: HeroBanner) => setHeroBanners((prev) => prev.map((x) => x.id === updatedB.id ? updatedB : x));
+  const deleteBanner = (id: string) => setHeroBanners((prev) => prev.filter((x) => x.id !== id));
+
+  const addBlog = (b: BlogArticle) => setBlogArticles((prev) => [b, ...prev]);
+  const updateBlog = (updatedB: BlogArticle) => setBlogArticles((prev) => prev.map((x) => x.id === updatedB.id ? updatedB : x));
+  const deleteBlog = (id: string) => setBlogArticles((prev) => prev.filter((x) => x.id !== id));
+
+  const adminReplyTicket = async (ticketId: string, message: string) => {
+    const newReply = {
+      id: 'msg_admin_' + Date.now(),
+      sender: 'support' as const,
+      senderName: 'ZENOV Support Admin',
+      message,
+      timestamp: new Date().toLocaleString(),
+    };
+
+    let updatedTicketObj: any = null;
+    setTickets((prev) =>
+      prev.map((t) => {
+        if (t.id === ticketId || (t as any)._id === ticketId) {
+          const updated = {
+            ...t,
+            status: 'In Progress' as any,
+            updatedAt: new Date().toLocaleString(),
+            messages: [...t.messages, newReply],
+          };
+          updatedTicketObj = updated;
+          return updated;
+        }
+        return t;
+      })
+    );
+
+    if (isDbConnected && updatedTicketObj) {
+      try {
+        await fetch(`/api/tickets/${ticketId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedTicketObj),
+        });
+      } catch (e) {
+        console.error('Failed to save ticket reply in database API', e);
+      }
+    }
+  };
+
+  const updateTicketStatus = async (ticketId: string, status: SupportTicket['status']) => {
+    if (isDbConnected) {
+      try {
+        await fetch(`/api/tickets/${ticketId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        });
+      } catch (e) {
+        console.error('Failed to update ticket status in database API', e);
+      }
+    }
+
     setTickets((prev) =>
       prev.map((t) =>
-        t.id === ticketId
-          ? {
-              ...t,
-              updatedAt: new Date().toLocaleString(),
-              messages: [
-                ...t.messages,
-                {
-                  id: 'm_' + Date.now(),
-                  ticketId,
-                  sender: 'user',
-                  senderName: user.name,
-                  message,
-                  timestamp: new Date().toLocaleString(),
-                } as any,
-              ],
-            }
+        t.id === ticketId || (t as any)._id === ticketId
+          ? { ...t, status, updatedAt: new Date().toLocaleString() }
           : t
       )
     );
   };
 
-  const addProduct = (np: Product) => setProducts((p) => [np, ...p]);
-
-  const deleteProduct = (id: string) => setProducts((p) => p.filter((x) => x.id !== id));
-
-  const updateOrderStatus = (
-    orderId: string,
-    status: 'Processing' | 'Delivered' | 'Refunded'
-  ) =>
-    setOrders((p) =>
-      p.map((o) =>
-        o.id === orderId ? { ...o, fulfillmentStatus: status, updatedAt: new Date().toLocaleString() } : o
-      )
-    );
-
   const value: AppStateValue = {
     products,
-    heroBanners: HERO_BANNERS,
-    blogArticles: BLOG_ARTICLES,
+    heroBanners,
+    blogArticles,
     selectedCategory,
     selectedCurrency,
     user,
+    users,
     cartItems,
     orders,
     walletTransactions,
@@ -268,9 +652,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     createTicket,
     replyTicket,
     addProduct,
+    updateProduct,
     deleteProduct,
     updateOrderStatus,
     updateUser: setUser,
+    createUser,
+    deleteUser,
+    adjustUserWallet,
+    addBanner,
+    updateBanner,
+    deleteBanner,
+    addBlog,
+    updateBlog,
+    deleteBlog,
+    adminReplyTicket,
+    updateTicketStatus,
   };
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

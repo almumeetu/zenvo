@@ -372,7 +372,6 @@ export default function TopUpPage() {
                     { id: 'Rocket', I: Phone, tag: '' },
                     { id: 'Visa/Mastercard', I: CreditCard, tag: 'Card' },
                     { id: 'Crypto/USDT', I: Wallet, tag: 'Web3' },
-                    { id: 'Zenov Wallet', I: Wallet, tag: user.walletBalanceUSD > 0 ? `$${user.walletBalanceUSD}` : 'Empty' },
                   ].map(({ id, I: Ic, tag }) => {
                     const active = paymentMethod === (id as PaymentMethod);
                     return (

@@ -285,21 +285,9 @@ export default function FaqsPage() {
             <h4 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-4 pl-2.5 border-l-2 border-zenvo-accent">
               Can&apos;t find an answer?
             </h4>
-            <p className="text-sm text-zenvo-text-secondary mb-4 leading-relaxed">
-              Our support squad is online 24/7 with a typical first-response under 10 minutes.
+            <p className="text-sm text-zenvo-text-secondary leading-relaxed">
+              Our support squad is online via Email and WhatsApp. Feel free to reach out directly using the quick contacts below.
             </p>
-            <Link
-              href="/support/new"
-              className="block w-full px-5 py-3 rounded-xl bg-gradient-to-r from-zenvo-accent to-amber-500 text-zenvo-bg text-sm font-bold uppercase tracking-wide shadow-lg shadow-zenvo-accent/20 hover:brightness-110 transition-all active:scale-95 text-center mb-2.5"
-            >
-              🎫 Open Support Ticket
-            </Link>
-            <Link
-              href="/ai-assistant"
-              className="block w-full px-5 py-3 rounded-xl bg-zenvo-primary-soft border border-zenvo-primary-border text-zenvo-primary text-sm font-bold uppercase tracking-wide hover:bg-zenvo-primary hover:text-white transition-colors active:scale-95 text-center mb-2.5"
-            >
-              🤖 Ask AI Assistant
-            </Link>
           </div>
 
           <div className="rounded-2xl p-5 bg-gradient-to-br from-zenvo-primary/15 via-transparent to-zenvo-accent/15 border border-zenvo-primary-border/40 space-y-3.5">

@@ -43,7 +43,6 @@ const NAV_ITEMS = [
   { label: 'Shop', href: '/shop' },
   { label: 'Blog', href: '/blog' },
   { label: 'FAQs', href: '/faqs' },
-  { label: 'Support', href: '/support' },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
@@ -370,29 +369,7 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* Wallet */}
-            <Link
-              href="/wallet"
-              className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-zenvo-surface/60 border border-zenvo-border hover:border-zenvo-primary-border hover:bg-zenvo-primary-soft/50 transition-all group"
-            >
-              <Wallet className="w-4 h-4 text-zenvo-primary group-hover:scale-110 transition-transform" />
-              <div className="text-left leading-tight">
-                <p className="text-[9px] uppercase tracking-wider text-zenvo-text-muted font-semibold">Wallet</p>
-                <p className="text-xs font-mono font-bold text-zenvo-text">
-                  {formatCurrency(user.walletBalanceUSD, selectedCurrency)}
-                </p>
-              </div>
-            </Link>
 
-            {/* AI Assistant */}
-            <Link
-              href="/ai-assistant"
-              title="ZENOV AI Assistant"
-              className="hidden sm:flex p-2.5 rounded-xl bg-zenvo-surface/60 border border-zenvo-border hover:border-zenvo-accent-border hover:bg-zenvo-accent-soft/50 text-zenvo-text-secondary hover:text-zenvo-accent transition-all duration-200 relative"
-            >
-              <Bot className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-zenvo-success rounded-full border-2 border-zenvo-bg" />
-            </Link>
 
             {/* Cart */}
             <Link
@@ -443,14 +420,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
 
                   <div className="p-1.5 space-y-0.5">
-                    <Link
-                      href="/wallet"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                      className="w-full text-left px-3 py-2.5 text-xs text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface rounded-xl flex items-center gap-2.5 transition-colors"
-                    >
-                      <Wallet className="w-4 h-4 text-zenvo-primary shrink-0" />
-                      <span>My Wallet ({formatCurrency(user.walletBalanceUSD, selectedCurrency)})</span>
-                    </Link>
+
                     <Link
                       href="/orders/track"
                       onClick={() => setIsProfileMenuOpen(false)}
@@ -459,14 +429,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <Clock className="w-4 h-4 text-zenvo-primary shrink-0" />
                       <span>Order History & Tracking</span>
                     </Link>
-                    <Link
-                      href="/ai-assistant"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                      className="w-full text-left px-3 py-2.5 text-xs text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface rounded-xl flex items-center gap-2.5 transition-colors"
-                    >
-                      <Bot className="w-4 h-4 text-zenvo-accent shrink-0" />
-                      <span>AI Assistant</span>
-                    </Link>
+
                     {user.role === 'admin' && (
                       <Link
                         href="/admin"
@@ -545,18 +508,11 @@ export const Header: React.FC<HeaderProps> = ({
                 {isActive(item.href) && <ChevronRight className="w-4 h-4 text-zenvo-primary" />}
               </Link>
             ))}
-            <div className="border-t border-zenvo-border mt-3 pt-3 grid grid-cols-2 gap-2">
-              <Link
-                href="/wallet"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="px-4 py-3 rounded-xl text-sm font-bold bg-zenvo-primary-soft text-zenvo-primary text-center hover:bg-zenvo-primary hover:text-white transition-all"
-              >
-                💰 Wallet
-              </Link>
+            <div className="border-t border-zenvo-border mt-3 pt-3">
               <Link
                 href="/cart"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="px-4 py-3 rounded-xl text-sm font-bold bg-zenvo-accent-soft text-zenvo-accent text-center hover:bg-zenvo-accent hover:text-zenvo-bg transition-all"
+                className="w-full block px-4 py-3 rounded-xl text-sm font-bold bg-zenvo-accent-soft text-zenvo-accent text-center hover:bg-zenvo-accent hover:text-zenvo-bg transition-all"
               >
                 🛒 Cart {totalCartCount > 0 ? `(${totalCartCount})` : ''}
               </Link>
