@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Phone,
   Mail,
@@ -60,9 +61,14 @@ const FooterLink: React.FC<{ href: string; children: React.ReactNode; external?:
 };
 
 export const Footer: React.FC = () => {
+  const pathname = usePathname();
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   useEffect(() => {
     const onScroll = () => setShowBackToTop(window.scrollY > 300);

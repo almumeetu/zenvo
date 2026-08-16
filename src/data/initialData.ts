@@ -5,12 +5,111 @@ import {
   UserProfile,
   Order,
   SupportTicket,
-  Product
+  Product,
+  CategoryItem,
+  UnitItem,
 } from '../types';
 
 export const CURRENCIES: CurrencyRate[] = [
   { code: 'USD', symbol: '$', rateToUSD: 1 },
   { code: 'BDT', symbol: '৳', rateToUSD: 120 },
+];
+
+export const INITIAL_CATEGORIES: CategoryItem[] = [
+  {
+    id: 'cat_game_topup',
+    name: 'Game Top-Up',
+    slug: 'game-topup',
+    icon: 'Gamepad2',
+    description: 'In-game currencies, diamonds, UC, tokens, and instant battle pass recharges.',
+    badge: 'Popular',
+    active: true,
+  },
+  {
+    id: 'cat_gift_card',
+    name: 'Gift Cards',
+    slug: 'gift-card',
+    icon: 'Gift',
+    description: 'Digital store vouchers, Google Play, Apple, Steam, PlayStation codes with instant dispatch.',
+    badge: 'Instant',
+    active: true,
+  },
+  {
+    id: 'cat_social_topup',
+    name: 'Social Top-Up',
+    slug: 'social-topup',
+    icon: 'Smartphone',
+    description: 'Social live streaming coins, TikTok coins, Bigo diamonds, and app subscriptions.',
+    active: true,
+  },
+  {
+    id: 'cat_subscription',
+    name: 'Subscriptions',
+    slug: 'subscription',
+    icon: 'Crown',
+    description: 'Premium gaming passes, Discord Nitro, streaming memberships, and VIP services.',
+    badge: 'Hot',
+    active: true,
+  },
+  {
+    id: 'cat_game_account',
+    name: 'Game Accounts',
+    slug: 'game-account',
+    icon: 'Layers',
+    description: 'Verified starter, smurf, and high-tier competitive gaming accounts.',
+    active: true,
+  },
+];
+
+export const INITIAL_UNITS: UnitItem[] = [
+  {
+    id: 'unit_diamonds',
+    name: 'Diamonds',
+    symbol: '💎',
+    category: 'game-topup',
+    description: 'Free Fire, Mobile Legends, MLBB, Genshin Impact virtual currency',
+    defaultStep: 100,
+  },
+  {
+    id: 'unit_uc',
+    name: 'UC (Unknown Cash)',
+    symbol: '🪙',
+    category: 'game-topup',
+    description: 'PUBG Mobile & BGMI official currency',
+    defaultStep: 60,
+  },
+  {
+    id: 'unit_usd_gift',
+    name: 'USD Balance ($)',
+    symbol: '🎟️',
+    category: 'gift-card',
+    description: 'Google Play, Apple iTunes, Steam Wallet, PlayStation store values',
+    defaultStep: 10,
+  },
+  {
+    id: 'unit_robux',
+    name: 'Robux',
+    symbol: '⚡',
+    category: 'game-topup',
+    description: 'Roblox platform virtual currency',
+    defaultStep: 400,
+  },
+  {
+    id: 'unit_pass_duration',
+    name: 'Pass & Subscriptions',
+    symbol: '👑',
+    category: 'subscription',
+    description: 'Weekly/Monthly memberships, Discord Nitro, Season battle passes',
+    defaultStep: 1,
+  },
+  {
+    id: 'unit_coins',
+    name: 'Coins / Tokens',
+    symbol: '🪙',
+    category: 'social-topup',
+    description: 'TikTok, Bigo Live, Tinder tokens and live stream gifting points',
+    defaultStep: 500,
+  },
 ];
 
 export const HERO_BANNERS: HeroBanner[] = [

@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import ManualPaymentBox from '@/components/payment/ManualPaymentBox';
+import { PaymentLogo } from '@/components/payment/PaymentLogos';
 
 export default function CartPage() {
   const {
@@ -302,21 +303,24 @@ export default function CartPage() {
               <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-zenvo-primary" /> Select Payment Method
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {['bKash', 'Nagad', 'Rocket', 'Visa/Mastercard'].map((method) => {
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {['bKash', 'Nagad', 'Rocket', 'Visa/Mastercard', 'Crypto/USDT'].map((method) => {
                   const active = paymentMethod === method;
                   return (
                     <button
                       key={method}
                       type="button"
                       onClick={() => setPaymentMethod(method as PaymentMethod)}
-                      className={`p-3 rounded-xl border text-left transition-all ${
+                      className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
                         active
-                          ? 'bg-zenvo-primary-soft/50 border-zenvo-primary-border text-zenvo-primary font-bold ring-1 ring-zenvo-primary-border/40'
+                          ? 'bg-zenvo-primary-soft/50 border-zenvo-primary-border ring-2 ring-zenvo-primary-border/40 shadow-sm'
                           : 'bg-zenvo-surface border-zenvo-border text-zenvo-text hover:border-zenvo-border-hover'
                       }`}
                     >
-                      <p className="text-xs font-bold">{method}</p>
+                      <PaymentLogo method={method} className="w-7 h-7 rounded-lg shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-xs font-bold truncate ${active ? 'text-white' : 'text-zenvo-text'}`}>{method}</p>
+                      </div>
                     </button>
                   );
                 })}

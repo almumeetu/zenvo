@@ -29,6 +29,7 @@ import {
   User,
   Mail,
 } from 'lucide-react';
+import { PaymentLogo } from '@/components/payment/PaymentLogos';
 import ManualPaymentBox from '@/components/payment/ManualPaymentBox';
 
 export default function TopUpPage() {
@@ -422,33 +423,36 @@ export default function TopUpPage() {
                 <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenvo-text mb-2.5 flex items-center gap-2">
                   <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenvo-primary" /> Select Payment Method
                 </h3>
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                   {[
-                    { id: 'bKash', I: Phone, tag: 'Personal' },
-                    { id: 'Nagad', I: Phone, tag: 'Personal' },
-                    { id: 'Rocket', I: Phone, tag: 'Personal' },
-                    { id: 'Visa/Mastercard', I: CreditCard, tag: 'Bank Transfer' },
-                    { id: 'Crypto/USDT', I: Wallet, tag: 'TRC20' },
-                  ].map(({ id, I: Ic, tag }) => {
+                    { id: 'bKash', tag: 'Personal', accent: 'border-pink-500/60 bg-pink-500/10' },
+                    { id: 'Nagad', tag: 'Personal', accent: 'border-orange-500/60 bg-orange-500/10' },
+                    { id: 'Rocket', tag: 'Personal', accent: 'border-purple-500/60 bg-purple-500/10' },
+                    { id: 'Visa/Mastercard', tag: 'Bank Transfer', accent: 'border-blue-500/60 bg-blue-500/10' },
+                    { id: 'Crypto/USDT', tag: 'TRC20', accent: 'border-emerald-500/60 bg-emerald-500/10' },
+                  ].map(({ id, tag, accent }) => {
                     const active = paymentMethod === (id as PaymentMethod);
                     return (
                       <button
                         key={id}
                         type="button"
                         onClick={() => setPaymentMethod(id as PaymentMethod)}
-                        className={`relative p-2 sm:p-2.5 rounded-lg sm:rounded-xl border transition-all flex items-center gap-2 text-left ${
+                        className={`relative p-2.5 sm:p-3 rounded-xl border transition-all flex items-center gap-2.5 text-left ${
                           active
-                            ? 'bg-zenvo-primary-soft/50 border-zenvo-primary-border ring-1 ring-zenvo-primary-border/40'
-                            : 'bg-zenvo-surface/60 border-zenvo-border hover:border-zenvo-border-hover'
+                            ? `${accent} ring-2 ring-zenvo-primary-border shadow-md scale-[1.01]`
+                            : 'bg-zenvo-surface/70 border-zenvo-border hover:border-zenvo-border-hover hover:bg-zenvo-surface'
                         }`}
                       >
-                        <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center shrink-0 ${active ? 'bg-zenvo-primary/15 text-zenvo-primary' : 'bg-zenvo-card text-zenvo-text-muted'}`}>
-                          <Ic className="w-3.5 h-3.5" />
-                        </div>
+                        <PaymentLogo method={id} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className={`text-[10px] sm:text-xs font-bold truncate ${active ? 'text-zenvo-primary' : 'text-zenvo-text'}`}>{id}</p>
-                          {tag && <p className="text-[9px] text-zenvo-text-muted leading-tight">{tag}</p>}
+                          <p className={`text-[11px] sm:text-xs font-black truncate leading-tight ${active ? 'text-white' : 'text-zenvo-text'}`}>
+                            {id}
+                          </p>
+                          {tag && <p className="text-[9px] text-zenvo-text-muted font-medium leading-none mt-0.5">{tag}</p>}
                         </div>
+                        {active && (
+                          <div className="w-2 h-2 rounded-full bg-zenvo-primary animate-pulse shrink-0" />
+                        )}
                       </button>
                     );
                   })}

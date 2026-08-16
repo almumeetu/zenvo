@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import {
   Product,
   CategoryType,
+  CategoryItem,
+  UnitItem,
   CurrencyCode,
   UserProfile,
   CartItem,
@@ -15,6 +17,8 @@ import {
 } from '../types';
 import {
   INITIAL_PRODUCTS,
+  INITIAL_CATEGORIES,
+  INITIAL_UNITS,
   INITIAL_USER,
   INITIAL_ORDERS,
   INITIAL_TICKETS,
@@ -58,6 +62,8 @@ const MOCK_USERS: UserProfile[] = [
 
 interface AppState {
   products: Product[];
+  categories: CategoryItem[];
+  units: UnitItem[];
   heroBanners: HeroBanner[];
   blogArticles: BlogArticle[];
   selectedCategory: CategoryType | 'all';
@@ -93,6 +99,12 @@ interface AppActions {
   addProduct: (p: Product) => void;
   updateProduct: (p: Product) => void;
   deleteProduct: (id: string) => void;
+  addCategory: (c: CategoryItem) => void;
+  updateCategory: (c: CategoryItem) => void;
+  deleteCategory: (id: string) => void;
+  addUnit: (u: UnitItem) => void;
+  updateUnit: (u: UnitItem) => void;
+  deleteUnit: (id: string) => void;
   updateOrderStatus: (
     orderId: string,
     status: 'Processing' | 'Delivered' | 'Refunded' | 'Pending Verification',
@@ -127,6 +139,8 @@ const AppCtx = createContext<AppStateValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [categories, setCategories] = useState<CategoryItem[]>(INITIAL_CATEGORIES);
+  const [units, setUnits] = useState<UnitItem[]>(INITIAL_UNITS);
   const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(HERO_BANNERS);
   const [blogArticles, setBlogArticles] = useState<BlogArticle[]>(BLOG_ARTICLES);
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
@@ -146,6 +160,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     // 1. Instantly load cache from localStorage (0ms render time)
     try {
       const storedProducts = localStorage.getItem('zenvo_v3_products');
+      const storedCategories = localStorage.getItem('zenvo_v3_categories');
+      const storedUnits = localStorage.getItem('zenvo_v3_units');
       const storedBanners = localStorage.getItem('zenvo_v3_banners');
       const storedBlogs = localStorage.getItem('zenvo_v3_blogs');
       const storedUser = localStorage.getItem('zenvo_v3_user');
@@ -155,6 +171,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const storedTickets = localStorage.getItem('zenvo_v3_tickets');
 
       if (storedProducts) setProducts(JSON.parse(storedProducts));
+      if (storedCategories) setCategories(JSON.parse(storedCategories));
+      if (storedUnits) setUnits(JSON.parse(storedUnits));
       if (storedBanners) setHeroBanners(JSON.parse(storedBanners));
       if (storedBlogs) setBlogArticles(JSON.parse(storedBlogs));
       if (storedUser) setUser(JSON.parse(storedUser));
@@ -239,6 +257,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (!isMounted) return;
     localStorage.setItem('zenvo_v3_products', JSON.stringify(products));
   }, [products, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_categories', JSON.stringify(categories));
+  }, [categories, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem('zenvo_v3_units', JSON.stringify(units));
+  }, [units, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
@@ -579,6 +607,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setProducts((p) => p.filter((x) => x.id !== id));
   };
 
+  const addCategory = (c: CategoryItem) => {
+    setCategories((prev) => [c, ...prev]);
+  };
+
+  const updateCategory = (c: CategoryItem) => {
+    setCategories((prev) => prev.map((x) => (x.id === c.id ? c : x)));
+  };
+
+  const deleteCategory = (id: string) => {
+    setCategories((prev) => prev.filter((x) => x.id !== id));
+  };
+
+  const addUnit = (u: UnitItem) => {
+    setUnits((prev) => [u, ...prev]);
+  };
+
+  const updateUnit = (u: UnitItem) => {
+    setUnits((prev) => prev.map((x) => (x.id === u.id ? u : x)));
+  };
+
+  const deleteUnit = (id: string) => {
+    setUnits((prev) => prev.filter((x) => x.id !== id));
+  };
+
   const updateOrderStatus = async (
     orderId: string,
     status: 'Processing' | 'Delivered' | 'Refunded' | 'Pending Verification',
@@ -835,6 +887,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const value: AppStateValue = {
     products,
+    categories,
+    units,
     heroBanners,
     blogArticles,
     selectedCategory,
@@ -860,6 +914,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     addProduct,
     updateProduct,
     deleteProduct,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    addUnit,
+    updateUnit,
+    deleteUnit,
     updateOrderStatus,
     updateUser: setUser,
     createUser,

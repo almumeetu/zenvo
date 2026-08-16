@@ -1,9 +1,11 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useApp } from '@/lib/AppStateContext';
 import { Header } from './Header';
 
 export function HeaderWrapper() {
+  const pathname = usePathname();
   const {
     products,
     selectedCurrency,
@@ -11,6 +13,10 @@ export function HeaderWrapper() {
     user,
     cartItems,
   } = useApp();
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <Header

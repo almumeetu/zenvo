@@ -1,4 +1,24 @@
-export type CategoryType = 'game-topup' | 'social-topup' | 'gift-card' | 'game-account' | 'subscription';
+export type CategoryType = 'game-topup' | 'social-topup' | 'gift-card' | 'game-account' | 'subscription' | string;
+
+export interface CategoryItem {
+  id: string;
+  name: string;
+  slug: string;
+  icon?: string;
+  description?: string;
+  badge?: string;
+  active?: boolean;
+  itemCount?: number;
+}
+
+export interface UnitItem {
+  id: string;
+  name: string; // e.g. "Diamonds", "UC (Unknown Cash)", "Gift Card ($)", "Coins", "Points", "Subscription (Days/Months)"
+  symbol?: string; // e.g. "💎", "🪙", "🎟️", "👑", "⚡"
+  category: string; // e.g. "game-topup", "gift-card", "subscription", etc.
+  description?: string;
+  defaultStep?: number;
+}
 
 export interface ProductDenomination {
   id: string;
@@ -17,6 +37,8 @@ export interface Product {
   id: string;
   title: string;
   category: CategoryType;
+  unitId?: string;
+  unitName?: string;
   image: string;
   bannerImage?: string;
   publisher?: string;

@@ -9,12 +9,12 @@ import {
   CheckCircle2,
   Wallet,
   CreditCard,
-  QrCode,
-  Tag,
-  AlertCircle,
-  Copy,
   ExternalLink,
+  Copy,
+  AlertCircle,
+  Tag,
 } from 'lucide-react';
+import { PaymentLogo } from './payment/PaymentLogos';
 
 interface QuickTopUpModalProps {
   product: Product | null;
@@ -312,30 +312,30 @@ export const QuickTopUpModal: React.FC<QuickTopUpModalProps> = ({
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {[
-                  { id: 'bKash', label: 'bKash Auto', badge: 'Popular BD', icon: '🇧🇩' },
-                  { id: 'Nagad', label: 'Nagad Pay', badge: 'Instant BD', icon: '⚡' },
-                  { id: 'Rocket', label: 'Rocket', badge: 'BD Bank', icon: '🚀' },
-                  { id: 'Visa/Mastercard', label: 'Cards (Visa/MC)', badge: 'Global', icon: '💳' },
-                  { id: 'Crypto/USDT', label: 'Crypto USDT', badge: 'Web3', icon: '🪙' },
+                  { id: 'bKash', label: 'bKash Auto', badge: 'Popular BD' },
+                  { id: 'Nagad', label: 'Nagad Pay', badge: 'Instant BD' },
+                  { id: 'Rocket', label: 'Rocket', badge: 'BD Bank' },
+                  { id: 'Visa/Mastercard', label: 'Cards (Visa/MC)', badge: 'Global' },
+                  { id: 'Crypto/USDT', label: 'Crypto USDT', badge: 'Web3' },
                 ].map((pm) => {
                   const isSelected = selectedPayment === pm.id;
                   return (
                     <button
                       key={pm.id}
                       onClick={() => setSelectedPayment(pm.id as any)}
-                      className={`p-3 rounded-xl border text-left transition-all group ${
+                      className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2.5 group ${
                         isSelected
-                          ? 'bg-zenvo-primary-soft/50 border-zenvo-primary-border text-zenvo-text shadow-sm'
+                          ? 'bg-zenvo-primary-soft/50 border-zenvo-primary-border text-zenvo-text shadow-sm ring-1 ring-zenvo-primary-border/40'
                           : 'bg-zenvo-card border-zenvo-border hover:border-zenvo-primary-border/60 text-zenvo-secondary hover:text-zenvo-text'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-base">{pm.icon}</span>
+                        <PaymentLogo method={pm.id} className="w-7 h-7 rounded-lg shadow-sm" />
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zenvo-surface text-zenvo-muted border border-zenvo-border/50 group-hover:bg-zenvo-primary-soft group-hover:text-zenvo-primary group-hover:border-zenvo-primary-border/40 transition-colors">
                           {pm.badge}
                         </span>
                       </div>
-                      <p className="text-xs font-bold mt-1.5">{pm.label}</p>
+                      <p className="text-xs font-bold leading-tight">{pm.label}</p>
                     </button>
                   );
                 })}

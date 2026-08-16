@@ -17,11 +17,12 @@ import {
   ArrowDownLeft,
   Clock,
   Gift,
-  Copy,
-  ChevronRight,
   CheckCircle2,
   Sparkles,
+  ChevronRight,
+  Copy,
 } from 'lucide-react';
+import { PaymentLogo } from '@/components/payment/PaymentLogos';
 
 const QUICK_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
@@ -205,23 +206,29 @@ export default function WalletPage() {
               <div>
                 <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-3">Payment Method</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {PAYMENT_METHODS.map(({ id, I: Ic, c, tag }) => {
+                  {[
+                    { id: 'bKash', label: 'bKash Merchant', tag: 'Popular' },
+                    { id: 'Nagad', label: 'Nagad Pay', tag: 'Instant' },
+                    { id: 'Rocket', label: 'Rocket DBBL', tag: 'Bank' },
+                    { id: 'Visa', label: 'Visa / Mastercard', tag: 'Cards' },
+                    { id: 'USDT', label: 'Crypto USDT', tag: 'TRC20' },
+                  ].map(({ id, label, tag }) => {
                     const active = method === id;
                     return (
                       <button
                         key={id}
                         onClick={() => setMethod(id)}
-                        className={`relative p-3 rounded-xl border transition-all text-left ${
+                        className={`relative p-3 rounded-xl border transition-all text-left flex items-center gap-3 ${
                           active
-                            ? 'bg-zenvo-primary-soft/40 border-zenvo-primary-border ring-2 ring-zenvo-primary-border/30'
+                            ? 'bg-zenvo-primary-soft/40 border-zenvo-primary-border ring-2 ring-zenvo-primary-border/30 shadow-sm'
                             : 'bg-zenvo-surface/60 border-zenvo-border hover:border-zenvo-border-hover'
                         }`}
                       >
-                        <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${c} text-white flex items-center justify-center mb-2 shadow-sm`}>
-                          <Ic className="w-4 h-4" />
+                        <PaymentLogo method={id} className="w-8 h-8 rounded-lg shadow-sm shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-xs font-bold truncate ${active ? 'text-white' : 'text-zenvo-text'}`}>{label}</p>
+                          {tag && <p className="text-[9px] font-mono text-zenvo-text-muted mt-0.5">{tag}</p>}
                         </div>
-                        <p className={`text-sm font-bold ${active ? 'text-zenvo-primary' : 'text-zenvo-text'}`}>{id}</p>
-                        {tag && <p className="text-[10px] text-zenvo-text-muted">{tag}</p>}
                       </button>
                     );
                   })}

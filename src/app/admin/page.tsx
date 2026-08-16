@@ -4,7 +4,11 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/lib/AppStateContext';
 import { formatCurrency } from '@/lib/currency';
-import { Product, Order, CategoryType, CurrencyCode, UserProfile, HeroBanner, BlogArticle, SupportTicket } from '@/types';
+import { Product, Order, CategoryType, CategoryItem, UnitItem, CurrencyCode, UserProfile, HeroBanner, BlogArticle, SupportTicket } from '@/types';
+import { ImageDropzone } from '@/components/admin/ImageDropzone';
+import { DenominationsBuilder } from '@/components/admin/DenominationsBuilder';
+import { CategoryManager } from '@/components/admin/CategoryManager';
+import { UnitManager } from '@/components/admin/UnitManager';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -46,14 +50,15 @@ import {
   HelpCircle,
   Tag,
   Clock,
-  Sparkles,
   ChevronRight,
+  ChevronDown,
   FolderPlus,
   Layers3,
   Bookmark,
   Coins,
   Menu,
   X,
+  Zap,
 } from 'lucide-react';
 
 type AdminTab = 'overview' | 'products' | 'orders' | 'users' | 'cms' | 'tickets' | 'security';
@@ -71,8 +76,11 @@ const GRADIENT_THEMES = [
 export default function AdminDashboardPage() {
   const {
     products,
+    categories,
+    units,
     orders,
     selectedCurrency,
+    setSelectedCurrency,
     user,
     users,
     heroBanners,
@@ -98,8 +106,12 @@ export default function AdminDashboardPage() {
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [openProductsMenu, setOpenProductsMenu] = useState(true);
+  const [openOrdersMenu, setOpenOrdersMenu] = useState(false);
+  const [openCmsMenu, setOpenCmsMenu] = useState(false);
 
   // --- Products State ---
+  const [productSubTab, setProductSubTab] = useState<'products' | 'categories' | 'units'>('products');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [searchProd, setSearchProd] = useState('');
@@ -244,18 +256,18 @@ export default function AdminDashboardPage() {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const title = data.get('title') as string;
-    const category = data.get('category') as CategoryType;
-    const publisher = data.get('publisher') as string;
-    const region = data.get('region') as string;
-    const deliveryType = data.get('deliveryType') as any;
-    const description = data.get('description') as string;
-    const instructions = data.get('instructions') as string;
+    const category = (data.get('category') as string) || 'game-topup';
+    const unitId = (data.get('unitId') as string) || undefined;
+    const publisher = (data.get('publisher') as string) || '';
+    const region = (data.get('region') as string) || 'Global';
+    const deliveryType = (data.get('deliveryType') as any) || 'Instant';
+    const description = (data.get('description') as string) || '';
+    const instructions = (data.get('instructions') as string) || '';
     const playerIdLabel = (data.get('playerIdLabel') as string) || 'Player ID / Email';
     const image = (data.get('image') as string) || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=600';
     const inStock = data.get('inStock') === 'true';
     const isHot = data.get('isHot') === 'true';
     const isNew = data.get('isNew') === 'true';
-    const discountPercent = parseFloat(data.get('discountPercent') as string) || 0;
 
     const baseDenomAmount = parseFloat(data.get('price') as string) || 1.0;
 
@@ -267,28 +279,49 @@ export default function AdminDashboardPage() {
     const stepsRaw = (data.get('howToFindPlayerId') as string) || '';
     const howToFindPlayerId = stepsRaw ? stepsRaw.split('\n').map((s) => s.trim()).filter(Boolean) : [];
 
-    // Parse Denominations
-    const denomsRaw = (data.get('denominations') as string) || '';
+    // Parse Denominations from JSON (Builder) or textarea fallback
     let parsedDenoms: any[] = [];
-    if (denomsRaw.trim()) {
-      parsedDenoms = denomsRaw
-        .split('\n')
-        .map((line, idx) => {
-          const parts = line.split(',').map((p) => p.trim());
-          if (!parts[0]) return null;
-          const name = parts[0];
-          const amount = parseFloat(parts[1]) || baseDenomAmount;
-          const priceBDT = parts[2] ? parseFloat(parts[2]) : Math.round(amount * 120);
-          const bonus = parts[3] || undefined;
-          return {
-            id: `denom_${idx + 1}_${Date.now()}`,
-            name,
-            amount,
-            priceBDT,
-            bonus,
-          };
-        })
-        .filter(Boolean);
+    const denominationsJsonRaw = data.get('denominationsJson') as string;
+    if (denominationsJsonRaw) {
+      try {
+        const jsonList = JSON.parse(denominationsJsonRaw);
+        if (Array.isArray(jsonList) && jsonList.length > 0) {
+          parsedDenoms = jsonList.map((item: any, idx: number) => ({
+            id: item.id || `denom_${idx + 1}_${Date.now()}`,
+            name: item.name || `Package ${idx + 1}`,
+            amount: Number(item.amount) || baseDenomAmount,
+            priceBDT: Number(item.priceBDT) || Math.round((Number(item.amount) || baseDenomAmount) * 120),
+            bonus: item.bonus || undefined,
+            popular: !!item.popular,
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to parse denominationsJson:', err);
+      }
+    }
+
+    if (parsedDenoms.length === 0) {
+      const denomsRaw = (data.get('denominations') as string) || '';
+      if (denomsRaw.trim()) {
+        parsedDenoms = denomsRaw
+          .split('\n')
+          .map((line, idx) => {
+            const parts = line.split(',').map((p) => p.trim());
+            if (!parts[0]) return null;
+            const name = parts[0];
+            const amount = parseFloat(parts[1]) || baseDenomAmount;
+            const priceBDT = parts[2] ? parseFloat(parts[2]) : Math.round(amount * 120);
+            const bonus = parts[3] || undefined;
+            return {
+              id: `denom_${idx + 1}_${Date.now()}`,
+              name,
+              amount,
+              priceBDT,
+              bonus,
+            };
+          })
+          .filter(Boolean);
+      }
     }
 
     if (parsedDenoms.length === 0) {
@@ -308,6 +341,7 @@ export default function AdminDashboardPage() {
       ...baseProd,
       title,
       category,
+      unitId,
       publisher,
       region,
       deliveryType,
@@ -318,7 +352,6 @@ export default function AdminDashboardPage() {
       inStock,
       isHot,
       isNew,
-      discountPercent,
       tags,
       howToFindPlayerId,
       denominations: parsedDenoms,
@@ -486,41 +519,309 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  const tabMeta: { id: AdminTab; label: string; Icon: React.ComponentType<any> }[] = [
-    { id: 'overview', label: 'Overview', Icon: Layers },
-    { id: 'products', label: 'Products', Icon: Package },
-    { id: 'orders', label: 'Orders', Icon: ShoppingBag },
-    { id: 'users', label: 'Gamers', Icon: Users },
-    { id: 'cms', label: 'CMS', Icon: FileText },
-    { id: 'tickets', label: 'Helpdesk', Icon: Headphones },
-  ];
+  const renderSidebarNav = (onItemClick?: () => void) => (
+    <nav className="space-y-2">
+      {/* 1. Dashboard Overview */}
+      <button
+        onClick={() => {
+          setActiveTab('overview');
+          onItemClick?.();
+        }}
+        className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+          activeTab === 'overview'
+            ? 'bg-zenvo-primary text-white font-bold shadow-sm'
+            : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <Layers className="w-4 h-4 shrink-0" />
+          <span className="text-[13px] font-semibold tracking-wider uppercase">Dashboard</span>
+        </div>
+      </button>
+
+      {/* 2. Products Catalog */}
+      <div className="space-y-1">
+        <button
+          onClick={() => {
+            setActiveTab('products');
+            setOpenProductsMenu((prev) => !prev);
+          }}
+          className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+            activeTab === 'products'
+              ? 'bg-zenvo-primary text-white font-bold shadow-sm'
+              : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Package className="w-4 h-4 shrink-0" />
+            <span className="text-[13px] font-semibold tracking-wider uppercase">Catalog</span>
+          </div>
+          {openProductsMenu ? (
+            <ChevronDown className="w-3.5 h-3.5 opacity-90" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+          )}
+        </button>
+
+        {openProductsMenu && (
+          <div className="ml-4 pl-3 border-l border-zenvo-border space-y-2 my-1.5">
+            <button
+              onClick={() => {
+                setActiveTab('products');
+                setProductSubTab('products');
+                onItemClick?.();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+                activeTab === 'products' && productSubTab === 'products'
+                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
+                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+              }`}
+            >
+              <span className="flex items-center gap-2 text-[12px] font-medium tracking-wide">📦 SKU Products</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{products.length}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('products');
+                setProductSubTab('categories');
+                onItemClick?.();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+                activeTab === 'products' && productSubTab === 'categories'
+                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
+                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+              }`}
+            >
+              <span className="flex items-center gap-2 text-[12px] font-medium tracking-wide">🏷️ Categories</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{categories.length}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('products');
+                setProductSubTab('units');
+                onItemClick?.();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+                activeTab === 'products' && productSubTab === 'units'
+                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
+                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+              }`}
+            >
+              <span className="flex items-center gap-2 text-[12px] font-medium tracking-wide">⚡ Units & Variants</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{units.length}</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 3. Orders Management */}
+      <div className="space-y-1">
+        <button
+          onClick={() => {
+            setActiveTab('orders');
+            setOpenOrdersMenu((prev) => !prev);
+          }}
+          className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+            activeTab === 'orders'
+              ? 'bg-zenvo-primary text-white font-bold shadow-sm'
+              : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <ShoppingBag className="w-4 h-4 shrink-0" />
+            <span className="text-[13px] font-semibold tracking-wider uppercase">Orders</span>
+          </div>
+          {openOrdersMenu ? (
+            <ChevronDown className="w-3.5 h-3.5 opacity-90" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+          )}
+        </button>
+
+        {openOrdersMenu && (
+          <div className="ml-4 pl-3 border-l border-zenvo-border space-y-2 my-1.5">
+            <button
+              onClick={() => {
+                setActiveTab('orders');
+                setOrderFilter('All');
+                onItemClick?.();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+                activeTab === 'orders' && orderFilter === 'All'
+                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
+                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+              }`}
+            >
+              <span className="text-[12px] font-medium tracking-wide">⚡ All Orders</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{orders.length}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('orders');
+                setOrderFilter('Processing');
+                onItemClick?.();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+                activeTab === 'orders' && orderFilter === 'Processing'
+                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
+                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+              }`}
+            >
+              <span className="text-[12px] font-medium tracking-wide">⏳ Pending Fulfillment</span>
+              {analyticsData.pendingOrders > 0 && (
+                <span className="text-[9px] font-mono px-1.5 py-0.2 bg-amber-500/20 text-amber-400 border border-amber-500/30">{analyticsData.pendingOrders}</span>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('orders');
+                setOrderFilter('Delivered');
+                onItemClick?.();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+                activeTab === 'orders' && orderFilter === 'Delivered'
+                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
+                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+              }`}
+            >
+              <span className="text-[12px] font-medium tracking-wide">✅ Delivered Orders</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 4. Gamers Directory */}
+      <button
+        onClick={() => {
+          setActiveTab('users');
+          onItemClick?.();
+        }}
+        className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+          activeTab === 'users'
+            ? 'bg-zenvo-primary text-white font-bold shadow-sm'
+            : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <Users className="w-4 h-4 shrink-0" />
+          <span className="text-[13px] font-semibold tracking-wider uppercase">Gamers</span>
+        </div>
+        <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{users.length}</span>
+      </button>
+
+      {/* 5. CMS Manager */}
+      <div className="space-y-1">
+        <button
+          onClick={() => {
+            setActiveTab('cms');
+            setOpenCmsMenu((prev) => !prev);
+          }}
+          className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+            activeTab === 'cms'
+              ? 'bg-zenvo-primary text-white font-bold shadow-sm'
+              : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <FileText className="w-4 h-4 shrink-0" />
+            <span className="text-[13px] font-semibold tracking-wider uppercase">Content Manager</span>
+          </div>
+          {openCmsMenu ? (
+            <ChevronDown className="w-3.5 h-3.5 opacity-90" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+          )}
+        </button>
+
+        {openCmsMenu && (
+          <div className="ml-4 pl-3 border-l border-zenvo-border space-y-2 my-1.5">
+            <button
+              onClick={() => {
+                setActiveTab('cms');
+                setCmsSubTab('banners');
+                onItemClick?.();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+                activeTab === 'cms' && cmsSubTab === 'banners'
+                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
+                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+              }`}
+            >
+              <span className="text-[12px] font-medium tracking-wide">🖼️ Promotion Banners</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{heroBanners.length}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('cms');
+                setCmsSubTab('blogs');
+                onItemClick?.();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+                activeTab === 'cms' && cmsSubTab === 'blogs'
+                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
+                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+              }`}
+            >
+              <span className="text-[12px] font-medium tracking-wide">📝 Articles & Blog</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{blogArticles.length}</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 6. Helpdesk Support */}
+      <button
+        onClick={() => {
+          setActiveTab('tickets');
+          onItemClick?.();
+        }}
+        className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+          activeTab === 'tickets'
+            ? 'bg-zenvo-primary text-white font-bold shadow-sm'
+            : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <Headphones className="w-4 h-4 shrink-0" />
+          <span className="text-[13px] font-semibold tracking-wider uppercase">Helpdesk</span>
+        </div>
+        <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{tickets.length}</span>
+      </button>
+
+      {/* 7. Security Management */}
+      <button
+        onClick={() => {
+          setActiveTab('security');
+          onItemClick?.();
+        }}
+        className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+          activeTab === 'security'
+            ? 'bg-zenvo-primary text-white font-bold shadow-sm'
+            : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="w-4 h-4 shrink-0" />
+          <span className="text-[13px] font-semibold tracking-wider uppercase">System Security</span>
+        </div>
+      </button>
+    </nav>
+  );
 
   return (
     <div className="admin-panel-wrapper min-h-screen bg-zenvo-bg flex flex-col lg:flex-row text-zenvo-text">
       <style dangerouslySetInnerHTML={{ __html: `
         .admin-panel-wrapper {
-          font-size: 15px;
           line-height: 1.6;
         }
-        .admin-panel-wrapper .text-xs,
-        .admin-panel-wrapper .text-\\[11px\\],
-        .admin-panel-wrapper .text-\\[10px\\] {
-          font-size: 13px !important;
-        }
-        .admin-panel-wrapper .text-sm {
-          font-size: 15px !important;
-        }
-        .admin-panel-wrapper .text-base {
-          font-size: 17px !important;
-        }
-        .admin-panel-wrapper .text-lg {
-          font-size: 19px !important;
-        }
-        .admin-panel-wrapper .text-xl {
-          font-size: 22px !important;
-        }
-        .admin-panel-wrapper .text-2xl {
-          font-size: 26px !important;
+        /* Remove rounded corners from all elements in the admin dashboard */
+        .admin-panel-wrapper * {
+          border-radius: 0px !important;
         }
         .admin-panel-wrapper p,
         .admin-panel-wrapper span,
@@ -531,7 +832,7 @@ export default function AdminDashboardPage() {
         .admin-panel-wrapper textarea,
         .admin-panel-wrapper td,
         .admin-panel-wrapper th {
-          letter-spacing: 0.015em;
+          letter-spacing: 0.01em;
         }
       `}} />
       
@@ -562,7 +863,7 @@ export default function AdminDashboardPage() {
           <div className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" onClick={() => setIsSidebarOpen(false)} />
           
           {/* Drawer Body */}
-          <aside className="relative w-64 bg-zenvo-card border-r border-zenvo-border h-full flex flex-col justify-between z-10 p-5 space-y-6">
+          <aside className="relative w-64 bg-zenvo-card border-r border-zenvo-border h-full flex flex-col justify-between z-10 p-5 space-y-6 overflow-y-auto">
             <div className="space-y-6">
               <div className="flex items-center justify-between border-b border-zenvo-border pb-4">
                 <div className="flex items-center gap-2">
@@ -577,25 +878,7 @@ export default function AdminDashboardPage() {
                 </button>
               </div>
 
-              <nav className="space-y-1">
-                {tabMeta.map(({ id, label, Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => {
-                      setActiveTab(id);
-                      setIsSidebarOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold uppercase transition-all ${
-                      activeTab === id
-                        ? 'bg-zenvo-primary text-white shadow-md'
-                        : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </nav>
+              {renderSidebarNav(() => setIsSidebarOpen(false))}
             </div>
 
             <div className="border-t border-zenvo-border pt-4 bg-zenvo-surface/20 -mx-5 px-5 -mb-5 pb-5">
@@ -616,7 +899,7 @@ export default function AdminDashboardPage() {
 
       {/* 3. Desktop Persistent Sidebar */}
       <aside className="hidden lg:flex flex-col justify-between w-64 bg-zenvo-card border-r border-zenvo-border sticky top-0 h-screen shrink-0 z-20">
-        <div className="p-6 space-y-8">
+        <div className="p-6 space-y-6 overflow-y-auto">
           <div className="flex items-center gap-3 border-b border-zenvo-border pb-5">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenvo-primary to-blue-700 p-[1.5px] shadow-primary">
               <div className="w-full h-full rounded-[9px] bg-zenvo-bg flex items-center justify-center font-mono font-black text-base text-zenvo-primary">Z</div>
@@ -627,22 +910,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <nav className="space-y-1.5">
-            {tabMeta.map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase transition-all ${
-                  activeTab === id
-                    ? 'bg-zenvo-primary text-white shadow-lg shadow-zenvo-primary/20'
-                    : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </nav>
+          {renderSidebarNav()}
         </div>
 
         <div className="p-5 border-t border-zenvo-border bg-zenvo-surface/20">
@@ -660,7 +928,54 @@ export default function AdminDashboardPage() {
       </aside>
 
       {/* 4. Main Content Area */}
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 max-w-7xl w-full mx-auto">
+      <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-7xl w-full mx-auto space-y-6">
+        
+        {/* Clean Admin Header Bar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zenvo-border/60">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-zenvo-primary-soft text-zenvo-primary text-[10px] font-mono font-bold uppercase tracking-wider border border-zenvo-primary-border/30">
+                Zenov Root Control
+              </span>
+              <span className="text-[11px] text-zenvo-success flex items-center gap-1 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-zenvo-success animate-pulse" /> Live Telemetry Stream
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-zenvo-text tracking-tight capitalize mt-1">
+              {activeTab === 'overview' && '📊 Store Analytics & Revenue Control'}
+              {activeTab === 'products' && '📦 SKU Product Catalogue & Inventory'}
+              {activeTab === 'orders' && '⚡ Live Orders & Fulfillment Desk'}
+              {activeTab === 'users' && '👥 Registered Gamers & VIP Accounts'}
+              {activeTab === 'cms' && '📝 Content Management & Hero Banners'}
+              {activeTab === 'tickets' && '💬 Customer Support & Helpdesk'}
+              {activeTab === 'security' && '🛡️ Security, PCI-DSS & Webhooks'}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Currency Selector */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zenvo-card border border-zenvo-border text-xs font-bold text-zenvo-text-secondary shadow-sm">
+              <span className="text-zenvo-text-muted text-[10px] uppercase font-mono">Currency:</span>
+              <select
+                value={selectedCurrency}
+                onChange={(e) => setSelectedCurrency(e.target.value as any)}
+                className="bg-transparent text-zenvo-primary font-mono font-bold text-xs outline-none cursor-pointer"
+              >
+                <option value="BDT">BDT (৳)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+              </select>
+            </div>
+
+            <Link
+              href="/"
+              className="px-3.5 py-1.5 rounded-xl bg-zenvo-surface hover:bg-zenvo-primary hover:text-white border border-zenvo-border text-xs font-bold text-zenvo-text-secondary transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Store
+            </Link>
+          </div>
+        </div>
         
         {/* Overview Analytics Tab */}
         {activeTab === 'overview' && (
@@ -795,144 +1110,364 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* Products Inventory Tab */}
+        {/* Products Inventory & Management Tab */}
         {activeTab === 'products' && (
-          <div className="space-y-4">
-            {(isAddingProduct || editingProduct) ? (
-              <form onSubmit={handleSaveProduct} className="rounded-2xl p-5 sm:p-6 bg-zenvo-card border border-zenvo-primary-border/30 space-y-4">
-                <h3 className="text-sm font-black uppercase text-zenvo-primary">
-                  {editingProduct ? `Edit SKU: ${editingProduct.title}` : '+ Add New Product'}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Product Title</label>
-                    <input name="title" defaultValue={editingProduct?.title || ''} placeholder="e.g. Free Fire Diamonds" required className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Category</label>
-                    <select name="category" defaultValue={editingProduct?.category || 'game-topup'} className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border">
-                      <option value="game-topup">Game Top-Up</option>
-                      <option value="gift-card">Gift Card</option>
-                      <option value="subscription">Subscription</option>
-                      <option value="social-topup">Social Top-Up</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Base Price ($)</label>
-                    <input name="price" type="number" step="0.01" defaultValue={editingProduct?.denominations?.[0]?.amount || '1.00'} className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Publisher</label>
-                    <input name="publisher" defaultValue={editingProduct?.publisher || ''} placeholder="e.g. Garena / Krafton" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Region</label>
-                    <input name="region" defaultValue={editingProduct?.region || 'Global'} placeholder="e.g. Global / BD / US" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Fulfillment Delivery</label>
-                    <select name="deliveryType" defaultValue={editingProduct?.deliveryType || 'Instant'} className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none">
-                      <option value="Instant">Instant (Automated ≤30s)</option>
-                      <option value="Manual (5-10 min)">Manual Dispatch (5-10m)</option>
-                      <option value="Pre-Order">Pre-Order Queue</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">User Input Label</label>
-                    <input name="playerIdLabel" defaultValue={editingProduct?.playerIdLabel || 'Player ID / Email'} placeholder="e.g. Player ID / UID or Email" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Image URL / Supabase Storage</label>
-                    <input name="image" defaultValue={editingProduct?.image || ''} placeholder="https://... or /play-store.jpeg" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Discount % OFF (e.g. 10 for -10%)</label>
-                    <input name="discountPercent" type="number" min="0" max="99" defaultValue={editingProduct?.discountPercent || 0} placeholder="0" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
-                  </div>
-                </div>
+          <div className="space-y-5">
+            {/* Products Sub-Navigation Tabs */}
+            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zenvo-card border border-zenvo-border overflow-x-auto scrollbar-none">
+              <button
+                type="button"
+                onClick={() => {
+                  setProductSubTab('products');
+                  setEditingProduct(null);
+                  setIsAddingProduct(false);
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${
+                  productSubTab === 'products'
+                    ? 'bg-gradient-to-r from-zenvo-primary to-blue-600 text-white shadow-md'
+                    : 'text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                }`}
+              >
+                <Package className="w-4 h-4" />
+                <span>SKU Products</span>
+                <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                  productSubTab === 'products' ? 'bg-white/20 text-white' : 'bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border'
+                }`}>
+                  {products.length}
+                </span>
+              </button>
 
-                <div className="flex gap-4 items-center pt-1 pb-1 flex-wrap">
-                  <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
-                    <input type="checkbox" name="inStock" value="true" defaultChecked={editingProduct ? editingProduct.inStock : true} className="rounded accent-zenvo-primary" />
-                    In Stock
-                  </label>
-                  <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
-                    <input type="checkbox" name="isHot" value="true" defaultChecked={editingProduct?.isHot || false} className="rounded accent-zenvo-primary" />
-                    Trending / Hot
-                  </label>
-                  <label className="flex items-center gap-1.5 text-xs text-zenvo-text font-bold cursor-pointer">
-                    <input type="checkbox" name="isNew" value="true" defaultChecked={editingProduct?.isNew || false} className="rounded accent-zenvo-primary" />
-                    New Arrival
-                  </label>
-                </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setProductSubTab('categories');
+                  setEditingProduct(null);
+                  setIsAddingProduct(false);
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${
+                  productSubTab === 'categories'
+                    ? 'bg-gradient-to-r from-zenvo-primary to-blue-600 text-white shadow-md'
+                    : 'text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                }`}
+              >
+                <FolderPlus className="w-4 h-4" />
+                <span>Categories</span>
+                <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                  productSubTab === 'categories' ? 'bg-white/20 text-white' : 'bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border'
+                }`}>
+                  {categories.length}
+                </span>
+              </button>
 
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
-                    Packages & Denominations (1 Package per line: Name, USD Price, BDT Price, Bonus Label)
-                  </label>
-                  <textarea
-                    name="denominations"
-                    rows={4}
-                    defaultValue={editingProduct?.denominations ? editingProduct.denominations.map(d => `${d.name}, ${d.amount}, ${d.priceBDT || Math.round(d.amount * 120)}, ${d.bonus || ''}`).join('\n') : '$5 Package, 5.42, 650, +5% BONUS\n$10 Package, 10.83, 1300\n$25 Package, 27.08, 3250'}
-                    placeholder={`100 Diamonds, 1.00, 120, +5% Bonus\n520 Diamonds, 5.00, 600\n1060 Diamonds, 10.00, 1200, Popular`}
-                    className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-mono text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
-                  />
-                </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setProductSubTab('units');
+                  setEditingProduct(null);
+                  setIsAddingProduct(false);
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${
+                  productSubTab === 'units'
+                    ? 'bg-gradient-to-r from-zenvo-accent to-orange-500 text-zenvo-bg shadow-md'
+                    : 'text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                }`}
+              >
+                <Zap className="w-4 h-4" />
+                <span>Units & Variants</span>
+                <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                  productSubTab === 'units' ? 'bg-black/20 text-zenvo-bg' : 'bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border'
+                }`}>
+                  {units.length}
+                </span>
+              </button>
+            </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Product Description</label>
-                    <textarea name="description" defaultValue={editingProduct?.description || ''} rows={3} placeholder="Full product summary details..." className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Instructions / Delivery Guide</label>
-                    <textarea name="instructions" defaultValue={editingProduct?.instructions || ''} rows={3} placeholder="Steps to receive or redeem top-up..." className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
-                  </div>
-                </div>
+            {/* View 1: Categories CRUD */}
+            {productSubTab === 'categories' && <CategoryManager />}
 
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
-                    Steps to Find Player ID (1 Step per line)
-                  </label>
-                  <textarea
-                    name="howToFindPlayerId"
-                    rows={2}
-                    defaultValue={editingProduct?.howToFindPlayerId ? editingProduct.howToFindPlayerId.join('\n') : 'Open the game on your mobile device\nTap your avatar in top left corner to view Player ID\nEnter your UID in the box to checkout'}
-                    placeholder="Step 1: Open game profile\nStep 2: Copy your Player UID"
-                    className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
-                  />
-                </div>
+            {/* View 2: Units & Variants CRUD */}
+            {productSubTab === 'units' && <UnitManager />}
 
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Search Tags (comma separated)</label>
-                  <input name="tags" defaultValue={editingProduct?.tags ? editingProduct.tags.join(', ') : ''} placeholder="e.g. Free Fire, Diamond, Topup, Garena" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button type="submit" className="px-5 py-2.5 rounded-xl bg-zenvo-primary text-white text-xs font-bold uppercase hover:brightness-110 active:scale-95 transition-all">
-                    Save Product
-                  </button>
-                  <button type="button" onClick={() => { setEditingProduct(null); setIsAddingProduct(false); }} className="px-5 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-bold text-zenvo-text-secondary hover:text-zenvo-text transition-colors">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
+            {/* View 3: Products (SKUs) Management */}
+            {productSubTab === 'products' && (
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border focus-within:border-zenvo-primary-border">
-                    <Search className="w-[18px] h-[18px] text-zenvo-text-muted shrink-0" />
-                    <input
-                      value={searchProd}
-                      onChange={(e) => setSearchProd(e.target.value)}
-                      placeholder="Search SKU inventories..."
-                      className="w-full min-w-0 bg-transparent text-sm text-zenvo-text focus:outline-none"
-                    />
-                  </div>
-                  <button onClick={() => setIsAddingProduct(true)} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenvo-accent to-orange-500 text-zenvo-bg text-sm font-black uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 shadow-md">
-                    <Plus className="w-[18px] h-[18px]" /> Create SKU
-                  </button>
-                </div>
+                {(isAddingProduct || editingProduct) ? (
+                  <form onSubmit={handleSaveProduct} className="rounded-2xl p-5 sm:p-6 bg-zenvo-card border border-zenvo-primary-border/40 shadow-2xl space-y-5">
+                    <div className="flex items-center justify-between border-b border-zenvo-border pb-3">
+                      <div>
+                        <h3 className="text-sm font-black uppercase text-zenvo-primary flex items-center gap-2">
+                          <Package className="w-4 h-4" />
+                          {editingProduct ? `Edit SKU Product: ${editingProduct.title}` : 'Create New SKU Product'}
+                        </h3>
+                        <p className="text-[11px] text-zenvo-text-muted mt-0.5">
+                          Set up catalog attributes, drag-and-drop imagery, and customizable package denominations.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setEditingProduct(null); setIsAddingProduct(false); }}
+                        className="p-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-zenvo-text-muted hover:text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                          Product Title *
+                        </label>
+                        <input
+                          name="title"
+                          defaultValue={editingProduct?.title || ''}
+                          placeholder="e.g. Free Fire Diamonds / PUBG Mobile UC"
+                          required
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text font-semibold focus:outline-none focus:border-zenvo-primary-border"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted">
+                            Category *
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setProductSubTab('categories')}
+                            className="text-[9px] font-bold text-zenvo-primary hover:underline"
+                          >
+                            + Manage
+                          </button>
+                        </div>
+                        <select
+                          name="category"
+                          defaultValue={editingProduct?.category || categories[0]?.slug || 'game-topup'}
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border font-medium"
+                        >
+                          {categories.map((cat) => (
+                            <option key={cat.id} value={cat.slug}>
+                              {cat.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted">
+                            Denomination Unit Type
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setProductSubTab('units')}
+                            className="text-[9px] font-bold text-zenvo-accent hover:underline"
+                          >
+                            + Manage
+                          </button>
+                        </div>
+                        <select
+                          name="unitId"
+                          defaultValue={editingProduct?.unitId || units[0]?.id || ''}
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border font-medium"
+                        >
+                          {units.map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.symbol} {u.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                          Publisher / Brand
+                        </label>
+                        <input
+                          name="publisher"
+                          defaultValue={editingProduct?.publisher || ''}
+                          placeholder="e.g. Garena / Krafton / Valve / Apple"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                          Region / Availability
+                        </label>
+                        <input
+                          name="region"
+                          defaultValue={editingProduct?.region || 'Global'}
+                          placeholder="e.g. Global / Bangladesh / US / Asia"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                          Fulfillment Delivery Speed
+                        </label>
+                        <select
+                          name="deliveryType"
+                          defaultValue={editingProduct?.deliveryType || 'Instant'}
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                        >
+                          <option value="Instant">Instant (Automated ≤30s)</option>
+                          <option value="Manual (5-10 min)">Manual Dispatch (5-10m)</option>
+                          <option value="Pre-Order">Pre-Order Queue</option>
+                        </select>
+                      </div>
+
+                      <div className="sm:col-span-2 lg:col-span-3">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                          User Checkout Input Label
+                        </label>
+                        <input
+                          name="playerIdLabel"
+                          defaultValue={editingProduct?.playerIdLabel || 'Player ID / Email'}
+                          placeholder="e.g. Player ID / UID or Character ID & Zone ID or Email Address"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Drag & Drop Product Image Upload */}
+                    <div className="pt-1">
+                      <ImageDropzone
+                        initialValue={editingProduct?.image || ''}
+                        name="image"
+                        label="Product SKU Image (Drag & Drop or Direct URL)"
+                      />
+                    </div>
+
+                    {/* Stock & Highlights Switches */}
+                    <div className="flex gap-4 items-center pt-2 pb-1 flex-wrap bg-zenvo-surface/40 p-3 rounded-xl border border-zenvo-border/60">
+                      <label className="flex items-center gap-2 text-xs text-zenvo-text font-bold cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          name="inStock"
+                          value="true"
+                          defaultChecked={editingProduct ? editingProduct.inStock : true}
+                          className="rounded accent-zenvo-primary w-4 h-4"
+                        />
+                        In Stock (Available for Purchase)
+                      </label>
+                      <label className="flex items-center gap-2 text-xs text-amber-300 font-bold cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          name="isHot"
+                          value="true"
+                          defaultChecked={editingProduct?.isHot || false}
+                          className="rounded accent-amber-500 w-4 h-4"
+                        />
+                        🔥 Trending / Hot Highlight
+                      </label>
+                      <label className="flex items-center gap-2 text-xs text-blue-400 font-bold cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          name="isNew"
+                          value="true"
+                          defaultChecked={editingProduct?.isNew || false}
+                          className="rounded accent-blue-500 w-4 h-4"
+                        />
+                        ⚡ New Arrival Badge
+                      </label>
+                    </div>
+
+                    {/* Interactive Packages & Denominations Builder */}
+                    <div className="pt-1">
+                      <DenominationsBuilder
+                        initialDenominations={editingProduct?.denominations}
+                      />
+                    </div>
+
+                    {/* Description and Delivery Guide */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                          Product Description
+                        </label>
+                        <textarea
+                          name="description"
+                          defaultValue={editingProduct?.description || ''}
+                          rows={3}
+                          placeholder="Full product overview, redeem terms, and item details..."
+                          className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                          Instructions / Delivery Guide
+                        </label>
+                        <textarea
+                          name="instructions"
+                          defaultValue={editingProduct?.instructions || ''}
+                          rows={3}
+                          placeholder="Customer instructions on how to receive or redeem the top-up..."
+                          className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        Steps to Find Player ID (1 Step per line)
+                      </label>
+                      <textarea
+                        name="howToFindPlayerId"
+                        rows={2}
+                        defaultValue={editingProduct?.howToFindPlayerId ? editingProduct.howToFindPlayerId.join('\n') : 'Open the game on your mobile device\nTap your avatar in top left corner to view Player ID\nEnter your UID in the box to checkout'}
+                        placeholder="Step 1: Open game profile\nStep 2: Copy your Player UID"
+                        className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        Search Keywords & Tags (Comma-separated)
+                      </label>
+                      <input
+                        name="tags"
+                        defaultValue={editingProduct?.tags ? editingProduct.tags.join(', ') : ''}
+                        placeholder="e.g. Free Fire, Diamond, Topup, Garena, BD Topup"
+                        className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-3 border-t border-zenvo-border">
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-zenvo-primary to-blue-600 text-white text-xs font-black uppercase tracking-wide hover:brightness-110 active:scale-95 shadow-md transition-all"
+                      >
+                        {editingProduct ? 'Save Changes' : 'Publish Product'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setEditingProduct(null); setIsAddingProduct(false); }}
+                        className="px-5 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-bold text-zenvo-text-secondary hover:text-zenvo-text transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border focus-within:border-zenvo-primary-border">
+                        <Search className="w-[18px] h-[18px] text-zenvo-text-muted shrink-0" />
+                        <input
+                          value={searchProd}
+                          onChange={(e) => setSearchProd(e.target.value)}
+                          placeholder="Search SKU inventories..."
+                          className="w-full min-w-0 bg-transparent text-sm text-zenvo-text focus:outline-none"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setIsAddingProduct(true)}
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenvo-accent to-orange-500 text-zenvo-bg text-sm font-black uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                      >
+                        <Plus className="w-[18px] h-[18px]" /> Create SKU
+                      </button>
+                    </div>
 
                 {/* Products Table (Desktop View) */}
                 <div className="hidden md:block rounded-2xl overflow-hidden bg-zenvo-card border border-zenvo-border">
@@ -1032,11 +1567,12 @@ export default function AdminDashboardPage() {
                     </div>
                   ))}
                 </div>
-
               </div>
             )}
           </div>
         )}
+      </div>
+    )}
 
         {/* Live Orders Fulfillment Tab */}
         {activeTab === 'orders' && (
