@@ -5,7 +5,7 @@ import { INITIAL_PRODUCTS } from '@/data/initialData';
 export async function GET() {
   try {
     if (!supabase) {
-      return NextResponse.json({ success: true, products: INITIAL_PRODUCTS });
+      return NextResponse.json({ success: true, products: [] });
     }
 
     const { data: products, error } = await supabase
@@ -14,58 +14,14 @@ export async function GET() {
       .order('id', { ascending: true });
 
     if (error) {
-      console.warn('Supabase query error (likely table not created yet):', error.message);
-      return NextResponse.json({ success: true, products: INITIAL_PRODUCTS });
+      console.warn('Supabase query error (products table may not exist):', error.message);
+      return NextResponse.json({ success: true, products: [] });
     }
 
-    // Auto-seed if empty
-    if (!products || products.length === 0) {
-      console.log('Supabase products table is empty. Auto-seeding...');
-      const { error: seedError } = await supabase
-        .from('products')
-        .insert(
-          INITIAL_PRODUCTS.map((p) => ({
-            id: p.id,
-            title: p.title,
-            category: p.category,
-            image: p.image,
-            bannerImage: p.bannerImage || '',
-            publisher: p.publisher || '',
-            region: p.region || 'US / Global',
-            deliveryType: p.deliveryType,
-            inStock: p.inStock,
-            isHot: p.isHot || false,
-            isNew: p.isNew || false,
-            discountPercent: p.discountPercent || 0,
-            rating: p.rating,
-            reviewCount: p.reviewCount,
-            description: p.description,
-            instructions: p.instructions,
-            playerIdLabel: p.playerIdLabel,
-            playerIdPlaceholder: p.playerIdPlaceholder || '',
-            howToFindPlayerId: p.howToFindPlayerId || [],
-            hasServerId: p.hasServerId || false,
-            requiresServerId: p.requiresServerId || false,
-            serverIdLabel: p.serverIdLabel || '',
-            denominations: p.denominations,
-            tags: p.tags,
-          }))
-        );
-
-      if (seedError) {
-        console.error('Failed to seed Supabase database:', seedError.message);
-        return NextResponse.json({ success: true, products: INITIAL_PRODUCTS });
-      }
-
-      // Fetch again after seeding
-      const { data: reFetched } = await supabase.from('products').select('*').order('id', { ascending: true });
-      return NextResponse.json({ success: true, products: reFetched || INITIAL_PRODUCTS });
-    }
-
-    return NextResponse.json({ success: true, products });
+    return NextResponse.json({ success: true, products: products || [] });
   } catch (error: any) {
-    console.error('API products error:', error);
-    return NextResponse.json({ success: true, products: INITIAL_PRODUCTS });
+    console.error('API products GET error:', error);
+    return NextResponse.json({ success: true, products: [] });
   }
 }
 
@@ -85,12 +41,12 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Supabase product insert error:', error.message);
-      return NextResponse.json({ success: true, product: body });
+      return NextResponse.json({ success: false, product: null, message: error.message });
     }
 
     return NextResponse.json({ success: true, product: data });
   } catch (error: any) {
     console.error('API product POST error:', error);
-    return NextResponse.json({ success: true, product: null, message: error.message });
+    return NextResponse.json({ success: false, product: null, message: error.message });
   }
 }

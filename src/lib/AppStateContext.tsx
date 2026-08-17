@@ -200,13 +200,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       fetch('/api/orders').then((r) => r.ok ? r.json() : null),
       fetch('/api/tickets').then((r) => r.ok ? r.json() : null),
     ]).then(([pRes, oRes, tRes]) => {
-      if (pRes.status === 'fulfilled' && pRes.value?.success && pRes.value?.products?.length) {
+      if (pRes.status === 'fulfilled' && pRes.value?.success && pRes.value?.products?.length > 0) {
         setProducts(pRes.value.products);
       }
-      if (oRes.status === 'fulfilled' && oRes.value?.success && oRes.value?.orders?.length) {
+      if (oRes.status === 'fulfilled' && oRes.value?.success && oRes.value?.orders?.length > 0) {
         setOrders(oRes.value.orders);
       }
-      if (tRes.status === 'fulfilled' && tRes.value?.success && tRes.value?.tickets?.length) {
+      if (tRes.status === 'fulfilled' && tRes.value?.success && tRes.value?.tickets?.length > 0) {
         setTickets(tRes.value.tickets);
       }
     }).catch((err) => {
@@ -607,11 +607,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const addProduct = async (np: Product) => {
     if (isDbConnected) {
       try {
-        await fetch('/api/products', {
+        const res = await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(np),
         });
+        const data = await res.json();
+        if (!data.success) {
+          console.error('Failed to create product in database:', data.message);
+        }
       } catch (e) {
         console.error('Failed to create product in database API', e);
       }
@@ -622,11 +626,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const updateProduct = async (updatedProd: Product) => {
     if (isDbConnected) {
       try {
-        await fetch(`/api/products/${updatedProd.id}`, {
+        const res = await fetch(`/api/products/${updatedProd.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedProd),
         });
+        const data = await res.json();
+        if (!data.success) {
+          console.error('Failed to update product in database:', data.message);
+        }
       } catch (e) {
         console.error('Failed to update product in database API', e);
       }
@@ -639,7 +647,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const deleteProduct = async (id: string) => {
     if (isDbConnected) {
       try {
-        await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (!data.success) {
+          console.error('Failed to delete product from database:', data.message);
+        }
       } catch (e) {
         console.error('Failed to delete product in database API', e);
       }

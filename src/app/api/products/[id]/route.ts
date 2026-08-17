@@ -22,7 +22,7 @@ export async function PUT(
 
     if (error) {
       console.error('Supabase product update error:', error.message);
-      return NextResponse.json({ success: true, product: { id, ...body } });
+      return NextResponse.json({ success: false, product: null, message: error.message });
     }
 
     return NextResponse.json({ success: true, product: data });
@@ -50,6 +50,7 @@ export async function DELETE(
 
     if (error) {
       console.error('Supabase product delete error:', error.message);
+      return NextResponse.json({ success: false, message: error.message });
     }
 
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
