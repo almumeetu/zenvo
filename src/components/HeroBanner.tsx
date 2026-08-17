@@ -199,10 +199,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
           <div className="hero-cta flex items-center gap-4">
             <button
               onClick={() => onSelectGame(activeBanner.gameId)}
-              className="magnetic-btn px-7 py-3.5 rounded-xl bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg font-black text-sm uppercase tracking-wide shadow-accent hover:shadow-glow-amber transition-all duration-200 flex items-center gap-2 group/btn will-change-transform active:scale-[0.97]"
+              className="magnetic-btn px-5 py-2.5 rounded-lg bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg font-bold text-xs uppercase tracking-wider shadow-accent hover:shadow-glow-amber transition-all duration-300 flex items-center gap-2 group/btn will-change-transform active:scale-[0.97] border border-zenov-accent/40 hover:border-zenov-accent/80"
             >
               <span>{activeBanner.ctaText}</span>
-              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
+              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-1" />
             </button>
             <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-zenov-text-muted">
               <div className="flex -space-x-1.5">
