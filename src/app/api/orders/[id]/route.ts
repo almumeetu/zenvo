@@ -31,7 +31,7 @@ export async function PUT(
       
       if (altError) {
         console.error('Supabase order update error:', altError.message);
-        return NextResponse.json({ success: true, order: { id, ...body } });
+        return NextResponse.json({ success: false, order: null, message: altError.message });
       }
       return NextResponse.json({ success: true, order: altData });
     }

@@ -692,7 +692,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     if (isDbConnected) {
       try {
-        await fetch(`/api/orders/${orderId}`, {
+        const res = await fetch(`/api/orders/${orderId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -700,6 +700,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             ...(updatedPaymentStatus ? { paymentStatus: updatedPaymentStatus } : {}),
           }),
         });
+        const data = await res.json();
+        if (!data.success) {
+          console.error('Failed to update order status in database:', data.message);
+        }
       } catch (e) {
         console.error('Failed to update order in database API', e);
       }

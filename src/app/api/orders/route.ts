@@ -6,7 +6,7 @@ import { sendOrderNotificationEmail } from '@/lib/resend';
 export async function GET() {
   try {
     if (!supabase) {
-      return NextResponse.json({ success: true, orders: INITIAL_ORDERS });
+      return NextResponse.json({ success: true, orders: [] });
     }
 
     const { data: orders, error } = await supabase
@@ -15,47 +15,14 @@ export async function GET() {
       .order('createdAt', { ascending: false });
 
     if (error) {
-      console.warn('Supabase query error (likely table not created yet):', error.message);
-      return NextResponse.json({ success: true, orders: INITIAL_ORDERS });
+      console.warn('Supabase query error (orders table may not exist):', error.message);
+      return NextResponse.json({ success: true, orders: [] });
     }
 
-    // Auto-seed if empty
-    if (!orders || orders.length === 0) {
-      console.log('Supabase orders table is empty. Seeding mock entries...');
-      const { error: seedError } = await supabase
-        .from('orders')
-        .insert(
-          INITIAL_ORDERS.map((o) => ({
-            id: o.id,
-            orderNumber: o.orderNumber,
-            userId: o.userId || 'guest',
-            userEmail: o.userEmail,
-            items: o.items,
-            totalUSD: o.totalUSD,
-            currency: o.currency || 'BDT',
-            paidAmountCurrency: o.paidAmountCurrency,
-            paymentMethod: o.paymentMethod,
-            paymentStatus: o.paymentStatus || 'Paid',
-            fulfillmentStatus: o.fulfillmentStatus || 'Delivered',
-            playerId: o.playerId,
-            serverId: o.serverId || '',
-            transactionId: o.transactionId,
-          }))
-        );
-
-      if (seedError) {
-        console.error('Failed to seed orders table in Supabase:', seedError.message);
-        return NextResponse.json({ success: true, orders: INITIAL_ORDERS });
-      }
-
-      const { data: reFetched } = await supabase.from('orders').select('*').order('createdAt', { ascending: false });
-      return NextResponse.json({ success: true, orders: reFetched || INITIAL_ORDERS });
-    }
-
-    return NextResponse.json({ success: true, orders });
+    return NextResponse.json({ success: true, orders: orders || [] });
   } catch (error: any) {
     console.error('API orders GET error:', error);
-    return NextResponse.json({ success: true, orders: INITIAL_ORDERS });
+    return NextResponse.json({ success: true, orders: [] });
   }
 }
 
@@ -121,7 +88,7 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Supabase order insert error (saving with fallback):', error.message);
-      return NextResponse.json({ success: true, orderNumber, order: newOrder });
+      return NextResponse.json({ success: true, orderNumber, order: newOrder, dbError: error.message });
     }
 
     return NextResponse.json({ success: true, orderNumber, order: data || newOrder });
