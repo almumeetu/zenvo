@@ -131,8 +131,7 @@ export function PaymentLogo({
   if (m.includes('bkash')) return <BKashIcon className={className} />;
   if (m.includes('nagad')) return <NagadIcon className={className} />;
   if (m.includes('rocket')) return <RocketIcon className={className} />;
-  if (m.includes('visa') || m.includes('card') || m.includes('mastercard'))
-    return <CardIcon className={className} />;
+  if (m.includes('bank')) return <CardIcon className={className} />;
   if (m.includes('usdt') || m.includes('crypto')) return <UsdtIcon className={className} />;
   if (m.includes('zenov') || m.includes('wallet')) return <ZenovWalletIcon className={className} />;
   return <CardIcon className={className} />;

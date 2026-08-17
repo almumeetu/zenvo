@@ -61,12 +61,12 @@ export default function AiAssistantPage() {
 1. Navigate to **Top-up → Free Fire** (or visit /shop?cat=top-up)
 2. Pick a diamond package
 3. Enter your **Player ID** (found in top-right of in-game profile)
-4. Pay via bKash/Nagad/Rocket/Visa/USDT — delivery is **instant** ≤30s
+4. Pay via bKash/Nagad/Rocket/Bank Transfer/USDT — delivery is **instant** ≤30s
 
-🔥 Best deal right now: 1060 Diamonds = $19.99 with 100 bonus diamonds. Apply code **ZENVO2026** for extra 20% off!`;
+🔥 Best deal right now: 1060 Diamonds = $19.99 with 100 bonus diamonds. Apply code **ZENOV2026** for extra 20% off!`;
     }
     if (p.includes('vip') || p.includes('tier') || p.includes('reward')) {
-      return `👑 **ZENVO VIP Tiers**
+      return `👑 **ZENOV VIP Tiers**
 
 • **Bronze** — default, 1% cashback
 • **Silver** — ≥$100 spent, 2% cashback
@@ -91,7 +91,7 @@ Want me to open support with a pre-filled message?`;
 ${hotDeals.map((d, i) => `${i + 1}. **${d.title}** — ${d.discountPercent ? `-${d.discountPercent}%` : 'Bestseller'} from $${d.denominations[0]?.amount}`).join('\n')}
 
 **Active promo codes:**
-- \`ZENVO2026\` → 20% OFF any order ✅
+- \`ZENOV2026\` → 20% OFF any order ✅
 - \`BONUS10\` → 10% sitewide
 - \`VIP30\` → 30% OFF (Platinum tier only)
 
@@ -101,7 +101,7 @@ Redeem on product detail page before checkout! 💸`;
       return `💳 **Accepted Payment Methods**
 
 • 📱 **bKash / Nagad / Rocket** — instant, zero-fee, auto-verified
-• 💳 **Visa / Mastercard / Amex** — cards processed via SSL-secure stripe
+• 🏦 **Bank Transfer** — local bank transfers, verified instantly
 • ₿ **Crypto (USDT / BTC / ETH)** — Web3 checkout, confirmations in ~2 min
 • 👛 **Zenvo Wallet** — 1-click + VIP cashback stacker → /wallet
 
@@ -143,28 +143,28 @@ If that doesn't help, try:
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-      <div className="flex items-center gap-2 text-xs text-zenvo-text-muted mb-6 flex-wrap">
-        <Link href="/" className="hover:text-zenvo-primary transition-colors">Home</Link>
+      <div className="flex items-center gap-2 text-xs text-zenov-text-muted mb-6 flex-wrap">
+        <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-zenvo-text font-semibold">AI Assistant</span>
+        <span className="text-zenov-text font-semibold">AI Assistant</span>
       </div>
 
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <span className="p-3 rounded-2xl bg-zenvo-accent-soft border border-zenvo-accent-border relative">
-            <Bot className="w-6 h-6 text-zenvo-accent" />
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-zenvo-success border-2 border-zenvo-card animate-live-pulse" />
+          <span className="p-3 rounded-2xl bg-zenov-accent-soft border border-zenov-accent-border relative">
+            <Bot className="w-6 h-6 text-zenov-accent" />
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-zenov-success border-2 border-zenov-card animate-live-pulse" />
           </span>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-zenvo-text tracking-tight inline-flex items-center gap-2">
-              Zenvo AI <Sparkles className="w-5 h-5 text-zenvo-accent" />
+            <h1 className="text-2xl sm:text-3xl font-black text-zenov-text tracking-tight inline-flex items-center gap-2">
+              Zenvo AI <Sparkles className="w-5 h-5 text-zenov-accent" />
             </h1>
-            <p className="text-sm text-zenvo-text-secondary">
+            <p className="text-sm text-zenov-text-secondary">
               24/7 gaming concierge • Answers about top-ups, orders, promos & refunds
             </p>
           </div>
         </div>
-        <Link href="/shop" className="inline-flex items-center gap-1.5 text-sm text-zenvo-text-secondary hover:text-zenvo-primary transition-colors">
+        <Link href="/shop" className="inline-flex items-center gap-1.5 text-sm text-zenov-text-secondary hover:text-zenov-primary transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Shop
         </Link>
       </div>
@@ -172,46 +172,46 @@ If that doesn't help, try:
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
         {/* Chat panel */}
         <div className="lg:col-span-3">
-          <div className="rounded-3xl bg-zenvo-card border border-zenvo-border overflow-hidden flex flex-col h-[65vh] sm:h-[70vh]">
+          <div className="rounded-3xl bg-zenov-card border border-zenov-border overflow-hidden flex flex-col h-[65vh] sm:h-[70vh]">
             {/* Head */}
-            <div className="px-5 sm:px-6 py-4 border-b border-zenvo-border flex items-center justify-between bg-zenvo-surface/40">
+            <div className="px-5 sm:px-6 py-4 border-b border-zenov-border flex items-center justify-between bg-zenov-surface/40">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenvo-accent via-orange-500 to-zenvo-primary flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenov-accent via-orange-500 to-zenov-primary flex items-center justify-center shadow-md">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-black text-zenvo-text inline-flex items-center gap-1.5">
+                  <p className="text-sm font-black text-zenov-text inline-flex items-center gap-1.5">
                     Zenvo AI Assistant
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zenvo-success-soft text-zenvo-success text-[9px] font-bold uppercase tracking-wider border border-zenvo-success/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-zenvo-success animate-live-pulse" /> Online
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zenov-success-soft text-zenov-success text-[9px] font-bold uppercase tracking-wider border border-zenov-success/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zenov-success animate-live-pulse" /> Online
                     </span>
                   </p>
-                  <p className="text-xs text-zenvo-text-muted">Avg. response: ≤3 seconds • Powered by ZenvoGPT 4.5</p>
+                  <p className="text-xs text-zenov-text-muted">Avg. response: ≤3 seconds • Powered by ZenvoGPT 4.5</p>
                 </div>
               </div>
             </div>
 
             {/* Scrollable messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 bg-gradient-to-b from-zenvo-bg/30 to-transparent">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 bg-gradient-to-b from-zenov-bg/30 to-transparent">
               {msgs.map((m, i) => {
                 const mine = m.role === 'user';
                 return (
                   <div key={i} className={`flex gap-3 ${mine ? 'flex-row-reverse' : ''}`}>
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                      mine ? 'bg-zenvo-primary text-white' : 'bg-gradient-to-br from-zenvo-accent to-zenvo-primary text-white shadow-sm'
+                      mine ? 'bg-zenov-primary text-white' : 'bg-gradient-to-br from-zenov-accent to-zenov-primary text-white shadow-sm'
                     }`}>
                       {mine ? <UserIcon className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                     </div>
                     <div className={`max-w-[80%] ${mine ? 'items-end' : 'items-start'} flex flex-col`}>
-                      <div className="flex items-center gap-1.5 mb-1 text-[10px] font-bold text-zenvo-text-muted">
+                      <div className="flex items-center gap-1.5 mb-1 text-[10px] font-bold text-zenov-text-muted">
                         <span>{mine ? user.name : 'Zenvo AI'}</span>
                         <span>• {m.time}</span>
                       </div>
                       <div
                         className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                           mine
-                            ? 'bg-zenvo-primary text-white rounded-br-sm shadow-md'
-                            : 'bg-zenvo-surface/70 text-zenvo-text rounded-bl-sm border border-zenvo-border'
+                            ? 'bg-zenov-primary text-white rounded-br-sm shadow-md'
+                            : 'bg-zenov-surface/70 text-zenov-text rounded-bl-sm border border-zenov-border'
                         }`}
                       >
                         {m.content.split('**').map((segment, idx) =>
@@ -223,14 +223,14 @@ If that doesn't help, try:
                         )}
                       </div>
                       {!mine && (
-                        <div className="flex items-center gap-1 mt-1.5 text-[10px] text-zenvo-text-muted font-semibold opacity-70">
-                          <button className="p-1 hover:text-zenvo-success transition-colors" title="Helpful">
+                        <div className="flex items-center gap-1 mt-1.5 text-[10px] text-zenov-text-muted font-semibold opacity-70">
+                          <button className="p-1 hover:text-zenov-success transition-colors" title="Helpful">
                             <ThumbsUp className="w-3.5 h-3.5" />
                           </button>
-                          <button className="p-1 hover:text-zenvo-error transition-colors" title="Not helpful">
+                          <button className="p-1 hover:text-zenov-error transition-colors" title="Not helpful">
                             <ThumbsDown className="w-3.5 h-3.5" />
                           </button>
-                          <button className="p-1 hover:text-zenvo-primary transition-colors" title="Copy response">
+                          <button className="p-1 hover:text-zenov-primary transition-colors" title="Copy response">
                             <Copy className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -241,20 +241,20 @@ If that doesn't help, try:
               })}
               {typing && (
                 <div className="flex gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zenvo-accent to-zenvo-primary text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zenov-accent to-zenov-primary text-white flex items-center justify-center shrink-0 shadow-sm">
                     <Bot className="w-4 h-4" />
                   </div>
-                  <div className="bg-zenvo-surface/70 border border-zenvo-border rounded-2xl rounded-bl-sm p-4 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-zenvo-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 rounded-full bg-zenvo-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 rounded-full bg-zenvo-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="bg-zenov-surface/70 border border-zenov-border rounded-2xl rounded-bl-sm p-4 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-zenov-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-zenov-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-zenov-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               )}
             </div>
 
             {/* Composer */}
-            <div className="p-4 sm:p-5 border-t border-zenvo-border bg-zenvo-card">
+            <div className="p-4 sm:p-5 border-t border-zenov-border bg-zenov-card">
               <div className="flex gap-2 items-end">
                 <div className="relative flex-1">
                   <textarea
@@ -268,13 +268,13 @@ If that doesn't help, try:
                       }
                     }}
                     placeholder="Ask Zenvo AI anything... (Enter to send, Shift+Enter for newline)"
-                    className="w-full px-4 py-3 pr-12 rounded-2xl bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none text-sm resize-none"
+                    className="w-full px-4 py-3 pr-12 rounded-2xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-2 focus:ring-zenov-primary-border/40 outline-none text-sm resize-none"
                   />
                 </div>
                 <button
                   onClick={onSend}
                   disabled={typing || !input.trim()}
-                  className="self-end px-5 py-3 rounded-2xl bg-gradient-to-r from-zenvo-accent via-orange-500 to-zenvo-accent-hover text-zenvo-bg disabled:opacity-50 text-sm font-black uppercase tracking-wider shadow-md hover:shadow-lg active:scale-[0.98] transition-all inline-flex items-center gap-1.5"
+                  className="self-end px-5 py-3 rounded-2xl bg-gradient-to-r from-zenov-accent via-orange-500 to-zenov-accent-hover text-zenov-bg disabled:opacity-50 text-sm font-black uppercase tracking-wider shadow-md hover:shadow-lg active:scale-[0.98] transition-all inline-flex items-center gap-1.5"
                 >
                   <Send className="w-4 h-4" /> Send
                 </button>
@@ -286,16 +286,16 @@ If that doesn't help, try:
         {/* Right sidebar */}
         <div className="space-y-5">
           {/* Quick prompts */}
-          <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-5">
-            <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-zenvo-accent" /> Quick Prompts
+          <div className="rounded-2xl bg-zenov-card border border-zenov-border p-5">
+            <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-zenov-accent" /> Quick Prompts
             </h3>
             <div className="space-y-2">
               {QUICK_PROMPTS.map((p) => (
                 <button
                   key={p}
                   onClick={() => setInput(p)}
-                  className="w-full text-left p-3 rounded-xl bg-zenvo-surface/60 hover:bg-zenvo-primary-soft/40 border border-zenvo-border hover:border-zenvo-primary-border text-xs font-semibold text-zenvo-text-secondary hover:text-zenvo-primary transition-all flex items-center justify-between gap-2 active:scale-[0.99]"
+                  className="w-full text-left p-3 rounded-xl bg-zenov-surface/60 hover:bg-zenov-primary-soft/40 border border-zenov-border hover:border-zenov-primary-border text-xs font-semibold text-zenov-text-secondary hover:text-zenov-primary transition-all flex items-center justify-between gap-2 active:scale-[0.99]"
                 >
                   <span>{p}</span>
                   <ChevronRight className="w-3.5 h-3.5 shrink-0" />
@@ -305,8 +305,8 @@ If that doesn't help, try:
           </div>
 
           {/* Capabilities */}
-          <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-5">
-            <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-4">What I Can Do</h3>
+          <div className="rounded-2xl bg-zenov-card border border-zenov-border p-5">
+            <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text mb-4">What I Can Do</h3>
             <div className="space-y-3 text-xs">
               {[
                 { I: Zap, t: 'Instant Product Info', s: 'Packages, prices, publisher specs' },
@@ -315,12 +315,12 @@ If that doesn't help, try:
                 { I: Bot, t: 'VIP Progression', s: 'Tier math, cashback estimates' },
               ].map(({ I, t, s }) => (
                 <div key={t} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-zenvo-primary-soft text-zenvo-primary flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-zenov-primary-soft text-zenov-primary flex items-center justify-center shrink-0">
                     <I className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-zenvo-text mb-0.5">{t}</p>
-                    <p className="text-zenvo-text-secondary">{s}</p>
+                    <p className="font-bold text-zenov-text mb-0.5">{t}</p>
+                    <p className="text-zenov-text-secondary">{s}</p>
                   </div>
                 </div>
               ))}
@@ -329,12 +329,12 @@ If that doesn't help, try:
 
           <Link
             href="/support"
-            className="block p-5 rounded-2xl bg-gradient-to-br from-zenvo-primary-soft/60 via-blue-950/20 to-zenvo-accent-soft/60 border border-zenvo-primary-border relative overflow-hidden group"
+            className="block p-5 rounded-2xl bg-gradient-to-br from-zenov-primary-soft/60 via-blue-950/20 to-zenov-accent-soft/60 border border-zenov-primary-border relative overflow-hidden group"
           >
-            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-zenvo-primary/20 blur-2xl group-hover:bg-zenvo-primary/30 transition-all" />
-            <p className="text-[11px] uppercase font-black tracking-[0.18em] text-zenvo-primary mb-1 relative">Need a human?</p>
-            <h3 className="text-lg font-black text-zenvo-text mb-1 relative">Open Support Ticket →</h3>
-            <p className="text-xs text-zenvo-text-secondary relative">24/7 response under 2 hours with full order history</p>
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-zenov-primary/20 blur-2xl group-hover:bg-zenov-primary/30 transition-all" />
+            <p className="text-[11px] uppercase font-black tracking-[0.18em] text-zenov-primary mb-1 relative">Need a human?</p>
+            <h3 className="text-lg font-black text-zenov-text mb-1 relative">Open Support Ticket →</h3>
+            <p className="text-xs text-zenov-text-secondary relative">24/7 response under 2 hours with full order history</p>
           </Link>
         </div>
       </div>

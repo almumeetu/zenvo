@@ -70,17 +70,17 @@ const ProductSection: React.FC<ProductSectionProps> = ({
   if (items.length === 0) return null;
 
   return (
-    <section ref={sectionRef} className="py-10 first:pt-6 border-b border-zenvo-border/60 last:border-0">
+    <section ref={sectionRef} className="py-10 first:pt-6 border-b border-zenov-border/60 last:border-0">
       {/* Section Header */}
       <div ref={headerRef} className="flex items-end justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-zenvo-primary-soft border border-zenvo-primary-border flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-zenov-primary-soft border border-zenov-primary-border flex items-center justify-center">
             {icon}
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-black tracking-tight text-zenvo-text uppercase flex items-baseline gap-2.5">
+            <h2 className="text-lg sm:text-xl font-black tracking-tight text-zenov-text uppercase flex items-baseline gap-2.5">
               {title}
-              <span className="text-xs font-medium text-zenvo-text-muted normal-case tracking-normal">
+              <span className="text-xs font-medium text-zenov-text-muted normal-case tracking-normal">
                 ({items.length} items)
               </span>
             </h2>
@@ -90,7 +90,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
         {items.length > 6 && (
           <button
             onClick={() => onToggle(sectionKey)}
-            className="shrink-0 text-xs font-semibold text-zenvo-text-secondary hover:text-zenvo-primary inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-zenvo-surface border border-zenvo-border hover:border-zenvo-primary-border hover:bg-zenvo-primary-soft/40 transition-all"
+            className="shrink-0 text-xs font-semibold text-zenov-text-secondary hover:text-zenov-primary inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/40 transition-all"
           >
             <span>{isExpanded ? 'Show Less' : 'View More'}</span>
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -115,7 +115,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
         <div className="mt-7 text-center">
           <button
             onClick={() => onToggle(sectionKey)}
-            className="px-6 py-2.5 rounded-lg bg-zenvo-card hover:bg-zenvo-card-hover border border-zenvo-border hover:border-zenvo-primary-border text-zenvo-text-secondary hover:text-zenvo-primary text-xs font-semibold uppercase tracking-wider transition-all inline-flex items-center gap-2"
+            className="px-6 py-2.5 rounded-lg bg-zenov-card hover:bg-zenov-card-hover border border-zenov-border hover:border-zenov-primary-border text-zenov-text-secondary hover:text-zenov-primary text-xs font-semibold uppercase tracking-wider transition-all inline-flex items-center gap-2"
           >
             <span>Load More {title.split(' ')[0].toUpperCase()}</span>
             <ChevronDown className="w-4 h-4" />
@@ -154,16 +154,16 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-3 mb-8">
-          <span className="w-1 h-9 bg-zenvo-primary rounded-full shadow-sm" />
+          <span className="w-1 h-9 bg-zenov-primary rounded-full shadow-sm" />
           <div>
-            <p className="text-[11px] uppercase tracking-widest text-zenvo-text-muted font-semibold mb-0.5">
+            <p className="text-[11px] uppercase tracking-widest text-zenov-text-muted font-semibold mb-0.5">
               Category
             </p>
-            <h2 className="text-2xl font-black tracking-tight text-zenvo-text uppercase">
+            <h2 className="text-2xl font-black tracking-tight text-zenov-text uppercase">
               {selectedCategory.replace('-', ' ')}
             </h2>
           </div>
-          <span className="text-sm font-medium text-zenvo-text-muted ml-2">
+          <span className="text-sm font-medium text-zenov-text-muted ml-2">
             ({filtered.length} items)
           </span>
         </div>
@@ -187,7 +187,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <ProductSection
         title="Trending Now"
-        icon={<Flame className="w-[18px] h-[18px] text-zenvo-accent" />}
+        icon={<Flame className="w-[18px] h-[18px] text-zenov-accent" />}
         items={hotProducts}
         sectionKey="hot"
         isExpanded={expandedSections.hot}
@@ -197,7 +197,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
       />
       <ProductSection
         title="Game Top Up"
-        icon={<Gamepad2 className="w-[18px] h-[18px] text-zenvo-primary" />}
+        icon={<Gamepad2 className="w-[18px] h-[18px] text-zenov-primary" />}
         items={gameTopupProducts}
         sectionKey="gameTopup"
         isExpanded={expandedSections.gameTopup}
@@ -207,7 +207,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
       />
       <ProductSection
         title="Social Top Up"
-        icon={<Smartphone className="w-[18px] h-[18px] text-zenvo-primary" />}
+        icon={<Smartphone className="w-[18px] h-[18px] text-zenov-primary" />}
         items={socialTopupProducts}
         sectionKey="socialTopup"
         isExpanded={expandedSections.socialTopup}
@@ -217,7 +217,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
       />
       <ProductSection
         title="Gift Cards"
-        icon={<Gift className="w-[18px] h-[18px] text-zenvo-accent" />}
+        icon={<Gift className="w-[18px] h-[18px] text-zenov-accent" />}
         items={giftCardProducts}
         sectionKey="giftCard"
         isExpanded={expandedSections.giftCard}
@@ -227,7 +227,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
       />
       <ProductSection
         title="Subscriptions & Accounts"
-        icon={<Crown className="w-[18px] h-[18px] text-zenvo-accent" />}
+        icon={<Crown className="w-[18px] h-[18px] text-zenov-accent" />}
         items={subscriptionProducts}
         sectionKey="subscription"
         isExpanded={expandedSections.subscription}

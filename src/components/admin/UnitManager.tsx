@@ -103,20 +103,20 @@ export function UnitManager() {
     <div className="space-y-5">
       {/* Header Actions */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-        <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border focus-within:border-zenvo-primary-border">
-          <Search className="w-4 h-4 text-zenvo-text-muted shrink-0" />
+        <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenov-card border border-zenov-border focus-within:border-zenov-primary-border">
+          <Search className="w-4 h-4 text-zenov-text-muted shrink-0" />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search units (Diamonds, UC, Gift Cards, Points)..."
-            className="w-full bg-transparent text-xs text-zenvo-text focus:outline-none"
+            className="w-full bg-transparent text-xs text-zenov-text focus:outline-none"
           />
         </div>
 
         <button
           type="button"
           onClick={openAddModal}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenvo-accent to-orange-500 hover:brightness-110 text-zenvo-bg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all shrink-0"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenov-accent to-orange-500 hover:brightness-110 text-zenov-bg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all shrink-0"
         >
           <Plus className="w-4 h-4" /> Add Unit / Variant
         </button>
@@ -131,47 +131,47 @@ export function UnitManager() {
           return (
             <div
               key={u.id}
-              className="rounded-2xl bg-zenvo-card border border-zenvo-border hover:border-zenvo-border-hover p-4 sm:p-5 flex flex-col justify-between gap-4 transition-all group hover:shadow-lg relative"
+              className="rounded-2xl bg-zenov-card border border-zenov-border hover:border-zenov-border-hover p-4 sm:p-5 flex flex-col justify-between gap-4 transition-all group hover:shadow-lg relative"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-zenvo-surface border border-zenvo-border flex items-center justify-center text-xl shadow-inner group-hover:scale-105 transition-transform shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-zenov-surface border border-zenov-border flex items-center justify-center text-xl shadow-inner group-hover:scale-105 transition-transform shrink-0">
                       {u.symbol || '💎'}
                     </div>
                     <div>
-                      <h4 className="font-bold text-zenvo-text text-sm leading-snug">
+                      <h4 className="font-bold text-zenov-text text-sm leading-snug">
                         {u.name}
                       </h4>
-                      <span className="inline-block mt-0.5 px-2 py-0.2 rounded bg-zenvo-primary-soft text-zenvo-primary border border-zenvo-primary-border/20 text-[9px] font-black uppercase">
+                      <span className="inline-block mt-0.5 px-2 py-0.2 rounded bg-zenov-primary-soft text-zenov-primary border border-zenov-primary-border/20 text-[9px] font-black uppercase">
                         {catName}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-xs text-zenvo-text-secondary line-clamp-2 leading-relaxed min-h-[32px]">
+                <p className="text-xs text-zenov-text-secondary line-clamp-2 leading-relaxed min-h-[32px]">
                   {u.description || 'No specific description provided for this denomination unit.'}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-zenvo-border/50 flex items-center justify-between gap-2 text-xs">
-                <div className="text-[11px] font-mono text-zenvo-text-muted">
-                  Default Step: <span className="text-zenvo-text font-bold">+{u.defaultStep || 100}</span>
+              <div className="pt-3 border-t border-zenov-border/50 flex items-center justify-between gap-2 text-xs">
+                <div className="text-[11px] font-mono text-zenov-text-muted">
+                  Default Step: <span className="text-zenov-text font-bold">+{u.defaultStep || 100}</span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => openEditModal(u)}
-                    className="px-2.5 py-1 rounded-lg bg-zenvo-surface hover:bg-zenvo-primary hover:text-white border border-zenvo-border text-zenvo-text-secondary text-xs font-bold transition-all flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-lg bg-zenov-surface hover:bg-zenov-primary hover:text-white border border-zenov-border text-zenov-text-secondary text-xs font-bold transition-all flex items-center gap-1"
                   >
                     <Edit className="w-3 h-3" /> Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDelete(u)}
-                    className="p-1.5 rounded-lg bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white text-zenvo-error border border-zenvo-error/20 text-xs font-bold transition-all"
+                    className="p-1.5 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white text-zenov-error border border-zenov-error/20 text-xs font-bold transition-all"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -183,10 +183,10 @@ export function UnitManager() {
       </div>
 
       {filteredUnits.length === 0 && (
-        <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-8 text-center space-y-2">
-          <Coins className="w-10 h-10 text-zenvo-text-muted mx-auto opacity-50" />
-          <h4 className="font-bold text-zenvo-text">No Units Found</h4>
-          <p className="text-xs text-zenvo-text-secondary max-w-sm mx-auto">
+        <div className="rounded-2xl bg-zenov-card border border-zenov-border p-8 text-center space-y-2">
+          <Coins className="w-10 h-10 text-zenov-text-muted mx-auto opacity-50" />
+          <h4 className="font-bold text-zenov-text">No Units Found</h4>
+          <p className="text-xs text-zenov-text-secondary max-w-sm mx-auto">
             Click "Add Unit / Variant" above to define unit denominations like Diamonds, UC, or Coins.
           </p>
         </div>
@@ -195,16 +195,16 @@ export function UnitManager() {
       {/* Add / Edit Unit Modal */}
       {isAddingUnit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-zenvo-card border border-zenvo-accent-border/40 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-zenvo-border pb-3">
-              <h3 className="text-sm font-black uppercase text-zenvo-accent flex items-center gap-2">
+          <div className="w-full max-w-lg rounded-2xl bg-zenov-card border border-zenov-accent-border/40 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-zenov-border pb-3">
+              <h3 className="text-sm font-black uppercase text-zenov-accent flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 {editingUnit ? `Edit Unit: ${editingUnit.name}` : 'Create Unit / Variant'}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsAddingUnit(false)}
-                className="p-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-zenvo-text-muted hover:text-white"
+                className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -213,7 +213,7 @@ export function UnitManager() {
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                  <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                     Unit / Denomination Name *
                   </label>
                   <input
@@ -222,12 +222,12 @@ export function UnitManager() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Diamonds / UC / Robux"
-                    className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                  <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                     Icon / Symbol
                   </label>
                   <input
@@ -236,14 +236,14 @@ export function UnitManager() {
                     value={symbol}
                     onChange={(e) => setSymbol(e.target.value)}
                     placeholder="💎"
-                    className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-center text-lg focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-center text-lg focus:outline-none focus:border-zenov-primary-border"
                   />
                 </div>
               </div>
 
               {/* Symbol Quick Select Chips */}
               <div>
-                <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                   Quick Emoji Symbols
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
@@ -254,8 +254,8 @@ export function UnitManager() {
                       onClick={() => setSymbol(sym)}
                       className={`w-8 h-8 rounded-lg border text-sm flex items-center justify-center transition-all ${
                         symbol === sym
-                          ? 'bg-zenvo-primary/20 border-zenvo-primary scale-105'
-                          : 'bg-zenvo-surface border-zenvo-border hover:border-zenvo-border-hover'
+                          ? 'bg-zenov-primary/20 border-zenov-primary scale-105'
+                          : 'bg-zenov-surface border-zenov-border hover:border-zenov-border-hover'
                       }`}
                     >
                       {sym}
@@ -266,13 +266,13 @@ export function UnitManager() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                  <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                     Primary Category
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.slug}>
@@ -283,7 +283,7 @@ export function UnitManager() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                  <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                     Default Step / Pack Size
                   </label>
                   <input
@@ -292,13 +292,13 @@ export function UnitManager() {
                     value={defaultStep}
                     onChange={(e) => setDefaultStep(parseInt(e.target.value) || 1)}
                     placeholder="100"
-                    className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-mono text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs font-mono text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                   Unit Description
                 </label>
                 <textarea
@@ -306,21 +306,21 @@ export function UnitManager() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="e.g. Official Mobile Legends diamond recharges and currency..."
-                  className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                  className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-zenvo-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-zenov-border">
                 <button
                   type="button"
                   onClick={() => setIsAddingUnit(false)}
-                  className="px-4 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-bold text-zenvo-text-secondary hover:text-zenvo-text"
+                  className="px-4 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs font-bold text-zenov-text-secondary hover:text-zenov-text"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-zenvo-accent to-orange-500 text-zenvo-bg font-black text-xs uppercase shadow-sm transition-all"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-zenov-accent to-orange-500 text-zenov-bg font-black text-xs uppercase shadow-sm transition-all"
                 >
                   {editingUnit ? 'Update Unit' : 'Save Unit'}
                 </button>

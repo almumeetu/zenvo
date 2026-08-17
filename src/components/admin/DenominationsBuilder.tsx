@@ -174,7 +174,7 @@ export function DenominationsBuilder({
     .join('\n');
 
   return (
-    <div className="space-y-3.5 rounded-2xl bg-zenvo-surface/50 border border-zenvo-border p-4 sm:p-5">
+    <div className="space-y-3.5 rounded-2xl bg-zenov-surface/50 border border-zenov-border p-4 sm:p-5">
       {/* Hidden input to ensure FormData receives the packages */}
       <textarea
         name="denominations"
@@ -188,13 +188,13 @@ export function DenominationsBuilder({
         value={JSON.stringify(denominations)}
       />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-zenvo-border/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-zenov-border/60">
         <div>
-          <h4 className="text-xs font-black uppercase text-zenvo-text tracking-wider flex items-center gap-2">
-            <Coins className="w-4 h-4 text-zenvo-accent" />
+          <h4 className="text-xs font-black uppercase text-zenov-text tracking-wider flex items-center gap-2">
+            <Coins className="w-4 h-4 text-zenov-accent" />
             Packages & Denominations Builder
           </h4>
-          <p className="text-[11px] text-zenvo-text-muted mt-0.5">
+          <p className="text-[11px] text-zenov-text-muted mt-0.5">
             Configure dynamic item packages, USD/BDT pricing, and promotional badges.
           </p>
         </div>
@@ -204,7 +204,7 @@ export function DenominationsBuilder({
             type="button"
             onClick={handleAutoCalcAllBDT}
             title="Auto-calculate BDT prices for all rows (1 USD = 120 BDT)"
-            className="px-2.5 py-1.5 rounded-xl bg-zenvo-surface border border-zenvo-border hover:border-zenvo-primary text-[11px] font-bold text-zenvo-text-secondary hover:text-zenvo-primary flex items-center gap-1.5 transition-all"
+            className="px-2.5 py-1.5 rounded-xl bg-zenov-surface border border-zenov-border hover:border-zenov-primary text-[11px] font-bold text-zenov-text-secondary hover:text-zenov-primary flex items-center gap-1.5 transition-all"
           >
             <Zap className="w-3.5 h-3.5 text-amber-400" />
             Sync ৳ (1$ = {exchangeRate}৳)
@@ -212,7 +212,7 @@ export function DenominationsBuilder({
           <button
             type="button"
             onClick={handleAddRow}
-            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-zenvo-primary to-blue-600 hover:brightness-110 text-white text-[11px] font-black uppercase flex items-center gap-1 shadow-sm transition-all active:scale-95"
+            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-zenov-primary to-blue-600 hover:brightness-110 text-white text-[11px] font-black uppercase flex items-center gap-1 shadow-sm transition-all active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" /> Add Package
           </button>
@@ -221,15 +221,15 @@ export function DenominationsBuilder({
 
       {/* Preset Quick Generator Chips */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="text-[10px] font-bold uppercase text-zenvo-text-muted shrink-0 flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-zenvo-primary" /> Quick Presets:
+        <span className="text-[10px] font-bold uppercase text-zenov-text-muted shrink-0 flex items-center gap-1">
+          <Sparkles className="w-3 h-3 text-zenov-primary" /> Quick Presets:
         </span>
         {PRESET_TEMPLATES.map((preset, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => handleApplyPreset(preset)}
-            className="shrink-0 px-2.5 py-1 rounded-lg bg-zenvo-card border border-zenvo-border hover:border-zenvo-primary text-[10.5px] font-semibold text-zenvo-text-secondary hover:text-zenvo-primary transition-all active:scale-95"
+            className="shrink-0 px-2.5 py-1 rounded-lg bg-zenov-card border border-zenov-border hover:border-zenov-primary text-[10.5px] font-semibold text-zenov-text-secondary hover:text-zenov-primary transition-all active:scale-95"
           >
             {preset.label}
           </button>
@@ -244,13 +244,13 @@ export function DenominationsBuilder({
             className={`rounded-xl border transition-all p-3 sm:p-3.5 flex flex-col gap-3 ${
               denom.popular
                 ? 'bg-amber-500/5 border-amber-500/30'
-                : 'bg-zenvo-card/80 border-zenvo-border hover:border-zenvo-border-hover'
+                : 'bg-zenov-card/80 border-zenov-border hover:border-zenov-border-hover'
             }`}
           >
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
               {/* Index & Reorder Controls */}
               <div className="sm:col-span-1 flex items-center gap-1">
-                <span className="w-6 h-6 rounded-lg bg-zenvo-surface border border-zenvo-border text-[11px] font-black text-zenvo-text-muted flex items-center justify-center font-mono">
+                <span className="w-6 h-6 rounded-lg bg-zenov-surface border border-zenov-border text-[11px] font-black text-zenov-text-muted flex items-center justify-center font-mono">
                   {index + 1}
                 </span>
                 <div className="flex flex-col">
@@ -258,7 +258,7 @@ export function DenominationsBuilder({
                     type="button"
                     onClick={() => handleMove(index, 'up')}
                     disabled={index === 0}
-                    className="text-zenvo-text-muted hover:text-white disabled:opacity-20 p-0.5"
+                    className="text-zenov-text-muted hover:text-white disabled:opacity-20 p-0.5"
                   >
                     <ArrowUp className="w-3 h-3" />
                   </button>
@@ -266,7 +266,7 @@ export function DenominationsBuilder({
                     type="button"
                     onClick={() => handleMove(index, 'down')}
                     disabled={index === denominations.length - 1}
-                    className="text-zenvo-text-muted hover:text-white disabled:opacity-20 p-0.5"
+                    className="text-zenov-text-muted hover:text-white disabled:opacity-20 p-0.5"
                   >
                     <ArrowDown className="w-3 h-3" />
                   </button>
@@ -275,7 +275,7 @@ export function DenominationsBuilder({
 
               {/* Package Name Input */}
               <div className="sm:col-span-4">
-                <label className="text-[9.5px] font-bold uppercase text-zenvo-text-muted block mb-0.5">
+                <label className="text-[9.5px] font-bold uppercase text-zenov-text-muted block mb-0.5">
                   Package Name / Denomination
                 </label>
                 <input
@@ -284,17 +284,17 @@ export function DenominationsBuilder({
                   onChange={(e) => handleFieldChange(denom.id, 'name', e.target.value)}
                   placeholder="e.g. 100 Diamonds / $10 Card"
                   required
-                  className="w-full px-3 py-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text font-semibold focus:outline-none focus:border-zenvo-primary-border"
+                  className="w-full px-3 py-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-xs text-zenov-text font-semibold focus:outline-none focus:border-zenov-primary-border"
                 />
               </div>
 
               {/* USD Price */}
               <div className="sm:col-span-2">
-                <label className="text-[9.5px] font-bold uppercase text-zenvo-text-muted block mb-0.5">
+                <label className="text-[9.5px] font-bold uppercase text-zenov-text-muted block mb-0.5">
                   Price ($ USD)
                 </label>
                 <div className="relative">
-                  <DollarSign className="w-3.5 h-3.5 text-zenvo-text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <DollarSign className="w-3.5 h-3.5 text-zenov-text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="number"
                     step="0.01"
@@ -303,18 +303,18 @@ export function DenominationsBuilder({
                     onChange={(e) => handleFieldChange(denom.id, 'amount', parseFloat(e.target.value) || 0)}
                     placeholder="0.99"
                     required
-                    className="w-full pl-7 pr-2 py-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text font-mono font-bold focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full pl-7 pr-2 py-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-xs text-zenov-text font-mono font-bold focus:outline-none focus:border-zenov-primary-border"
                   />
                 </div>
               </div>
 
               {/* BDT Price */}
               <div className="sm:col-span-2">
-                <label className="text-[9.5px] font-bold uppercase text-zenvo-text-muted block mb-0.5">
+                <label className="text-[9.5px] font-bold uppercase text-zenov-text-muted block mb-0.5">
                   Price (৳ BDT)
                 </label>
                 <div className="relative">
-                  <span className="text-[11px] font-bold text-zenvo-text-muted absolute left-2.5 top-1/2 -translate-y-1/2 font-mono">
+                  <span className="text-[11px] font-bold text-zenov-text-muted absolute left-2.5 top-1/2 -translate-y-1/2 font-mono">
                     ৳
                   </span>
                   <input
@@ -325,14 +325,14 @@ export function DenominationsBuilder({
                     onChange={(e) => handleFieldChange(denom.id, 'priceBDT', parseFloat(e.target.value) || 0)}
                     placeholder="120"
                     required
-                    className="w-full pl-7 pr-2 py-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-xs text-emerald-400 font-mono font-bold focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full pl-7 pr-2 py-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-xs text-emerald-400 font-mono font-bold focus:outline-none focus:border-zenov-primary-border"
                   />
                 </div>
               </div>
 
               {/* Bonus / Badge Input */}
               <div className="sm:col-span-2">
-                <label className="text-[9.5px] font-bold uppercase text-zenvo-text-muted block mb-0.5 flex items-center gap-1">
+                <label className="text-[9.5px] font-bold uppercase text-zenov-text-muted block mb-0.5 flex items-center gap-1">
                   <Tag className="w-2.5 h-2.5 text-amber-400" /> Badge / Bonus
                 </label>
                 <input
@@ -340,7 +340,7 @@ export function DenominationsBuilder({
                   value={denom.bonus || ''}
                   onChange={(e) => handleFieldChange(denom.id, 'bonus', e.target.value)}
                   placeholder="+10% Bonus"
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-xs text-amber-300 placeholder:text-zenvo-text-muted/60 focus:outline-none focus:border-zenvo-primary-border"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-xs text-amber-300 placeholder:text-zenov-text-muted/60 focus:outline-none focus:border-zenov-primary-border"
                 />
               </div>
 
@@ -350,7 +350,7 @@ export function DenominationsBuilder({
                   type="button"
                   onClick={() => handleDuplicateRow(index)}
                   title="Duplicate Package"
-                  className="p-1.5 rounded-lg bg-zenvo-surface hover:bg-zenvo-primary-soft hover:text-zenvo-primary text-zenvo-text-muted border border-zenvo-border transition-colors"
+                  className="p-1.5 rounded-lg bg-zenov-surface hover:bg-zenov-primary-soft hover:text-zenov-primary text-zenov-text-muted border border-zenov-border transition-colors"
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
@@ -358,7 +358,7 @@ export function DenominationsBuilder({
                   type="button"
                   onClick={() => handleDeleteRow(index)}
                   title="Delete Package"
-                  className="p-1.5 rounded-lg bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white text-zenvo-error border border-zenvo-error/20 transition-all"
+                  className="p-1.5 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white text-zenov-error border border-zenov-error/20 transition-all"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -366,8 +366,8 @@ export function DenominationsBuilder({
             </div>
 
             {/* Bottom Row Attributes */}
-            <div className="flex items-center justify-between pt-1 border-t border-zenvo-border/40 text-[11px]">
-              <label className="flex items-center gap-1.5 text-zenvo-text-secondary hover:text-zenvo-text cursor-pointer select-none font-semibold">
+            <div className="flex items-center justify-between pt-1 border-t border-zenov-border/40 text-[11px]">
+              <label className="flex items-center gap-1.5 text-zenov-text-secondary hover:text-zenov-text cursor-pointer select-none font-semibold">
                 <input
                   type="checkbox"
                   checked={!!denom.popular}

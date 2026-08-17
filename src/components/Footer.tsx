@@ -41,7 +41,7 @@ const FooterLink: React.FC<{ href: string; children: React.ReactNode; external?:
     return (
       <Link
         href={href}
-        className="hover:text-zenvo-primary transition-colors duration-200 inline-flex items-start gap-2 group"
+        className="hover:text-zenov-primary transition-colors duration-200 inline-flex items-start gap-2 group"
       >
         {children}
       </Link>
@@ -53,7 +53,7 @@ const FooterLink: React.FC<{ href: string; children: React.ReactNode; external?:
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
       onClick={(e) => !external && e.preventDefault()}
-      className="hover:text-zenvo-primary transition-colors duration-200 inline-flex items-start gap-2 group"
+      className="hover:text-zenov-primary transition-colors duration-200 inline-flex items-start gap-2 group"
     >
       {children}
     </a>
@@ -66,15 +66,15 @@ export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
-  if (pathname?.startsWith('/admin')) {
-    return null;
-  }
-
   useEffect(() => {
     const onScroll = () => setShowBackToTop(window.scrollY > 300);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -88,9 +88,9 @@ export const Footer: React.FC = () => {
   };
 
   const quickLinks = [
-    { label: 'Gift Cards Catalog', href: '/shop', icon: <Gift className="w-3.5 h-3.5 text-zenvo-accent" /> },
-    { label: 'Order Tracker', href: '/orders/track', icon: <Zap className="w-3.5 h-3.5 text-zenvo-primary" /> },
-    { label: 'Blog & Deals', href: '/blog', icon: <Star className="w-3.5 h-3.5 text-zenvo-accent" /> },
+    { label: 'Gift Cards Catalog', href: '/shop', icon: <Gift className="w-3.5 h-3.5 text-zenov-accent" /> },
+    { label: 'Order Tracker', href: '/orders/track', icon: <Zap className="w-3.5 h-3.5 text-zenov-primary" /> },
+    { label: 'Blog & Deals', href: '/blog', icon: <Star className="w-3.5 h-3.5 text-zenov-accent" /> },
   ];
 
   const socials = [
@@ -139,14 +139,9 @@ export const Footer: React.FC = () => {
       color: 'text-violet-500 hover:bg-violet-500/10 hover:border-violet-500/40',
     },
     {
-      label: 'VISA',
+      label: 'Bank Transfer',
       icon: <FaCcVisa className="w-6 h-4" />,
       color: 'text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/40',
-    },
-    {
-      label: 'Mastercard',
-      icon: <FaCcMastercard className="w-5 h-5" />,
-      color: 'text-red-400 hover:bg-red-500/10 hover:border-red-500/40',
     },
     {
       label: 'USDT',
@@ -156,7 +151,7 @@ export const Footer: React.FC = () => {
     {
       label: 'ZENOV Wallet',
       icon: <FaWallet className="w-4 h-4" />,
-      color: 'text-zenvo-primary hover:bg-zenvo-primary-soft hover:border-zenvo-primary-border',
+      color: 'text-zenov-primary hover:bg-zenov-primary-soft hover:border-zenov-primary-border',
     },
   ];
 
@@ -171,11 +166,11 @@ export const Footer: React.FC = () => {
         <ChevronUp className="w-5 h-5" />
       </button>
 
-      <footer className="relative bg-zenvo-surface border-t border-zenvo-border text-zenvo-text-secondary font-sans overflow-hidden">
+      <footer className="relative bg-zenov-surface border-t border-zenov-border text-zenov-text-secondary font-sans overflow-hidden">
         {/* Top gradient line */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zenvo-primary/50 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zenov-primary/50 to-transparent" />
         {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-zenvo-primary/4 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-zenov-primary/4 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-10 pb-6">
 
@@ -186,30 +181,30 @@ export const Footer: React.FC = () => {
             <div className="col-span-2 sm:col-span-2 lg:col-span-1 space-y-4">
               {/* Logo */}
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenvo-primary to-blue-700 p-[1.5px] shadow-primary shrink-0">
-                  <div className="w-full h-full rounded-[9px] bg-zenvo-bg flex items-center justify-center">
-                    <span className="font-black text-base text-transparent bg-clip-text bg-gradient-to-br from-zenvo-primary to-zenvo-accent font-mono">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenov-primary to-blue-700 p-[1.5px] shadow-primary shrink-0">
+                  <div className="w-full h-full rounded-[9px] bg-zenov-bg flex items-center justify-center">
+                    <span className="font-black text-base text-transparent bg-clip-text bg-gradient-to-br from-zenov-primary to-zenov-accent font-mono">
                       Z
                     </span>
                   </div>
                 </div>
                 <div className="leading-tight">
-                  <div className="text-base font-black tracking-tight text-zenvo-text uppercase">
-                    ZENOV <span className="text-zenvo-primary">GAMES</span>
+                  <div className="text-base font-black tracking-tight text-zenov-text uppercase">
+                    ZENOV <span className="text-zenov-primary">GAMES</span>
                   </div>
-                  <div className="text-[10px] font-bold tracking-[0.16em] text-zenvo-text-muted uppercase">
+                  <div className="text-[10px] font-bold tracking-[0.16em] text-zenov-text-muted uppercase">
                     Gaming Store · BD
                   </div>
                 </div>
               </div>
 
-              <p className="text-xs text-zenvo-text-secondary leading-relaxed">
+              <p className="text-xs text-zenov-text-secondary leading-relaxed">
                 Your trusted digital gaming store in Bangladesh. PSN, Steam, Xbox Gift Cards, PS Plus & instant game top-ups — delivered in seconds.
               </p>
 
               {/* Social icons */}
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zenvo-text-muted mb-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zenov-text-muted mb-2.5">
                   Follow Us
                 </p>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -220,7 +215,7 @@ export const Footer: React.FC = () => {
                       onClick={(e) => e.preventDefault()}
                       title={name}
                       aria-label={name}
-                      className={`w-9 h-9 rounded-xl bg-zenvo-card border border-zenvo-border text-zenvo-text-muted flex items-center justify-center transition-all duration-200 ${color}`}
+                      className={`w-9 h-9 rounded-xl bg-zenov-card border border-zenov-border text-zenov-text-muted flex items-center justify-center transition-all duration-200 ${color}`}
                     >
                       {icon}
                     </a>
@@ -229,22 +224,22 @@ export const Footer: React.FC = () => {
               </div>
 
               {/* Rating badge */}
-              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-zenvo-card border border-zenvo-border">
+              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-zenov-card border border-zenov-border">
                 <div className="flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 text-zenvo-accent fill-zenvo-accent" />
+                    <Star key={i} className="w-3 h-3 text-zenov-accent fill-zenov-accent" />
                   ))}
                 </div>
                 <div className="text-xs leading-snug">
-                  <span className="font-bold text-zenvo-text">4.9/5</span>{' '}
-                  <span className="text-zenvo-text-secondary">Trusted by 1M+ gamers</span>
+                  <span className="font-bold text-zenov-text">4.9/5</span>{' '}
+                  <span className="text-zenov-text-secondary">Trusted by 1M+ gamers</span>
                 </div>
               </div>
             </div>
 
             {/* Quick Links */}
             <div>
-              <h4 className="text-xs font-black text-zenvo-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenvo-primary">
+              <h4 className="text-xs font-black text-zenov-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenov-primary">
                 Quick Links
               </h4>
               <ul className="space-y-2.5 text-xs">
@@ -263,49 +258,49 @@ export const Footer: React.FC = () => {
 
             {/* Information */}
             <div>
-              <h4 className="text-xs font-black text-zenvo-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenvo-primary">
+              <h4 className="text-xs font-black text-zenov-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenov-primary">
                 Information
               </h4>
               <ul className="space-y-2.5 text-xs">
                 <li>
                   <FooterLink href="/faqs?tab=refund">
-                    <ShieldCheck className="w-3.5 h-3.5 text-zenvo-success mt-0.5 shrink-0" />
+                    <ShieldCheck className="w-3.5 h-3.5 text-zenov-success mt-0.5 shrink-0" />
                     <span>Refund & Return Policy</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="/faqs?tab=privacy">
-                    <Lock className="w-3.5 h-3.5 text-zenvo-primary mt-0.5 shrink-0" />
+                    <Lock className="w-3.5 h-3.5 text-zenov-primary mt-0.5 shrink-0" />
                     <span>Privacy Policy</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="/faqs?tab=terms">
-                    <FileText className="w-3.5 h-3.5 text-zenvo-primary mt-0.5 shrink-0" />
+                    <FileText className="w-3.5 h-3.5 text-zenov-primary mt-0.5 shrink-0" />
                     <span>Terms & Conditions</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="/faqs?tab=faqs">
-                    <HelpCircle className="w-3.5 h-3.5 text-zenvo-accent mt-0.5 shrink-0" />
+                    <HelpCircle className="w-3.5 h-3.5 text-zenov-accent mt-0.5 shrink-0" />
                     <span>FAQ & Help Center</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="tel:+8801300529836">
-                    <Phone className="w-3.5 h-3.5 text-zenvo-primary mt-0.5 shrink-0" />
+                    <Phone className="w-3.5 h-3.5 text-zenov-primary mt-0.5 shrink-0" />
                     <span>+880 1300-529836</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="mailto:Siddikpers@gmail.com">
-                    <Mail className="w-3.5 h-3.5 text-zenvo-primary mt-0.5 shrink-0" />
+                    <Mail className="w-3.5 h-3.5 text-zenov-primary mt-0.5 shrink-0" />
                     <span className="break-all">Siddikpers@gmail.com</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="https://wa.me/8801300529836" external>
-                    <FaWhatsapp className="w-3.5 h-3.5 text-zenvo-success mt-0.5 shrink-0" />
+                    <FaWhatsapp className="w-3.5 h-3.5 text-zenov-success mt-0.5 shrink-0" />
                     <span>WhatsApp: 01300529836</span>
                   </FooterLink>
                 </li>
@@ -314,21 +309,21 @@ export const Footer: React.FC = () => {
 
             {/* Newsletter */}
             <div className="col-span-2 sm:col-span-2 lg:col-span-1">
-              <h4 className="text-xs font-black text-zenvo-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenvo-accent">
+              <h4 className="text-xs font-black text-zenov-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenov-accent">
                 Gamer Newsletter
               </h4>
-              <p className="text-xs text-zenvo-text-secondary mb-3 leading-relaxed">
+              <p className="text-xs text-zenov-text-secondary mb-3 leading-relaxed">
                 Subscribe for instant drop alerts, free diamond giveaways & exclusive bonus codes.
               </p>
 
               {subscribed ? (
-                <div className="p-3.5 rounded-xl bg-zenvo-success-soft border border-zenvo-success/30 text-zenvo-success text-xs font-bold text-center">
+                <div className="p-3.5 rounded-xl bg-zenov-success-soft border border-zenov-success/30 text-zenov-success text-xs font-bold text-center">
                   🎉 You&apos;re in! Check your inbox.
                 </div>
               ) : (
                 <form
                   onSubmit={handleSubscribe}
-                  className="flex items-stretch gap-2 bg-zenvo-card border border-zenvo-border rounded-xl p-1.5 focus-within:border-zenvo-primary-border transition-all duration-200"
+                  className="flex items-stretch gap-2 bg-zenov-card border border-zenov-border rounded-xl p-1.5 focus-within:border-zenov-primary-border transition-all duration-200"
                 >
                   <input
                     type="email"
@@ -336,11 +331,11 @@ export const Footer: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
-                    className="w-full min-w-0 bg-transparent px-3 py-2 text-xs text-zenvo-text placeholder:text-zenvo-text-muted focus:outline-none rounded-md"
+                    className="w-full min-w-0 bg-transparent px-3 py-2 text-xs text-zenov-text placeholder:text-zenov-text-muted focus:outline-none rounded-md"
                   />
                   <button
                     type="submit"
-                    className="magnetic-btn px-3 py-2 rounded-lg bg-gradient-to-r from-zenvo-accent to-orange-500 hover:from-zenvo-accent-hover hover:to-orange-400 text-zenvo-bg transition-all inline-flex items-center justify-center gap-1.5 text-xs font-black shrink-0"
+                    className="magnetic-btn px-3 py-2 rounded-lg bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg transition-all inline-flex items-center justify-center gap-1.5 text-xs font-black shrink-0"
                     aria-label="Subscribe"
                   >
                     <Send className="w-3 h-3" />
@@ -348,7 +343,7 @@ export const Footer: React.FC = () => {
                   </button>
                 </form>
               )}
-              <p className="text-[10px] text-zenvo-text-muted mt-2">No spam. Unsubscribe anytime.</p>
+              <p className="text-[10px] text-zenov-text-muted mt-2">No spam. Unsubscribe anytime.</p>
 
               {/* Stats grid */}
               <div className="mt-4 grid grid-cols-4 gap-2">
@@ -358,9 +353,9 @@ export const Footer: React.FC = () => {
                   { value: '<30s', label: 'Delivery' },
                   { value: '99.9%', label: 'Uptime' },
                 ].map(({ value, label }) => (
-                  <div key={label} className="p-2 rounded-xl bg-zenvo-card border border-zenvo-border text-center">
-                    <p className="text-sm font-black text-zenvo-primary font-mono leading-tight">{value}</p>
-                    <p className="text-[9px] text-zenvo-text-muted uppercase tracking-wide font-semibold leading-tight mt-0.5">{label}</p>
+                  <div key={label} className="p-2 rounded-xl bg-zenov-card border border-zenov-border text-center">
+                    <p className="text-sm font-black text-zenov-primary font-mono leading-tight">{value}</p>
+                    <p className="text-[9px] text-zenov-text-muted uppercase tracking-wide font-semibold leading-tight mt-0.5">{label}</p>
                   </div>
                 ))}
               </div>
@@ -368,8 +363,8 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* ── PAYMENT METHODS ── */}
-          <div className="border-t border-zenvo-border pt-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zenvo-text-muted text-center mb-3">
+          <div className="border-t border-zenov-border pt-6">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zenov-text-muted text-center mb-3">
               Official Payment Methods
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -377,7 +372,7 @@ export const Footer: React.FC = () => {
                 <div
                   key={label}
                   title={label}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zenvo-card border border-zenvo-border text-xs font-semibold text-zenvo-text-secondary cursor-default transition-all duration-200 ${color}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zenov-card border border-zenov-border text-xs font-semibold text-zenov-text-secondary cursor-default transition-all duration-200 ${color}`}
                 >
                   {icon}
                   <span>{label}</span>
@@ -387,10 +382,10 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* ── COPYRIGHT ── */}
-          <div className="border-t border-zenvo-border mt-5 pt-5 text-center">
-            <p className="text-[11px] text-zenvo-text-muted leading-relaxed max-w-3xl mx-auto">
+          <div className="border-t border-zenov-border mt-5 pt-5 text-center">
+            <p className="text-[11px] text-zenov-text-muted leading-relaxed max-w-3xl mx-auto">
               © {new Date().getFullYear()}{' '}
-              <span className="text-zenvo-text font-semibold">ZENOV Games — Chattogram, Bangladesh</span>.
+              <span className="text-zenov-text font-semibold">ZENOV Games — Chattogram, Bangladesh</span>.
               {' '}All Rights Reserved.{' '}
               Game logos & trademarks belong to their respective publishers. ZENOV is an authorized reseller.
             </p>

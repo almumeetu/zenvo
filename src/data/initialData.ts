@@ -130,7 +130,7 @@ export const HERO_BANNERS: HeroBanner[] = [
     badge: '100% SECURE & AUTOMATED',
     gameId: 'steam-gift-card',
     image: '/steam.jpeg',
-    bgGradient: 'from-indigo-950 via-slate-950 to-zenvo-bg',
+    bgGradient: 'from-indigo-950 via-slate-950 to-zenov-bg',
     ctaText: 'BUY STEAM CODES',
   },
   {
@@ -296,7 +296,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
 export const INITIAL_USER: UserProfile = {
   id: 'usr_789012',
   name: 'CyberGamer_99',
-  email: 'gamer@zenvogames.com',
+  email: 'gamer@zenovgames.com',
   avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=200',
   walletBalanceUSD: 45.80,
   role: 'admin',
@@ -305,12 +305,25 @@ export const INITIAL_USER: UserProfile = {
   totalOrders: 18,
 };
 
+export const GUEST_USER: UserProfile = {
+  id: '',
+  name: 'Guest Gamer',
+  email: '',
+  avatar: '',
+  walletBalanceUSD: 0,
+  role: 'user',
+  joinedDate: '',
+  vipTier: 'Bronze',
+  totalOrders: 0,
+};
+
+
 export const INITIAL_ORDERS: Order[] = [
   {
     id: 'ord_101',
     orderNumber: 'ZNG-894101',
     userId: 'usr_789012',
-    userEmail: 'gamer@zenvogames.com',
+    userEmail: 'gamer@zenovgames.com',
     items: [
       {
         productId: 'google-play-gift-card',
@@ -318,7 +331,7 @@ export const INITIAL_ORDERS: Order[] = [
         productImage: '/play-store.jpeg',
         denomination: { id: 'gp-10', name: '$10 Google Play Card', amount: 10.8333, priceBDT: 1300 },
         quantity: 1,
-        playerId: 'gamer@zenvogames.com',
+        playerId: 'gamer@zenovgames.com',
       },
     ],
     totalUSD: 10.8333,
@@ -327,7 +340,7 @@ export const INITIAL_ORDERS: Order[] = [
     paymentMethod: 'bKash',
     paymentStatus: 'Paid',
     fulfillmentStatus: 'Delivered',
-    playerId: 'gamer@zenvogames.com',
+    playerId: 'gamer@zenovgames.com',
     createdAt: '2026-08-14 12:30 PM',
     updatedAt: '2026-08-14 12:30 PM',
     transactionId: 'BKASH_TXN_88127390',
@@ -336,7 +349,7 @@ export const INITIAL_ORDERS: Order[] = [
     id: 'ord_102',
     orderNumber: 'ZNG-894102',
     userId: 'usr_789012',
-    userEmail: 'gamer@zenvogames.com',
+    userEmail: 'gamer@zenovgames.com',
     items: [
       {
         productId: 'steam-gift-card',
@@ -344,7 +357,7 @@ export const INITIAL_ORDERS: Order[] = [
         productImage: '/steam.jpeg',
         denomination: { id: 'steam-25', name: '$25 Steam Wallet Card', amount: 27.9167, priceBDT: 3350 },
         quantity: 1,
-        playerId: 'gamer@zenvogames.com',
+        playerId: 'gamer@zenovgames.com',
       },
     ],
     totalUSD: 27.9167,
@@ -353,7 +366,7 @@ export const INITIAL_ORDERS: Order[] = [
     paymentMethod: 'Nagad',
     paymentStatus: 'Paid',
     fulfillmentStatus: 'Processing',
-    playerId: 'gamer@zenvogames.com',
+    playerId: 'gamer@zenovgames.com',
     createdAt: '2026-08-15 10:10 AM',
     updatedAt: '2026-08-15 10:10 AM',
     transactionId: 'NAGAD_TXN_9918237',
@@ -365,7 +378,7 @@ export const INITIAL_TICKETS: SupportTicket[] = [
     id: 'tkt_001',
     ticketNumber: 'TCK-2026-901',
     userId: 'usr_789012',
-    userEmail: 'gamer@zenvogames.com',
+    userEmail: 'gamer@zenovgames.com',
     subject: 'Verification for Steam Order ZNG-894102',
     category: 'Wallet Top-Up',
     status: 'In Progress',

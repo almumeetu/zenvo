@@ -62,10 +62,10 @@ export default function GoogleSignInButton({
         type="button"
         onClick={handleClick}
         disabled={isLoading}
-        className={`w-full px-4 py-3 rounded-xl bg-zenvo-surface border border-zenvo-border hover:border-zenvo-primary-border/60 hover:bg-zenvo-primary-soft/30 text-sm font-bold text-zenvo-text inline-flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm disabled:opacity-50 ${className}`}
+        className={`w-full px-4 py-3 rounded-xl bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border/60 hover:bg-zenov-primary-soft/30 text-sm font-bold text-zenov-text inline-flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-sm disabled:opacity-50 ${className}`}
       >
         {isLoading ? (
-          <div className="w-5 h-5 border-2 border-zenvo-primary/30 border-t-zenvo-primary rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-zenov-primary/30 border-t-zenov-primary rounded-full animate-spin" />
         ) : (
           <GoogleIcon className="w-5 h-5" />
         )}
@@ -73,7 +73,7 @@ export default function GoogleSignInButton({
       </button>
 
       {errorMessage && (
-        <div className="p-2.5 rounded-lg bg-zenvo-error/10 border border-zenvo-error/30 text-zenvo-error text-xs font-semibold flex items-center gap-2">
+        <div className="p-2.5 rounded-lg bg-zenov-error/10 border border-zenov-error/30 text-zenov-error text-xs font-semibold flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span className="truncate">{errorMessage}</span>
         </div>

@@ -70,21 +70,21 @@ export default function HomePage() {
       </section>
 
       {/* LIVE MARQUEE */}
-      <section className="border-y border-zenvo-border bg-zenvo-surface/30">
+      <section className="border-y border-zenov-border bg-zenov-surface/30">
         <NewArrivalMarquee />
       </section>
 
       {/* SHOP SECTION HEADER */}
       <section id="shop-products" className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-12 pb-4">
         <div className="flex items-center gap-3 mb-2.5">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zenvo-primary-soft border border-zenvo-primary-border text-zenvo-primary text-[10px] font-black uppercase tracking-widest">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zenov-primary-soft border border-zenov-primary-border text-zenov-primary text-[10px] font-black uppercase tracking-widest">
             <Gift className="w-3.5 h-3.5" /> OFFICIAL DIGITAL GIFT CARDS
           </span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-zenvo-text tracking-tight uppercase">
+        <h2 className="text-2xl sm:text-3xl font-black text-zenov-text tracking-tight uppercase">
           PREPAID GIFT CARDS CATALOG
         </h2>
-        <p className="text-xs text-zenvo-text-secondary mt-1 max-w-xl leading-relaxed">
+        <p className="text-xs text-zenov-text-secondary mt-1 max-w-xl leading-relaxed">
           Purchase and receive genuine gaming gift codes instantly via automated email dispatch. Multiple secure local payment gateways supported.
         </p>
       </section>
@@ -105,10 +105,10 @@ export default function HomePage() {
       {/* PROMOTIONS BLOG */}
       <section id="promotions-blog" className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         <div ref={blogHeaderRef} className="flex flex-col mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-black text-zenvo-text tracking-tight uppercase">
+          <h2 className="text-2xl sm:text-3xl font-black text-zenov-text tracking-tight uppercase">
             Gaming Guides & Reviews
           </h2>
-          <p className="text-sm text-zenvo-text-secondary mt-2">
+          <p className="text-sm text-zenov-text-secondary mt-2">
             Read expert redeem guides, game reviews, and wallet balance tips
           </p>
         </div>

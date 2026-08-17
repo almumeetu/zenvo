@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: 'ZENOV Games — PSN, Steam, Xbox Gift Cards & Gaming Top-Up Bangladesh',
   description:
     'ZENOV Games is your trusted digital gaming store in Chattogram, Bangladesh. Buy PSN Gift Cards, Steam Gift Cards & Game Keys, Xbox Gift Cards, PS Plus Subscriptions, and gaming top-ups with fast digital delivery.',
-  metadataBase: new URL('https://zenvo.gg'),
+  metadataBase: new URL('https://zenov.gg'),
   keywords: [
     'PSN gift card Bangladesh',
     'Steam gift card Bangladesh',
@@ -37,6 +37,10 @@ export const metadata: Metadata = {
     'Chattogram gaming store',
   ],
   authors: [{ name: 'ZENOV Games' }],
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     title: 'ZENOV Games — PSN, Steam, Xbox Gift Cards & Gaming Top-Up',
     description: 'Trusted digital gaming store in Bangladesh. PSN, Steam, Xbox, PS Plus & more — instant delivery.',
@@ -63,7 +67,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-zenvo-bg text-zenvo-text font-sans antialiased flex flex-col`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-zenov-bg text-zenov-text font-sans antialiased flex flex-col`}>
         <AppStateProvider>
           <HeaderWrapper />
           <main className="flex-1">{children}</main>

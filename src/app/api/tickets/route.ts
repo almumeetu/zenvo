@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       id,
       ticketNumber,
       userId: body.userId || 'guest',
-      userEmail: body.userEmail || 'guest@zenvo.gg',
+      userEmail: body.userEmail || 'guest@zenov.gg',
       userName: body.userName || 'Gamer',
       subject: body.subject || 'Support Request',
       category: body.category || 'General Query',

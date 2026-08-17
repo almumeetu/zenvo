@@ -36,6 +36,7 @@ interface HeaderProps {
   onOpenAuth?: () => void;
   onOpenAdmin?: () => void;
   onSelectProduct?: (product: Product) => void;
+  logout?: () => Promise<void>;
 }
 
 const NAV_ITEMS = [
@@ -51,6 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectCurrency,
   user,
   cartItems,
+  logout,
 }) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -180,28 +182,28 @@ export const Header: React.FC<HeaderProps> = ({
         ref={headerRef}
         className={`sticky top-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? 'bg-zenvo-bg/92 backdrop-blur-2xl border-b border-zenvo-border shadow-lg shadow-black/20'
-            : 'bg-zenvo-bg/50 backdrop-blur-md border-b border-transparent'
+            ? 'bg-zenov-bg/92 backdrop-blur-2xl border-b border-zenov-border shadow-lg shadow-black/20'
+            : 'bg-zenov-bg/50 backdrop-blur-md border-b border-transparent'
         }`}
       >
         {/* Announcement Bar */}
-        <div className="bg-zenvo-surface/70 border-b border-zenvo-border/60 text-[11px] hidden md:block">
+        <div className="bg-zenov-surface/70 border-b border-zenov-border/60 text-[11px] hidden md:block">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-8 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-zenvo-text-secondary">
+            <div className="flex items-center gap-3 text-zenov-text-secondary">
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-live-pulse absolute inline-flex h-full w-full rounded-full bg-zenvo-success opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-zenvo-success" />
+                  <span className="animate-live-pulse absolute inline-flex h-full w-full rounded-full bg-zenov-success opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-zenov-success" />
                 </span>
-                <span className="font-semibold text-zenvo-text">24/7 Instant Delivery</span>
+                <span className="font-semibold text-zenov-text">24/7 Instant Delivery</span>
               </div>
-              <span className="text-zenvo-border">•</span>
+              <span className="text-zenov-border">•</span>
               <span>Sub-30 Second Automated Fulfillment</span>
-              <span className="text-zenvo-border">•</span>
+              <span className="text-zenov-border">•</span>
               <span>1M+ Trusted Gamers Worldwide</span>
             </div>
-            <div className="flex items-center gap-1 text-zenvo-text-muted">
-              <Zap className="w-3 h-3 text-zenvo-accent" />
+            <div className="flex items-center gap-1 text-zenov-text-muted">
+              <Zap className="w-3 h-3 text-zenov-accent" />
               <span className="font-medium">5,000+ orders delivered today</span>
             </div>
           </div>
@@ -215,19 +217,19 @@ export const Header: React.FC<HeaderProps> = ({
             href="/"
             className="flex items-center gap-2.5 group focus:outline-none shrink-0"
           >
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-zenvo-primary to-blue-700 p-[1.5px] shadow-primary group-hover:shadow-glow-blue transition-all duration-300">
-              <div className="w-full h-full rounded-[9px] bg-zenvo-bg flex items-center justify-center overflow-hidden">
-                <span className="font-black text-lg text-transparent bg-clip-text bg-gradient-to-br from-zenvo-primary to-zenvo-accent font-mono">
+            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-zenov-primary to-blue-700 p-[1.5px] shadow-primary group-hover:shadow-glow-blue transition-all duration-300">
+              <div className="w-full h-full rounded-[9px] bg-zenov-bg flex items-center justify-center overflow-hidden">
+                <span className="font-black text-lg text-transparent bg-clip-text bg-gradient-to-br from-zenov-primary to-zenov-accent font-mono">
                   Z
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-br from-zenvo-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[9px]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-zenov-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[9px]" />
               </div>
             </div>
             <div className="flex flex-col items-start leading-tight">
-              <span className="text-[17px] font-black tracking-tight text-zenvo-text uppercase group-hover:text-zenvo-primary transition-colors duration-200">
+              <span className="text-[17px] font-black tracking-tight text-zenov-text uppercase group-hover:text-zenov-primary transition-colors duration-200">
                 ZENOV
               </span>
-              <span className="text-[9px] font-bold tracking-[0.2em] text-zenvo-text-muted uppercase">
+              <span className="text-[9px] font-bold tracking-[0.2em] text-zenov-text-muted uppercase">
                 Gaming Store
               </span>
             </div>
@@ -243,13 +245,13 @@ export const Header: React.FC<HeaderProps> = ({
                   href={item.href}
                   className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     active
-                      ? 'text-zenvo-primary bg-zenvo-primary-soft'
-                      : 'text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                      ? 'text-zenov-primary bg-zenov-primary-soft'
+                      : 'text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface'
                   }`}
                 >
                   {item.label}
                   {active && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-zenvo-primary" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-zenov-primary" />
                   )}
                 </Link>
               );
@@ -261,11 +263,11 @@ export const Header: React.FC<HeaderProps> = ({
             <div
               className={`relative rounded-xl transition-all duration-200 ${
                 isSearchFocused
-                  ? 'bg-zenvo-surface ring-2 ring-zenvo-primary/30 shadow-primary border border-zenvo-primary-border'
-                  : 'bg-zenvo-surface/60 border border-zenvo-border hover:border-zenvo-border-hover'
+                  ? 'bg-zenov-surface ring-2 ring-zenov-primary/30 shadow-primary border border-zenov-primary-border'
+                  : 'bg-zenov-surface/60 border border-zenov-border hover:border-zenov-border-hover'
               }`}
             >
-              <Search className="w-4 h-4 text-zenvo-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-zenov-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
@@ -274,12 +276,12 @@ export const Header: React.FC<HeaderProps> = ({
                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 180)}
                 onKeyDown={handleSearchSubmit}
                 placeholder="Search games, diamonds, gift cards..."
-                className="w-full pl-10 pr-9 py-2.5 bg-transparent text-sm text-zenvo-text placeholder:text-zenvo-text-muted focus:outline-none"
+                className="w-full pl-10 pr-9 py-2.5 bg-transparent text-sm text-zenov-text placeholder:text-zenov-text-muted focus:outline-none"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zenvo-text-muted hover:text-zenvo-text transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zenov-text-muted hover:text-zenov-text transition-colors"
                   aria-label="Clear search"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -289,43 +291,43 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Search Dropdown */}
             {isSearchFocused && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-zenvo-card border border-zenvo-border rounded-2xl shadow-2xl overflow-hidden z-50">
-                <div className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zenvo-primary bg-zenvo-primary-soft/40 flex justify-between items-center border-b border-zenvo-border">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden z-50">
+                <div className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zenov-primary bg-zenov-primary-soft/40 flex justify-between items-center border-b border-zenov-border">
                   <span>Quick Results</span>
                   <Sparkles className="w-3 h-3" />
                 </div>
-                <div className="divide-y divide-zenvo-border/50">
+                <div className="divide-y divide-zenov-border/50">
                   {searchResults.map((product) => (
                     <Link
                       key={product.id}
                       href={`/top-up/${product.id}`}
                       onClick={() => setSearchQuery('')}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-zenvo-surface transition-colors group"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-zenov-surface transition-colors group"
                     >
                       <img
                         src={product.image}
                         alt={product.title}
-                        className="w-10 h-10 rounded-lg object-cover border border-zenvo-border group-hover:border-zenvo-primary-border transition-colors shrink-0"
+                        className="w-10 h-10 rounded-lg object-cover border border-zenov-border group-hover:border-zenov-primary-border transition-colors shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-zenvo-text group-hover:text-zenvo-primary transition-colors truncate">
+                        <h4 className="text-sm font-semibold text-zenov-text group-hover:text-zenov-primary transition-colors truncate">
                           {product.title}
                         </h4>
-                        <p className="text-xs text-zenvo-text-secondary flex items-center gap-1.5 mt-0.5">
+                        <p className="text-xs text-zenov-text-secondary flex items-center gap-1.5 mt-0.5">
                           <span className="capitalize">{product.category.replace(/-/g, ' ')}</span>
-                          <span className="text-zenvo-border">•</span>
-                          <span className="text-zenvo-primary font-semibold font-mono">
+                          <span className="text-zenov-border">•</span>
+                          <span className="text-zenov-primary font-semibold font-mono">
                             From {formatCurrency(product.denominations[0]?.amount || 0, selectedCurrency)}
                           </span>
                         </p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-zenvo-text-muted group-hover:text-zenvo-primary transition-colors shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-zenov-text-muted group-hover:text-zenov-primary transition-colors shrink-0" />
                     </Link>
                   ))}
                 </div>
                 <button
                   onMouseDown={() => handleSearchSubmit()}
-                  className="w-full px-4 py-2.5 text-xs font-semibold text-zenvo-text-secondary hover:text-zenvo-primary hover:bg-zenvo-primary-soft/30 transition-colors border-t border-zenvo-border text-center"
+                  className="w-full px-4 py-2.5 text-xs font-semibold text-zenov-text-secondary hover:text-zenov-primary hover:bg-zenov-primary-soft/30 transition-colors border-t border-zenov-border text-center"
                 >
                   View all results for "{searchQuery}" →
                 </button>
@@ -339,15 +341,15 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative" ref={currencyRef}>
               <button
                 onClick={() => setIsCurrencyMenuOpen((v) => !v)}
-                className="px-2.5 py-2 rounded-lg bg-zenvo-surface/60 border border-zenvo-border hover:border-zenvo-border-hover text-xs font-bold text-zenvo-primary flex items-center gap-1.5 transition-all"
+                className="px-2.5 py-2 rounded-lg bg-zenov-surface/60 border border-zenov-border hover:border-zenov-border-hover text-xs font-bold text-zenov-primary flex items-center gap-1.5 transition-all"
                 aria-label="Select currency"
               >
                 {selectedCurrency}
-                <ChevronDown className={`w-3 h-3 text-zenvo-text-muted transition-transform duration-200 ${isCurrencyMenuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 text-zenov-text-muted transition-transform duration-200 ${isCurrencyMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isCurrencyMenuOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-zenvo-card border border-zenvo-border rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-40 bg-zenov-card border border-zenov-border rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden">
                   {CURRENCIES.map((c) => (
                     <button
                       key={c.code}
@@ -355,14 +357,14 @@ export const Header: React.FC<HeaderProps> = ({
                         onSelectCurrency(c.code);
                         setIsCurrencyMenuOpen(false);
                       }}
-                      className={`w-full px-3.5 py-2 text-xs text-left flex items-center justify-between hover:bg-zenvo-surface transition-colors ${
+                      className={`w-full px-3.5 py-2 text-xs text-left flex items-center justify-between hover:bg-zenov-surface transition-colors ${
                         selectedCurrency === c.code
-                          ? 'text-zenvo-primary font-bold bg-zenvo-primary-soft'
-                          : 'text-zenvo-text-secondary'
+                          ? 'text-zenov-primary font-bold bg-zenov-primary-soft'
+                          : 'text-zenov-text-secondary'
                       }`}
                     >
                       <span>{c.code}</span>
-                      <span className="text-zenvo-text-muted">{c.symbol}</span>
+                      <span className="text-zenov-text-muted">{c.symbol}</span>
                     </button>
                   ))}
                 </div>
@@ -374,90 +376,119 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Cart */}
             <Link
               href="/cart"
-              className="p-2.5 rounded-xl bg-zenvo-surface/60 border border-zenvo-border hover:border-zenvo-primary-border hover:bg-zenvo-primary-soft/50 text-zenvo-text-secondary hover:text-zenvo-primary transition-all duration-200 relative"
+              className="p-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/50 text-zenov-text-secondary hover:text-zenov-primary transition-all duration-200 relative"
               aria-label="View cart"
             >
               <ShoppingBag className="w-[18px] h-[18px]" />
               {totalCartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-zenvo-accent text-zenvo-bg font-mono font-black text-[10px] flex items-center justify-center shadow-md animate-bounce-subtle">
+                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-zenov-accent text-zenov-bg font-mono font-black text-[10px] flex items-center justify-center shadow-md animate-bounce-subtle">
                   {totalCartCount > 99 ? '99+' : totalCartCount}
                 </span>
               )}
             </Link>
 
-            {/* Profile */}
-            <div className="relative" ref={profileRef}>
-              <button
-                onClick={() => setIsProfileMenuOpen((v) => !v)}
-                className="flex items-center gap-2 p-1.5 pl-1.5 pr-2.5 rounded-xl bg-zenvo-surface/60 border border-zenvo-border hover:border-zenvo-border-hover transition-all"
-                aria-label="Open profile menu"
-              >
-                <div className="relative">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-7 h-7 rounded-lg object-cover border border-zenvo-border"
-                  />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-zenvo-success rounded-full border-2 border-zenvo-bg" />
-                </div>
-                <ChevronDown className={`w-3.5 h-3.5 text-zenvo-text-muted hidden sm:block transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
+            {/* Profile / Login */}
+            {user.email ? (
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => setIsProfileMenuOpen((v) => !v)}
+                  className="flex items-center gap-2 p-1.5 pl-1.5 pr-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border hover:border-zenov-border-hover transition-all"
+                  aria-label="Open profile menu"
+                >
+                  <div className="relative">
+                    <img
+                      src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id || 'guest'}`}
+                      alt={user.name || 'User'}
+                      className="w-7 h-7 rounded-lg object-cover border border-zenov-border"
+                    />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-zenov-success rounded-full border-2 border-zenov-bg" />
+                  </div>
+                  <ChevronDown className={`w-3.5 h-3.5 text-zenov-text-muted hidden sm:block transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-              {isProfileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-zenvo-card border border-zenvo-border rounded-2xl shadow-2xl overflow-hidden z-50">
-                  {/* Profile header */}
-                  <div className="p-4 bg-gradient-to-br from-zenvo-primary-soft to-zenvo-surface border-b border-zenvo-border">
-                    <div className="flex items-center gap-3">
-                      <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-xl object-cover border-2 border-zenvo-primary-border" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-zenvo-text truncate">{user.name}</p>
-                        <p className="text-xs text-zenvo-text-secondary truncate">{user.email}</p>
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden z-50">
+                    {/* Profile header */}
+                    <div className="p-4 bg-gradient-to-br from-zenov-primary-soft to-zenov-surface border-b border-zenov-border">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id || 'guest'}`} 
+                          alt={user.name} 
+                          className="w-10 h-10 rounded-xl object-cover border-2 border-zenov-primary-border" 
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-zenov-text truncate">{user.name}</p>
+                          <p className="text-xs text-zenov-text-secondary truncate">{user.email}</p>
+                        </div>
                       </div>
+                      <span className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-lg bg-zenov-accent-soft text-zenov-accent border border-zenov-accent-border uppercase tracking-wider">
+                        ⭐ VIP {user.vipTier}
+                      </span>
                     </div>
-                    <span className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-lg bg-zenvo-accent-soft text-zenvo-accent border border-zenvo-accent-border uppercase tracking-wider">
-                      ⭐ VIP {user.vipTier}
-                    </span>
-                  </div>
 
-                  <div className="p-1.5 space-y-0.5">
-
-                    <Link
-                      href="/orders/track"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                      className="w-full text-left px-3 py-2.5 text-xs text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface rounded-xl flex items-center gap-2.5 transition-colors"
-                    >
-                      <Clock className="w-4 h-4 text-zenvo-primary shrink-0" />
-                      <span>Order History & Tracking</span>
-                    </Link>
-
-                    {user.role === 'admin' && (
+                    <div className="p-1.5 space-y-0.5">
                       <Link
-                        href="/admin"
+                        href="/orders/track"
                         onClick={() => setIsProfileMenuOpen(false)}
-                        className="w-full text-left px-3 py-2.5 text-xs font-semibold text-zenvo-primary hover:bg-zenvo-primary-soft rounded-xl flex items-center gap-2.5 transition-colors"
+                        className="w-full text-left px-3 py-2.5 text-xs text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface rounded-xl flex items-center gap-2.5 transition-colors"
                       >
-                        <ShieldCheck className="w-4 h-4 shrink-0" />
-                        <span>Admin Dashboard</span>
+                        <Clock className="w-4 h-4 text-zenov-primary shrink-0" />
+                        <span>Order History & Tracking</span>
                       </Link>
-                    )}
-                    <div className="h-px bg-zenvo-border mx-2 my-1" />
-                    <Link
-                      href="/auth/login"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                      className="w-full text-left px-3 py-2.5 text-xs text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface rounded-xl flex items-center gap-2.5 transition-colors"
-                    >
-                      <User className="w-4 h-4 shrink-0" />
-                      <span>Account Settings / Login</span>
-                    </Link>
+
+                      {user.role === 'admin' && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="w-full text-left px-3 py-2.5 text-xs font-semibold text-zenov-primary hover:bg-zenov-primary-soft rounded-xl flex items-center gap-2.5 transition-colors"
+                        >
+                          <ShieldCheck className="w-4 h-4 shrink-0" />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                      )}
+
+                      <div className="h-px bg-zenov-border mx-2 my-1" />
+                      
+                      <button
+                        onClick={async () => {
+                          setIsProfileMenuOpen(false);
+                          if (logout) {
+                            await logout();
+                          }
+                          router.push('/');
+                        }}
+                        className="w-full text-left px-3 py-2.5 text-xs text-zenov-error hover:bg-zenov-error-soft/10 rounded-xl flex items-center gap-2.5 transition-colors font-semibold"
+                      >
+                        <svg className="w-4 h-4 shrink-0 text-zenov-error" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Log Out</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href="/auth/login"
+                  className="px-3.5 py-1.5 rounded-xl border border-zenov-border hover:border-zenov-primary-border/60 hover:bg-zenov-surface text-xs font-bold text-zenov-text-secondary transition-all"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="px-3.5 py-1.5 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-xs font-bold text-white transition-all shadow-sm hidden sm:block"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen((v) => !v)}
-              className="lg:hidden p-2.5 rounded-xl bg-zenvo-surface/60 border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-text hover:border-zenvo-border-hover transition-all"
+              className="lg:hidden p-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:border-zenov-border-hover transition-all"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -467,8 +498,8 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Search */}
         <div className="md:hidden px-4 pb-3">
-          <div className="relative rounded-xl bg-zenvo-surface/60 border border-zenvo-border focus-within:border-zenvo-primary-border transition-colors">
-            <Search className="w-4 h-4 text-zenvo-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <div className="relative rounded-xl bg-zenov-surface/60 border border-zenov-border focus-within:border-zenov-primary-border transition-colors">
+            <Search className="w-4 h-4 text-zenov-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
@@ -481,14 +512,14 @@ export const Header: React.FC<HeaderProps> = ({
                 }
               }}
               placeholder="Search games, diamonds..."
-              className="w-full pl-10 pr-8 py-2.5 bg-transparent text-sm text-zenvo-text placeholder:text-zenvo-text-muted focus:outline-none"
+              className="w-full pl-10 pr-8 py-2.5 bg-transparent text-sm text-zenov-text placeholder:text-zenov-text-muted focus:outline-none"
             />
           </div>
         </div>
 
         {/* Mobile Menu Panel */}
         <div
-          className={`lg:hidden border-t border-zenvo-border bg-zenvo-bg/95 backdrop-blur-2xl overflow-hidden transition-all duration-300 ease-out ${
+          className={`lg:hidden border-t border-zenov-border bg-zenov-bg/95 backdrop-blur-2xl overflow-hidden transition-all duration-300 ease-out ${
             isMobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
@@ -500,19 +531,75 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center justify-between ${
                   isActive(item.href)
-                    ? 'text-zenvo-primary bg-zenvo-primary-soft'
-                    : 'text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                    ? 'text-zenov-primary bg-zenov-primary-soft'
+                    : 'text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface'
                 }`}
               >
                 {item.label}
-                {isActive(item.href) && <ChevronRight className="w-4 h-4 text-zenvo-primary" />}
+                {isActive(item.href) && <ChevronRight className="w-4 h-4 text-zenov-primary" />}
               </Link>
             ))}
-            <div className="border-t border-zenvo-border mt-3 pt-3">
+            {/* Mobile Auth and Cart */}
+            <div className="border-t border-zenov-border mt-3 pt-3 space-y-2">
+              {user.email ? (
+                <>
+                  <div className="flex items-center gap-3 px-4 py-2 bg-zenov-surface/40 rounded-xl border border-zenov-border/50">
+                    <img 
+                      src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id || 'guest'}`} 
+                      alt={user.name} 
+                      className="w-9 h-9 rounded-lg object-cover border border-zenov-border" 
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-zenov-text truncate">{user.name}</p>
+                      <p className="text-[10px] text-zenov-text-secondary truncate">VIP {user.vipTier}</p>
+                    </div>
+                  </div>
+                  
+                  {user.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-zenov-primary-border/20 bg-zenov-primary-soft/30 text-xs font-semibold text-zenov-primary hover:bg-zenov-primary hover:text-white transition-all"
+                    >
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+                  
+                  <button
+                    onClick={async () => {
+                      setIsMobileMenuOpen(false);
+                      if (logout) await logout();
+                      router.push('/');
+                    }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-zenov-error/20 bg-zenov-error-soft/10 text-xs font-semibold text-zenov-error hover:bg-zenov-error hover:text-white transition-all"
+                  >
+                    <span>Log Out</span>
+                  </button>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center py-2.5 rounded-xl border border-zenov-border hover:border-zenov-primary-border/60 hover:bg-zenov-surface text-xs font-bold text-zenov-text-secondary transition-all"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center justify-center py-2.5 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-xs font-bold text-white transition-all shadow-sm"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+              
               <Link
                 href="/cart"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full block px-4 py-3 rounded-xl text-sm font-bold bg-zenvo-accent-soft text-zenvo-accent text-center hover:bg-zenvo-accent hover:text-zenvo-bg transition-all"
+                className="w-full block px-4 py-3 rounded-xl text-sm font-bold bg-zenov-accent-soft text-zenov-accent text-center hover:bg-zenov-accent hover:text-zenov-bg transition-all"
               >
                 🛒 Cart {totalCartCount > 0 ? `(${totalCartCount})` : ''}
               </Link>

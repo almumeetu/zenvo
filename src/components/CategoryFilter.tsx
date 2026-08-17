@@ -74,11 +74,11 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               onClick={() => onSelectCategory(cat.id as any)}
               className={`category-btn shrink-0 px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-all duration-200 active:scale-[0.97] will-change-transform ${
                 isSelected
-                  ? 'bg-zenvo-primary text-white shadow-sm'
-                  : 'bg-zenvo-surface border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-text hover:border-zenvo-border-hover hover:bg-zenvo-card'
+                  ? 'bg-zenov-primary text-white shadow-sm'
+                  : 'bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:border-zenov-border-hover hover:bg-zenov-card'
               }`}
             >
-              <span className={isSelected ? 'text-white/90' : 'text-zenvo-primary'}>{cat.icon}</span>
+              <span className={isSelected ? 'text-white/90' : 'text-zenov-primary'}>{cat.icon}</span>
               <span>{cat.label}</span>
             </button>
           );

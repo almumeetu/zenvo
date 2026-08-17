@@ -1,11 +1,16 @@
 /**
- * Resend Email Notification Service for ZENVO Gaming
+ * Resend Email Notification Service for ZENOV Gaming
  * Sends automated HTML transactional emails for Orders and Contact/Support Inquiries.
+ *
+ * Required environment variables:
+ *   RESEND_API_KEY            — Resend API secret key
+ *   RESEND_FROM_EMAIL         — Sender address (e.g. "ZENOV Gaming <onboarding@resend.dev>")
+ *   ADMIN_NOTIFICATION_EMAIL  — Admin inbox to receive order/ticket notifications
  */
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_6PKrd6GG_7Gf9w48aAaxwZyNLa7PnXGcp';
-const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'zenovgamesbd@gmail.com';
-const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ZENVO Gaming <onboarding@resend.dev>';
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL;
 
 interface SendEmailParams {
   to: string | string[];
@@ -19,8 +24,13 @@ interface SendEmailParams {
  */
 export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
   if (!RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY is not defined. Email dispatch skipped.');
-    return { success: false, message: 'Missing API key' };
+    console.error('[Resend] RESEND_API_KEY is not set in environment. Email dispatch skipped.');
+    return { success: false, message: 'Missing RESEND_API_KEY env variable' };
+  }
+
+  if (!RESEND_FROM_EMAIL) {
+    console.error('[Resend] RESEND_FROM_EMAIL is not set in environment. Email dispatch skipped.');
+    return { success: false, message: 'Missing RESEND_FROM_EMAIL env variable' };
   }
 
   const recipients = Array.isArray(to) ? to : [to];
@@ -59,7 +69,12 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
  * Sends a notification email when a new game order is placed
  */
 export async function sendOrderNotificationEmail(order: any) {
-  const orderNum = order.orderNumber || order.id || 'ZN-' + Math.floor(100000 + Math.random() * 900000);
+  if (!ADMIN_NOTIFICATION_EMAIL) {
+    console.error('[Resend] ADMIN_NOTIFICATION_EMAIL is not set in environment. Order email skipped.');
+    return { success: false, message: 'Missing ADMIN_NOTIFICATION_EMAIL env variable' };
+  }
+
+  const orderNum = order.orderNumber || order.id;
   const subject = `🎮 New Order Received: #${orderNum} - ${order.productTitle || 'Top-Up'}`;
 
   const customerEmail = order.userEmail || order.userId || '';
@@ -90,7 +105,7 @@ export async function sendOrderNotificationEmail(order: any) {
     <body>
       <div class="card">
         <div class="header">
-          <h1 class="logo">ZENVO GAMING</h1>
+          <h1 class="logo">ZENOV GAMING</h1>
           <p class="subtitle">AUTOMATED ORDER NOTIFICATION</p>
         </div>
         <div class="body">
@@ -172,7 +187,7 @@ export async function sendOrderNotificationEmail(order: any) {
           </div>
         </div>
         <div class="footer">
-          ZENVO Gaming Store • Official Gaming Partner & Reseller<br/>
+          ZENOV Gaming Store • Official Gaming Partner & Reseller<br/>
           Notification sent to: ${ADMIN_NOTIFICATION_EMAIL}
         </div>
       </div>
@@ -197,7 +212,12 @@ export async function sendOrderNotificationEmail(order: any) {
  * Sends a notification email when a user submits a contact or support inquiry
  */
 export async function sendContactUsEmail(ticket: any) {
-  const ticketNum = ticket.ticketNumber || ticket.id || 'TK-' + Math.floor(1000 + Math.random() * 9000);
+  if (!ADMIN_NOTIFICATION_EMAIL) {
+    console.error('[Resend] ADMIN_NOTIFICATION_EMAIL is not set in environment. Contact email skipped.');
+    return { success: false, message: 'Missing ADMIN_NOTIFICATION_EMAIL env variable' };
+  }
+
+  const ticketNum = ticket.ticketNumber || ticket.id;
   const subject = `💬 New Support Inquiry: #${ticketNum} - ${ticket.subject || 'Support Ticket'}`;
 
   const messageText = ticket.message || (ticket.messages && ticket.messages[0]?.message) || 'No message provided';
@@ -227,7 +247,7 @@ export async function sendContactUsEmail(ticket: any) {
     <body>
       <div class="card">
         <div class="header">
-          <h1 class="logo">ZENVO SUPPORT</h1>
+          <h1 class="logo">ZENOV SUPPORT</h1>
           <p class="subtitle">NEW CUSTOMER INQUIRY</p>
         </div>
         <div class="body">
@@ -264,7 +284,7 @@ export async function sendContactUsEmail(ticket: any) {
           <div class="msg-box">${messageText}</div>
         </div>
         <div class="footer">
-          ZENVO Gaming Helpdesk • Reply directly to this ticket in the Admin Dashboard.<br/>
+          ZENOV Gaming Helpdesk • Reply directly to this ticket in the Admin Dashboard.<br/>
           Notification sent to: ${ADMIN_NOTIFICATION_EMAIL}
         </div>
       </div>

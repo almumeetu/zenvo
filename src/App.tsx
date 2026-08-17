@@ -87,7 +87,7 @@ export default function App() {
   // Direct Checkout API Call
   const handleDirectCheckout = async (
     item: CartItem,
-    paymentMethod: 'bKash' | 'Nagad' | 'Rocket' | 'Visa/Mastercard' | 'Crypto/USDT' | 'Zenov Wallet'
+    paymentMethod: 'bKash' | 'Nagad' | 'Rocket' | 'Bank Transfer' | 'Crypto/USDT' | 'Zenov Wallet'
   ) => {
     const totalUSD = item.denomination.amount * item.quantity;
     try {
@@ -211,7 +211,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-zenvo-bg text-zenvo-text font-sans">
+    <div className="min-h-screen bg-zenov-bg text-zenov-text font-sans">
       {/* Header */}
       <Header
         products={products}
@@ -273,7 +273,7 @@ export default function App() {
       <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-2.5">
         <button
           onClick={() => setIsSupportTicketOpen(true)}
-          className="p-3 rounded-2xl bg-zenvo-card border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-primary hover:border-zenvo-primary-border hover:bg-zenvo-primary-soft shadow-md hover:shadow-primary transition-all duration-200 group"
+          className="p-3 rounded-2xl bg-zenov-card border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:border-zenov-primary-border hover:bg-zenov-primary-soft shadow-md hover:shadow-primary transition-all duration-200 group"
           title="24/7 Live Support"
         >
           <Headphones className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -281,11 +281,11 @@ export default function App() {
 
         <button
           onClick={() => setIsAiAssistantOpen(true)}
-          className="p-3 rounded-2xl bg-zenvo-card border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-accent hover:border-zenvo-accent-border hover:bg-zenvo-accent-soft shadow-md hover:shadow-accent transition-all duration-200 group relative"
+          className="p-3 rounded-2xl bg-zenov-card border border-zenov-border text-zenov-text-secondary hover:text-zenov-accent hover:border-zenov-accent-border hover:bg-zenov-accent-soft shadow-md hover:shadow-accent transition-all duration-200 group relative"
           title="Zenvo AI Gaming Assistant"
         >
           <Bot className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-zenvo-accent rounded-full animate-live-pulse" />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-zenov-accent rounded-full animate-live-pulse" />
         </button>
       </div>
 
@@ -333,6 +333,7 @@ export default function App() {
         selectedCurrency={selectedCurrency}
         onClose={() => setIsOrderTrackerOpen(false)}
         onSearchOrder={handleSearchOrder}
+        user={user}
       />
 
       <SupportTicketModal

@@ -41,7 +41,7 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'Which payment methods do you accept?',
-    a: 'We accept bKash Auto, Nagad Pay, Rocket, and global credit cards (Visa/Mastercard) along with Crypto/USDT through secure third-party payment gateways. JUBALY does not store or have access to your credit card details.',
+    a: 'We accept bKash Auto, Nagad Pay, Rocket, Bank Transfer, and Crypto/USDT through secure third-party payment gateways. ZENOV does not store or have access to your payment details.',
     cat: 'Payment',
   },
   {
@@ -115,29 +115,29 @@ export default function FaqsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <nav className="flex items-center gap-2 text-xs text-zenvo-text-muted mb-6">
-        <Link href="/" className="hover:text-zenvo-primary transition-colors">
+      <nav className="flex items-center gap-2 text-xs text-zenov-text-muted mb-6">
+        <Link href="/" className="hover:text-zenov-primary transition-colors">
           Home
         </Link>
         <ChevronLeft className="w-3 h-3 rotate-180" />
-        <span className="text-zenvo-text-secondary">Help Center & Policies</span>
+        <span className="text-zenov-text-secondary">Help Center & Policies</span>
       </nav>
 
       {/* Page header */}
       <header className="mb-10 text-center max-w-3xl mx-auto">
-        <div className="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-zenvo-primary to-blue-600 flex items-center justify-center shadow-md shadow-zenvo-primary/10">
+        <div className="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-zenov-primary to-blue-600 flex items-center justify-center shadow-md shadow-zenov-primary/10">
           <HelpCircle className="w-6 h-6 text-white" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zenvo-text uppercase mb-2">
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zenov-text uppercase mb-2">
           Help Center & Policies
         </h1>
-        <p className="text-xs sm:text-sm text-zenvo-text-secondary leading-relaxed">
+        <p className="text-xs sm:text-sm text-zenov-text-secondary leading-relaxed">
           Find instant answers to common questions, or review our official terms, privacy guidelines, and refund clauses.
         </p>
       </header>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-zenvo-border mb-8 max-w-4xl mx-auto overflow-x-auto whitespace-nowrap scrollbar-none bg-zenvo-card/30 p-1">
+      <div className="flex border-b border-zenov-border mb-8 max-w-4xl mx-auto overflow-x-auto whitespace-nowrap scrollbar-none bg-zenov-card/30 p-1">
         {[
           { id: 'faqs', label: 'FAQ Center', Icon: HelpCircle },
           { id: 'refund', label: 'Refund Policy', Icon: RotateCcw },
@@ -152,8 +152,8 @@ export default function FaqsPage() {
               onClick={() => handleTabChange(t.id as HelpTab)}
               className={`flex-1 min-w-[140px] py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 text-center flex items-center justify-center gap-2 ${
                 isActive
-                  ? 'border-zenvo-primary text-zenvo-primary font-black bg-zenvo-primary-soft/10'
-                  : 'border-transparent text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface/45'
+                  ? 'border-zenov-primary text-zenov-primary font-black bg-zenov-primary-soft/10'
+                  : 'border-transparent text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface/45'
               }`}
             >
               <Ic className="w-4 h-4" />
@@ -170,18 +170,18 @@ export default function FaqsPage() {
             <div className="space-y-6">
               {/* Big search */}
               <div className="max-w-2xl mx-auto mb-6">
-                <div className="flex items-center gap-3 px-4 py-3 bg-zenvo-card border border-zenvo-border focus-within:border-zenvo-primary-border transition-colors">
-                  <Search className="w-5 h-5 text-zenvo-text-muted shrink-0" />
+                <div className="flex items-center gap-3 px-4 py-3 bg-zenov-card border border-zenov-border focus-within:border-zenov-primary-border transition-colors">
+                  <Search className="w-5 h-5 text-zenov-text-muted shrink-0" />
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search for any question..."
-                    className="w-full min-w-0 bg-transparent text-sm text-zenvo-text placeholder:text-zenvo-text-muted focus:outline-none"
+                    className="w-full min-w-0 bg-transparent text-sm text-zenov-text placeholder:text-zenov-text-muted focus:outline-none"
                   />
                   {search && (
                     <button
                       onClick={() => setSearch('')}
-                      className="text-xs font-bold text-zenvo-text-muted hover:text-zenvo-primary shrink-0 transition-colors"
+                      className="text-xs font-bold text-zenov-text-muted hover:text-zenov-primary shrink-0 transition-colors"
                     >
                       Clear
                     </button>
@@ -197,8 +197,8 @@ export default function FaqsPage() {
                     onClick={() => setActiveCat(c)}
                     className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition-all active:scale-95 ${
                       activeCat === c
-                        ? 'bg-zenvo-primary text-white border-zenvo-primary shadow-sm'
-                        : 'bg-zenvo-card border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-text hover:border-zenvo-border-hover'
+                        ? 'bg-zenov-primary text-white border-zenov-primary shadow-sm'
+                        : 'bg-zenov-card border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:border-zenov-border-hover'
                     }`}
                   >
                     {c}
@@ -208,10 +208,10 @@ export default function FaqsPage() {
 
               <div className="space-y-3.5">
                 {filtered.length === 0 ? (
-                  <div className="border border-dashed border-zenvo-border bg-zenvo-card/50 p-12 text-center">
-                    <HelpCircle className="w-12 h-12 mx-auto text-zenvo-text-muted mb-4 opacity-60" />
-                    <h3 className="text-lg font-bold text-zenvo-text mb-2">No matching FAQ found</h3>
-                    <p className="text-xs text-zenvo-text-secondary">
+                  <div className="border border-dashed border-zenov-border bg-zenov-card/50 p-12 text-center">
+                    <HelpCircle className="w-12 h-12 mx-auto text-zenov-text-muted mb-4 opacity-60" />
+                    <h3 className="text-lg font-bold text-zenov-text mb-2">No matching FAQ found</h3>
+                    <p className="text-xs text-zenov-text-secondary">
                       Try searching with other keywords or choose a different category.
                     </p>
                   </div>
@@ -224,34 +224,34 @@ export default function FaqsPage() {
                         key={f.origIdx}
                         className={`border transition-all duration-200 overflow-hidden ${
                           open
-                            ? 'bg-zenvo-card border-zenvo-primary-border shadow-sm'
-                            : 'bg-zenvo-card/70 border-zenvo-border hover:border-zenvo-border-hover'
+                            ? 'bg-zenov-card border-zenov-primary-border shadow-sm'
+                            : 'bg-zenov-card/70 border-zenov-border hover:border-zenov-border-hover'
                         }`}
                       >
                         <button
                           onClick={() => toggle(f.origIdx)}
-                          className="w-full flex items-center gap-4 p-4 sm:p-5 text-left active:bg-zenvo-surface/50"
+                          className="w-full flex items-center gap-4 p-4 sm:p-5 text-left active:bg-zenov-surface/50"
                         >
                           <div
                             className={`w-9 h-9 shrink-0 flex items-center justify-center border transition-colors ${
                               open
-                                ? 'bg-zenvo-primary-soft border-zenvo-primary-border text-zenvo-primary'
-                                : 'bg-zenvo-surface border border-zenvo-border text-zenvo-text-muted'
+                                ? 'bg-zenov-primary-soft border-zenov-primary-border text-zenov-primary'
+                                : 'bg-zenov-surface border border-zenov-border text-zenov-text-muted'
                             }`}
                           >
                             <Icon className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-zenvo-primary mb-1">
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-zenov-primary mb-1">
                               {f.cat}
                             </div>
-                            <h3 className="text-sm font-bold leading-snug text-zenvo-text">
+                            <h3 className="text-sm font-bold leading-snug text-zenov-text">
                               {f.q}
                             </h3>
                           </div>
                           <ChevronDown
-                            className={`w-4 h-4 shrink-0 text-zenvo-text-muted transition-transform duration-300 ${
-                              open ? 'rotate-180 text-zenvo-primary' : ''
+                            className={`w-4 h-4 shrink-0 text-zenov-text-muted transition-transform duration-300 ${
+                              open ? 'rotate-180 text-zenov-primary' : ''
                             }`}
                           />
                         </button>
@@ -260,8 +260,8 @@ export default function FaqsPage() {
                             open ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
                           }`}
                         >
-                          <div className="px-4 sm:px-5 pb-5 sm:pb-6 pl-[72px] sm:pl-[84px] border-t border-zenvo-border/40 pt-4">
-                            <p className="text-xs sm:text-sm text-zenvo-text-secondary leading-relaxed">
+                          <div className="px-4 sm:px-5 pb-5 sm:pb-6 pl-[72px] sm:pl-[84px] border-t border-zenov-border/40 pt-4">
+                            <p className="text-xs sm:text-sm text-zenov-text-secondary leading-relaxed">
                               {f.a}
                             </p>
                           </div>
@@ -276,12 +276,12 @@ export default function FaqsPage() {
 
           {/* REFUND POLICY TAB */}
           {activeTab === 'refund' && (
-            <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-6 sm:p-8 space-y-6">
-              <h2 className="text-lg font-black text-zenvo-text flex items-center gap-2 border-l-4 border-zenvo-accent pl-3 uppercase tracking-wider">
+            <div className="rounded-2xl bg-zenov-card border border-zenov-border p-6 sm:p-8 space-y-6">
+              <h2 className="text-lg font-black text-zenov-text flex items-center gap-2 border-l-4 border-zenov-accent pl-3 uppercase tracking-wider">
                 Refund Policy
               </h2>
-              <div className="text-xs sm:text-sm text-zenvo-text-secondary space-y-4 leading-relaxed">
-                <div className="bg-red-500/10 border border-red-500/20 p-4 text-zenvo-text font-bold">
+              <div className="text-xs sm:text-sm text-zenov-text-secondary space-y-4 leading-relaxed">
+                <div className="bg-red-500/10 border border-red-500/20 p-4 text-zenov-text font-bold">
                   ⚠️ There is No Refund possible for Digital Cards or Gift Cards if the card is delivered to you via our delivery system.
                 </div>
                 <p>
@@ -311,21 +311,21 @@ export default function FaqsPage() {
 
           {/* PRIVACY POLICY TAB */}
           {activeTab === 'privacy' && (
-            <div className="bg-zenvo-card border border-zenvo-border p-6 sm:p-8 space-y-6">
-              <h2 className="text-lg font-black text-zenvo-text flex items-center gap-2 border-l-4 border-zenvo-primary pl-3 uppercase tracking-wider">
+            <div className="bg-zenov-card border border-zenov-border p-6 sm:p-8 space-y-6">
+              <h2 className="text-lg font-black text-zenov-text flex items-center gap-2 border-l-4 border-zenov-primary pl-3 uppercase tracking-wider">
                 Privacy Policy
               </h2>
-              <div className="text-xs sm:text-sm text-zenvo-text-secondary space-y-5 leading-relaxed">
+              <div className="text-xs sm:text-sm text-zenov-text-secondary space-y-5 leading-relaxed">
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">Who we are</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">Who we are</h3>
                   <p>
-                    Our website address is: <a href="https://jubaly.com/" className="text-zenvo-primary hover:underline">www.jubaly.com</a>. We mainly sell Game cards, Gift cards and shopping cards.
+                    Our website address is: <a href="https://jubaly.com/" className="text-zenov-primary hover:underline">www.jubaly.com</a>. We mainly sell Game cards, Gift cards and shopping cards.
                     It’s not easy to get gift cards and international shopping cards from Bangladesh. So we buy them internationally and sell them locally to the users or buyers who want to buy them from Bangladesh in the easiest way possible. We buy them in international currency and sell them in local currency.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">What Information Do We Collect?</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">What Information Do We Collect?</h3>
                   <p className="mb-2">We collect information from you when you visit our service, place an order, subscribe to our newsletter, respond to a survey or fill out a form:</p>
                   <ul className="list-disc list-inside pl-3 space-y-1">
                     <li>Name / Username</li>
@@ -336,7 +336,7 @@ export default function FaqsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">How Do We Use The Information We Collect?</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">How Do We Use The Information We Collect?</h3>
                   <ul className="list-disc list-inside pl-3 space-y-1">
                     <li>To personalize your experience (your information helps us to better respond to your individual needs)</li>
                     <li>To improve our service based on the feedback we receive from you</li>
@@ -347,21 +347,21 @@ export default function FaqsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">How Do We Use Your Email Address?</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">How Do We Use Your Email Address?</h3>
                   <p>
                     By submitting your email address on this website, you agree to receive emails from us. You can cancel your participation at any time by clicking the opt-out link at the bottom of each email. Email addresses submitted only through the order processing page will be used for the sole purpose of sending you information and updates pertaining to your order.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">Cookies</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">Cookies</h3>
                   <p>
                     If you leave a comment on our site you may opt-in to saving your name, email address and website in cookies for convenience so that you do not have to fill in details again. These cookies last for one year. Temporary cookies are set to determine if your browser accepts cookies, containing no personal data. Log in cookies last for two days, and screen option cookies last for a year.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">Third-Party Services</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">Third-Party Services</h3>
                   <p>
                     We may include or make available third-party links or services on our website. JUBALY is not responsible for the content, privacy settings, accuracy or opinions expressed in such websites. Please check the respective policies of those platforms.
                   </p>
@@ -372,27 +372,27 @@ export default function FaqsPage() {
 
           {/* TERMS & CONDITIONS TAB */}
           {activeTab === 'terms' && (
-            <div className="bg-zenvo-card border border-zenvo-border p-6 sm:p-8 space-y-6">
-              <h2 className="text-lg font-black text-zenvo-text flex items-center gap-2 border-l-4 border-zenvo-accent pl-3 uppercase tracking-wider">
+            <div className="bg-zenov-card border border-zenov-border p-6 sm:p-8 space-y-6">
+              <h2 className="text-lg font-black text-zenov-text flex items-center gap-2 border-l-4 border-zenov-accent pl-3 uppercase tracking-wider">
                 Terms and Conditions
               </h2>
-              <div className="text-xs sm:text-sm text-zenvo-text-secondary space-y-5 leading-relaxed">
+              <div className="text-xs sm:text-sm text-zenov-text-secondary space-y-5 leading-relaxed">
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">Reseller Disclaimer</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">Reseller Disclaimer</h3>
                   <p>
                     <strong>Jubaly</strong> operates as a reseller of digital products obtained from authorized sellers. We are not the creators, manufacturers, or official partners of these products. Our role is to facilitate the purchase and distribution of authorized digital items (software licenses, gaming codes, online subscriptions) to our customers.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">Age Requirement</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">Age Requirement</h3>
                   <p>
                     By using Jubaly and making a purchase, you affirm that you are at least 18 years old or the age of majority in your jurisdiction. If you are under the age of 18, you may only use Jubaly.com and make a purchase under the supervision of a parent or legal guardian.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">Purchases and Transactions</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">Purchases and Transactions</h3>
                   <p>
                     By making a purchase on Jubaly.com, you agree that you are responsible for reviewing and complying with the terms of service, licensing agreements, and usage policies set forth by the original authorized sellers of the digital products.
                   </p>
@@ -402,17 +402,17 @@ export default function FaqsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">Affiliate Team</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">Affiliate Team</h3>
                   <p>
                     We pay our affiliate users once a week. Payouts are available through mobile banking, bank transfer, and Jubaly Wallet. Jubaly Affiliate reserves the right to change, amend, or update its affiliate rules at any time.
                   </p>
-                  <p className="mt-2 text-zenvo-text font-semibold">
+                  <p className="mt-2 text-zenov-text font-semibold">
                     Note: Credits earned from wallet top-up are not considered valid affiliate income. In addition, affiliate commission is not applicable to certain products, including UniPin Gift Card, Razer Gold, and Garena Shells.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-zenvo-text uppercase mb-1">Governing Law</h3>
+                  <h3 className="text-xs font-bold text-zenov-text uppercase mb-1">Governing Law</h3>
                   <p>
                     The laws of Bangladesh, excluding its conflicts of law rules, shall govern this Agreement and your use of our service. Your use of our service may also be subject to other local, state, national, or international laws.
                   </p>
@@ -424,17 +424,17 @@ export default function FaqsPage() {
 
         {/* Sidebar */}
         <aside className="space-y-6">
-          <div className="p-5 bg-zenvo-card border border-zenvo-border">
-            <h4 className="text-xs font-black uppercase tracking-wider text-zenvo-text mb-3 pl-2.5 border-l-2 border-zenvo-accent">
+          <div className="p-5 bg-zenov-card border border-zenov-border">
+            <h4 className="text-xs font-black uppercase tracking-wider text-zenov-text mb-3 pl-2.5 border-l-2 border-zenov-accent">
               Need Assistance?
             </h4>
-            <p className="text-xs sm:text-sm text-zenvo-text-secondary leading-relaxed">
+            <p className="text-xs sm:text-sm text-zenov-text-secondary leading-relaxed">
               Our professional support squad is available via Email and WhatsApp to solve any issues immediately.
             </p>
           </div>
 
-          <div className="p-5 bg-gradient-to-br from-zenvo-primary/5 via-transparent to-zenvo-accent/5 border border-zenvo-primary-border/20 space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-wider text-zenvo-text">
+          <div className="p-5 bg-gradient-to-br from-zenov-primary/5 via-transparent to-zenov-accent/5 border border-zenov-primary-border/20 space-y-4">
+            <h4 className="text-xs font-black uppercase tracking-wider text-zenov-text">
               Quick Contacts
             </h4>
             {[
@@ -448,10 +448,10 @@ export default function FaqsPage() {
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs sm:text-sm font-bold text-zenvo-text leading-tight truncate max-w-[200px]">
+                  <div className="text-xs sm:text-sm font-bold text-zenov-text leading-tight truncate max-w-[200px]">
                     {label}
                   </div>
-                  <div className="text-[10px] text-zenvo-text-muted mt-0.5">{sub}</div>
+                  <div className="text-[10px] text-zenov-text-muted mt-0.5">{sub}</div>
                 </div>
               </div>
             ))}

@@ -12,6 +12,7 @@ export function HeaderWrapper() {
     setSelectedCurrency,
     user,
     cartItems,
+    logout,
   } = useApp();
 
   if (pathname?.startsWith('/admin')) {
@@ -25,6 +26,7 @@ export function HeaderWrapper() {
       onSelectCurrency={setSelectedCurrency}
       user={user}
       cartItems={cartItems}
+      logout={logout}
     />
   );
 }

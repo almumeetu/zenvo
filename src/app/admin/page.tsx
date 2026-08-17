@@ -68,7 +68,7 @@ const CHART_COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
 const GRADIENT_THEMES = [
   { label: 'Deep Blue Cyber', value: 'from-blue-950/80 via-slate-900 to-black' },
   { label: 'Orange Fire', value: 'from-amber-950/60 via-slate-900 to-black' },
-  { label: 'Indigo Space', value: 'from-indigo-950 via-slate-950 to-zenvo-bg' },
+  { label: 'Indigo Space', value: 'from-indigo-950 via-slate-950 to-zenov-bg' },
   { label: 'Purple Neon', value: 'from-purple-950/80 via-zinc-950 to-black' },
   { label: 'Red Hot', value: 'from-red-950/70 via-slate-900 to-black' },
 ];
@@ -102,6 +102,7 @@ export default function AdminDashboardPage() {
     deleteBlog,
     adminReplyTicket,
     updateTicketStatus,
+    authLoading,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
@@ -118,7 +119,7 @@ export default function AdminDashboardPage() {
 
   // --- Orders State ---
   const [searchOrder, setSearchOrder] = useState('');
-  const [orderFilter, setOrderFilter] = useState<'All' | 'Processing' | 'Delivered' | 'Refunded'>('All');
+  const [orderFilter, setOrderFilter] = useState<'All' | 'Pending Verification' | 'Processing' | 'Delivered' | 'Refunded'>('All');
 
   // --- Users State ---
   const [searchUser, setSearchUser] = useState('');
@@ -141,21 +142,6 @@ export default function AdminDashboardPage() {
   const [ticketSearch, setTicketSearch] = useState('');
   const [isViewingChat, setIsViewingChat] = useState(false);
 
-  // Restrict access if not Admin
-  if (user.role !== 'admin') {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <ShieldCheck className="w-12 h-12 text-zenvo-error opacity-60" />
-        <h2 className="text-xl font-black text-zenvo-text">Access Restricted</h2>
-        <p className="text-sm text-zenvo-text-secondary max-w-xs">
-          You need admin privileges to view this page.
-        </p>
-        <Link href="/" className="px-5 py-2.5 rounded-xl bg-zenvo-primary text-white text-sm font-bold hover:bg-zenvo-primary-hover transition-colors">
-          Back to Store
-        </Link>
-      </div>
-    );
-  }
 
   // --- Dynamic Analytics ---
   const analyticsData = useMemo(() => {
@@ -228,11 +214,20 @@ export default function AdminDashboardPage() {
 
   const filteredOrders = useMemo(() => {
     const q = searchOrder.trim().toLowerCase();
-    return orders.filter((o) => {
-      const matchQuery = !q || o.orderNumber.toLowerCase().includes(q) || o.playerId.toLowerCase().includes(q) || o.userEmail.toLowerCase().includes(q);
-      const matchStatus = orderFilter === 'All' || o.fulfillmentStatus === orderFilter;
-      return matchQuery && matchStatus;
-    });
+    return orders
+      .filter((o) => {
+        const matchQuery =
+          !q ||
+          o.orderNumber.toLowerCase().includes(q) ||
+          o.playerId.toLowerCase().includes(q) ||
+          o.userEmail.toLowerCase().includes(q) ||
+          (o.customerPhone || '').includes(q) ||
+          (o.transactionId || '').toLowerCase().includes(q) ||
+          (o.customerName || '').toLowerCase().includes(q);
+        const matchStatus = orderFilter === 'All' || o.fulfillmentStatus === orderFilter;
+        return matchQuery && matchStatus;
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [orders, searchOrder, orderFilter]);
 
   const filteredUsers = useMemo(() => {
@@ -250,6 +245,31 @@ export default function AdminDashboardPage() {
   }, [tickets, ticketSearch]);
 
   const activeTicket = tickets.find((t) => t.id === activeTicketId);
+
+  // Restrict access if not Admin
+  if (authLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <div className="w-12 h-12 border-4 border-zenov-primary/30 border-t-zenov-primary rounded-full animate-spin" />
+        <p className="text-sm text-zenov-text-secondary">Verifying admin privileges...</p>
+      </div>
+    );
+  }
+
+  if (user.role !== 'admin') {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <ShieldCheck className="w-12 h-12 text-zenov-error opacity-60" />
+        <h2 className="text-xl font-black text-zenov-text">Access Restricted</h2>
+        <p className="text-sm text-zenov-text-secondary max-w-xs">
+          You need admin privileges to view this page.
+        </p>
+        <Link href="/" className="px-5 py-2.5 rounded-xl bg-zenov-primary text-white text-sm font-bold hover:bg-zenov-primary-hover transition-colors">
+          Back to Store
+        </Link>
+      </div>
+    );
+  }
 
   // --- Products CRUD Actions ---
   const handleSaveProduct = (e: React.FormEvent<HTMLFormElement>) => {
@@ -487,8 +507,8 @@ export default function AdminDashboardPage() {
       delta: '+14.6% All time',
       deltaUp: true,
       Icon: DollarSign,
-      accent: 'from-zenvo-success/15 to-zenvo-success/5',
-      iconColor: 'text-zenvo-success',
+      accent: 'from-zenov-success/15 to-zenov-success/5',
+      iconColor: 'text-zenov-success',
     },
     {
       label: 'Fulfillment Queue',
@@ -496,8 +516,8 @@ export default function AdminDashboardPage() {
       delta: `${analyticsData.pendingOrders} Processing`,
       deltaUp: true,
       Icon: ShoppingBag,
-      accent: 'from-zenvo-primary/15 to-zenvo-primary/5',
-      iconColor: 'text-zenvo-primary',
+      accent: 'from-zenov-primary/15 to-zenov-primary/5',
+      iconColor: 'text-zenov-primary',
     },
     {
       label: 'SKU Inventory',
@@ -505,8 +525,8 @@ export default function AdminDashboardPage() {
       delta: '100% Operational',
       deltaUp: true,
       Icon: Package,
-      accent: 'from-zenvo-accent/15 to-zenvo-accent/5',
-      iconColor: 'text-zenvo-accent',
+      accent: 'from-zenov-accent/15 to-zenov-accent/5',
+      iconColor: 'text-zenov-accent',
     },
     {
       label: 'Registered Gamers',
@@ -520,336 +540,282 @@ export default function AdminDashboardPage() {
   ];
 
   const renderSidebarNav = (onItemClick?: () => void) => (
-    <nav className="space-y-2">
-      {/* 1. Dashboard Overview */}
+    <nav className="admin-sidebar-nav space-y-0.5">
+
+      {/* ── OVERVIEW ── */}
       <button
-        onClick={() => {
-          setActiveTab('overview');
-          onItemClick?.();
-        }}
-        className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+        onClick={() => { setActiveTab('overview'); onItemClick?.(); }}
+        className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${
           activeTab === 'overview'
-            ? 'bg-zenvo-primary text-white font-bold shadow-sm'
-            : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+            ? 'active-item bg-zenov-primary/15 text-zenov-primary border-l-2 border-zenov-primary pl-[10px]'
+            : 'text-zenov-text-secondary hover:bg-zenov-surface/60 hover:text-zenov-text'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <Layers className="w-4 h-4 shrink-0" />
-          <span className="text-[13px] font-semibold tracking-wider uppercase">Dashboard</span>
-        </div>
+        <TrendingUp className="w-4 h-4 shrink-0" />
+        <span className="flex-1 text-left">Dashboard</span>
       </button>
 
-      {/* 2. Products Catalog */}
-      <div className="space-y-1">
+      {/* ── CATALOG ── */}
+      <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zenov-text-muted/50">Catalog</p>
+
+      <div>
         <button
-          onClick={() => {
-            setActiveTab('products');
-            setOpenProductsMenu((prev) => !prev);
-          }}
-          className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+          onClick={() => { setActiveTab('products'); setOpenProductsMenu((prev) => !prev); }}
+          className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${
             activeTab === 'products'
-              ? 'bg-zenvo-primary text-white font-bold shadow-sm'
-              : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+              ? 'active-item bg-zenov-primary/15 text-zenov-primary border-l-2 border-zenov-primary pl-[10px]'
+              : 'text-zenov-text-secondary hover:bg-zenov-surface/60 hover:text-zenov-text'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <Package className="w-4 h-4 shrink-0" />
-            <span className="text-[13px] font-semibold tracking-wider uppercase">Catalog</span>
-          </div>
-          {openProductsMenu ? (
-            <ChevronDown className="w-3.5 h-3.5 opacity-90" />
-          ) : (
-            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-          )}
+          <Package className="w-4 h-4 shrink-0" />
+          <span className="flex-1 text-left">Products</span>
+          {openProductsMenu ? <ChevronDown className="w-3.5 h-3.5 opacity-60" /> : <ChevronRight className="w-3.5 h-3.5 opacity-40" />}
         </button>
 
         {openProductsMenu && (
-          <div className="ml-4 pl-3 border-l border-zenvo-border space-y-2 my-1.5">
+          <div className="mt-1 ml-4 pl-3 border-l border-zenov-border/50 space-y-0.5">
             <button
-              onClick={() => {
-                setActiveTab('products');
-                setProductSubTab('products');
-                onItemClick?.();
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+              onClick={() => { setActiveTab('products'); setProductSubTab('products'); onItemClick?.(); }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 activeTab === 'products' && productSubTab === 'products'
-                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
-                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+                  ? 'bg-zenov-primary/10 text-zenov-primary font-bold'
+                  : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-surface/40'
               }`}
             >
-              <span className="flex items-center gap-2 text-[12px] font-medium tracking-wide">📦 SKU Products</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{products.length}</span>
+              <span className="flex items-center gap-2"><Package className="w-3.5 h-3.5 shrink-0" /> SKU Products</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted">{products.length}</span>
             </button>
 
             <button
-              onClick={() => {
-                setActiveTab('products');
-                setProductSubTab('categories');
-                onItemClick?.();
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+              onClick={() => { setActiveTab('products'); setProductSubTab('categories'); onItemClick?.(); }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 activeTab === 'products' && productSubTab === 'categories'
-                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
-                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+                  ? 'bg-zenov-primary/10 text-zenov-primary font-bold'
+                  : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-surface/40'
               }`}
             >
-              <span className="flex items-center gap-2 text-[12px] font-medium tracking-wide">🏷️ Categories</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{categories.length}</span>
+              <span className="flex items-center gap-2"><Tag className="w-3.5 h-3.5 shrink-0" /> Categories</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted">{categories.length}</span>
             </button>
 
             <button
-              onClick={() => {
-                setActiveTab('products');
-                setProductSubTab('units');
-                onItemClick?.();
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+              onClick={() => { setActiveTab('products'); setProductSubTab('units'); onItemClick?.(); }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 activeTab === 'products' && productSubTab === 'units'
-                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
-                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+                  ? 'bg-zenov-accent/10 text-zenov-accent font-bold'
+                  : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-surface/40'
               }`}
             >
-              <span className="flex items-center gap-2 text-[12px] font-medium tracking-wide">⚡ Units & Variants</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{units.length}</span>
+              <span className="flex items-center gap-2"><Zap className="w-3.5 h-3.5 shrink-0" /> Units &amp; Variants</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted">{units.length}</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* 3. Orders Management */}
-      <div className="space-y-1">
+      {/* ── ORDERS ── */}
+      <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zenov-text-muted/50">Orders</p>
+
+      <div>
         <button
-          onClick={() => {
-            setActiveTab('orders');
-            setOpenOrdersMenu((prev) => !prev);
-          }}
-          className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+          onClick={() => { setActiveTab('orders'); setOpenOrdersMenu((prev) => !prev); }}
+          className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${
             activeTab === 'orders'
-              ? 'bg-zenvo-primary text-white font-bold shadow-sm'
-              : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+              ? 'active-item bg-zenov-primary/15 text-zenov-primary border-l-2 border-zenov-primary pl-[10px]'
+              : 'text-zenov-text-secondary hover:bg-zenov-surface/60 hover:text-zenov-text'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <ShoppingBag className="w-4 h-4 shrink-0" />
-            <span className="text-[13px] font-semibold tracking-wider uppercase">Orders</span>
-          </div>
-          {openOrdersMenu ? (
-            <ChevronDown className="w-3.5 h-3.5 opacity-90" />
-          ) : (
-            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+          <ShoppingBag className="w-4 h-4 shrink-0" />
+          <span className="flex-1 text-left">Orders</span>
+          {analyticsData.pendingOrders > 0 && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse mr-1">
+              {analyticsData.pendingOrders}
+            </span>
           )}
+          {openOrdersMenu ? <ChevronDown className="w-3.5 h-3.5 opacity-60" /> : <ChevronRight className="w-3.5 h-3.5 opacity-40" />}
         </button>
 
         {openOrdersMenu && (
-          <div className="ml-4 pl-3 border-l border-zenvo-border space-y-2 my-1.5">
+          <div className="mt-1 ml-4 pl-3 border-l border-zenov-border/50 space-y-0.5">
             <button
-              onClick={() => {
-                setActiveTab('orders');
-                setOrderFilter('All');
-                onItemClick?.();
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+              onClick={() => { setActiveTab('orders'); setOrderFilter('All'); onItemClick?.(); }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 activeTab === 'orders' && orderFilter === 'All'
-                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
-                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+                  ? 'bg-zenov-primary/10 text-zenov-primary font-bold'
+                  : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-surface/40'
               }`}
             >
-              <span className="text-[12px] font-medium tracking-wide">⚡ All Orders</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{orders.length}</span>
+              <span className="flex items-center gap-2"><Layers className="w-3.5 h-3.5 shrink-0" /> All Orders</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-blue-500/15 border border-blue-500/20 text-blue-400 font-bold">{orders.length}</span>
             </button>
 
             <button
-              onClick={() => {
-                setActiveTab('orders');
-                setOrderFilter('Processing');
-                onItemClick?.();
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+              onClick={() => { setActiveTab('orders'); setOrderFilter('Processing'); onItemClick?.(); }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 activeTab === 'orders' && orderFilter === 'Processing'
-                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
-                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+                  ? 'bg-amber-500/10 text-amber-400 font-bold'
+                  : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-surface/40'
               }`}
             >
-              <span className="text-[12px] font-medium tracking-wide">⏳ Pending Fulfillment</span>
+              <span className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 shrink-0" /> Pending</span>
               {analyticsData.pendingOrders > 0 && (
-                <span className="text-[9px] font-mono px-1.5 py-0.2 bg-amber-500/20 text-amber-400 border border-amber-500/30">{analyticsData.pendingOrders}</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold animate-pulse">{analyticsData.pendingOrders}</span>
               )}
             </button>
 
             <button
-              onClick={() => {
-                setActiveTab('orders');
-                setOrderFilter('Delivered');
-                onItemClick?.();
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+              onClick={() => { setActiveTab('orders'); setOrderFilter('Delivered'); onItemClick?.(); }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 activeTab === 'orders' && orderFilter === 'Delivered'
-                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
-                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+                  ? 'bg-emerald-500/10 text-emerald-400 font-bold'
+                  : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-surface/40'
               }`}
             >
-              <span className="text-[12px] font-medium tracking-wide">✅ Delivered Orders</span>
+              <span className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Delivered</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/20 text-emerald-400">
+                {orders.filter((o) => o.fulfillmentStatus === 'Delivered').length}
+              </span>
             </button>
           </div>
         )}
       </div>
 
-      {/* 4. Gamers Directory */}
+      {/* ── COMMUNITY ── */}
+      <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zenov-text-muted/50">Community</p>
+
       <button
-        onClick={() => {
-          setActiveTab('users');
-          onItemClick?.();
-        }}
-        className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+        onClick={() => { setActiveTab('users'); onItemClick?.(); }}
+        className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${
           activeTab === 'users'
-            ? 'bg-zenvo-primary text-white font-bold shadow-sm'
-            : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+            ? 'active-item bg-zenov-primary/15 text-zenov-primary border-l-2 border-zenov-primary pl-[10px]'
+            : 'text-zenov-text-secondary hover:bg-zenov-surface/60 hover:text-zenov-text'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <Users className="w-4 h-4 shrink-0" />
-          <span className="text-[13px] font-semibold tracking-wider uppercase">Gamers</span>
-        </div>
-        <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{users.length}</span>
+        <Users className="w-4 h-4 shrink-0" />
+        <span className="flex-1 text-left">Gamers</span>
+        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted">{users.length}</span>
       </button>
 
-      {/* 5. CMS Manager */}
-      <div className="space-y-1">
+      {/* ── CONTENT ── */}
+      <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zenov-text-muted/50">Content</p>
+
+      <div>
         <button
-          onClick={() => {
-            setActiveTab('cms');
-            setOpenCmsMenu((prev) => !prev);
-          }}
-          className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+          onClick={() => { setActiveTab('cms'); setOpenCmsMenu((prev) => !prev); }}
+          className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${
             activeTab === 'cms'
-              ? 'bg-zenvo-primary text-white font-bold shadow-sm'
-              : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+              ? 'active-item bg-zenov-primary/15 text-zenov-primary border-l-2 border-zenov-primary pl-[10px]'
+              : 'text-zenov-text-secondary hover:bg-zenov-surface/60 hover:text-zenov-text'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <FileText className="w-4 h-4 shrink-0" />
-            <span className="text-[13px] font-semibold tracking-wider uppercase">Content Manager</span>
-          </div>
-          {openCmsMenu ? (
-            <ChevronDown className="w-3.5 h-3.5 opacity-90" />
-          ) : (
-            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-          )}
+          <FileText className="w-4 h-4 shrink-0" />
+          <span className="flex-1 text-left">Content Manager</span>
+          {openCmsMenu ? <ChevronDown className="w-3.5 h-3.5 opacity-60" /> : <ChevronRight className="w-3.5 h-3.5 opacity-40" />}
         </button>
 
         {openCmsMenu && (
-          <div className="ml-4 pl-3 border-l border-zenvo-border space-y-2 my-1.5">
+          <div className="mt-1 ml-4 pl-3 border-l border-zenov-border/50 space-y-0.5">
             <button
-              onClick={() => {
-                setActiveTab('cms');
-                setCmsSubTab('banners');
-                onItemClick?.();
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+              onClick={() => { setActiveTab('cms'); setCmsSubTab('banners'); onItemClick?.(); }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 activeTab === 'cms' && cmsSubTab === 'banners'
-                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
-                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+                  ? 'bg-zenov-primary/10 text-zenov-primary font-bold'
+                  : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-surface/40'
               }`}
             >
-              <span className="text-[12px] font-medium tracking-wide">🖼️ Promotion Banners</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{heroBanners.length}</span>
+              <span className="flex items-center gap-2"><Bookmark className="w-3.5 h-3.5 shrink-0" /> Promo Banners</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted">{heroBanners.length}</span>
             </button>
 
             <button
-              onClick={() => {
-                setActiveTab('cms');
-                setCmsSubTab('blogs');
-                onItemClick?.();
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 transition-all ${
+              onClick={() => { setActiveTab('cms'); setCmsSubTab('blogs'); onItemClick?.(); }}
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
                 activeTab === 'cms' && cmsSubTab === 'blogs'
-                  ? 'bg-zenvo-primary-soft text-zenvo-primary font-bold border border-zenvo-primary-border/20'
-                  : 'text-zenvo-text-muted hover:text-zenvo-text hover:bg-zenvo-surface/50'
+                  ? 'bg-zenov-primary/10 text-zenov-primary font-bold'
+                  : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-surface/40'
               }`}
             >
-              <span className="text-[12px] font-medium tracking-wide">📝 Articles & Blog</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{blogArticles.length}</span>
+              <span className="flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5 shrink-0" /> Articles &amp; Blog</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted">{blogArticles.length}</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* 6. Helpdesk Support */}
+      {/* ── SUPPORT ── */}
+      <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zenov-text-muted/50">Support</p>
+
       <button
-        onClick={() => {
-          setActiveTab('tickets');
-          onItemClick?.();
-        }}
-        className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+        onClick={() => { setActiveTab('tickets'); onItemClick?.(); }}
+        className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${
           activeTab === 'tickets'
-            ? 'bg-zenvo-primary text-white font-bold shadow-sm'
-            : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+            ? 'active-item bg-zenov-primary/15 text-zenov-primary border-l-2 border-zenov-primary pl-[10px]'
+            : 'text-zenov-text-secondary hover:bg-zenov-surface/60 hover:text-zenov-text'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <Headphones className="w-4 h-4 shrink-0" />
-          <span className="text-[13px] font-semibold tracking-wider uppercase">Helpdesk</span>
-        </div>
-        <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border">{tickets.length}</span>
+        <Headphones className="w-4 h-4 shrink-0" />
+        <span className="flex-1 text-left">Helpdesk</span>
+        {tickets.length > 0 && (
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted">{tickets.length}</span>
+        )}
       </button>
 
-      {/* 7. Security Management */}
       <button
-        onClick={() => {
-          setActiveTab('security');
-          onItemClick?.();
-        }}
-        className={`w-full flex items-center justify-between px-4 py-3 transition-all ${
+        onClick={() => { setActiveTab('security'); onItemClick?.(); }}
+        className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${
           activeTab === 'security'
-            ? 'bg-zenvo-primary text-white font-bold shadow-sm'
-            : 'text-zenvo-text-secondary hover:bg-zenvo-surface hover:text-zenvo-text'
+            ? 'active-item bg-zenov-primary/15 text-zenov-primary border-l-2 border-zenov-primary pl-[10px]'
+            : 'text-zenov-text-secondary hover:bg-zenov-surface/60 hover:text-zenov-text'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <ShieldCheck className="w-4 h-4 shrink-0" />
-          <span className="text-[13px] font-semibold tracking-wider uppercase">System Security</span>
-        </div>
+        <ShieldCheck className="w-4 h-4 shrink-0" />
+        <span className="flex-1 text-left">Security</span>
       </button>
     </nav>
   );
 
   return (
-    <div className="admin-panel-wrapper min-h-screen bg-zenvo-bg flex flex-col lg:flex-row text-zenvo-text">
+    <div className="admin-panel-wrapper min-h-screen bg-zenov-bg flex flex-col lg:flex-row text-zenov-text">
       <style dangerouslySetInnerHTML={{ __html: `
         .admin-panel-wrapper {
           line-height: 1.6;
         }
-        /* Remove rounded corners from all elements in the admin dashboard */
-        .admin-panel-wrapper * {
-          border-radius: 0px !important;
-        }
-        .admin-panel-wrapper p,
-        .admin-panel-wrapper span,
-        .admin-panel-wrapper button,
-        .admin-panel-wrapper label,
-        .admin-panel-wrapper input,
-        .admin-panel-wrapper select,
-        .admin-panel-wrapper textarea,
-        .admin-panel-wrapper td,
-        .admin-panel-wrapper th {
+        .admin-panel-wrapper table td,
+        .admin-panel-wrapper table th {
           letter-spacing: 0.01em;
+        }
+        .admin-sidebar-item {
+          transition: all 0.15s ease;
+        }
+        .admin-sidebar-item:not(.active-item):hover {
+          transform: translateX(2px);
+        }
+        .admin-sidebar-scroll::-webkit-scrollbar {
+          width: 3px;
+        }
+        .admin-sidebar-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .admin-sidebar-scroll::-webkit-scrollbar-thumb {
+          background: rgba(59,130,246,0.3);
+          border-radius: 99px;
         }
       `}} />
       
       {/* 1. Mobile Header Bar */}
-      <header className="lg:hidden w-full bg-zenvo-card border-b border-zenvo-border px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
+      <header className="lg:hidden w-full bg-zenov-card border-b border-zenov-border px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-zenvo-primary to-blue-700 p-[1.5px] shadow-primary">
-            <div className="w-full h-full rounded-[7px] bg-zenvo-bg flex items-center justify-center font-bold text-sm text-zenvo-primary">Z</div>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-zenov-primary to-blue-700 p-[1.5px] shadow-primary">
+            <div className="w-full h-full rounded-[7px] bg-zenov-bg flex items-center justify-center font-bold text-sm text-zenov-primary">Z</div>
           </div>
           <div>
-            <h2 className="text-xs font-black text-zenvo-text tracking-wider uppercase leading-none">ZENOV CONTROL</h2>
-            <p className="text-[8px] text-zenvo-accent font-mono uppercase tracking-[0.12em] mt-0.5 leading-none">ROOT LEVEL</p>
+            <h2 className="text-xs font-black text-zenov-text tracking-wider uppercase leading-none">ZENOV CONTROL</h2>
+            <p className="text-[8px] text-zenov-accent font-mono uppercase tracking-[0.12em] mt-0.5 leading-none">ROOT LEVEL</p>
           </div>
         </div>
         <button
           onClick={() => setIsSidebarOpen(true)}
-          className="p-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-primary transition-all active:scale-95"
+          className="p-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary transition-all active:scale-95"
           aria-label="Toggle navigation drawer"
         >
           <Menu className="w-5 h-5" />
@@ -860,69 +826,93 @@ export default function AdminDashboardPage() {
       {isSidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           {/* Backdrop */}
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" onClick={() => setIsSidebarOpen(false)} />
-          
-          {/* Drawer Body */}
-          <aside className="relative w-64 bg-zenvo-card border-r border-zenvo-border h-full flex flex-col justify-between z-10 p-5 space-y-6 overflow-y-auto">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-zenvo-border pb-4">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-zenvo-primary" />
-                  <span className="font-black text-sm tracking-wider uppercase text-zenvo-text">ZENOV PANEL</span>
-                </div>
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="p-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-zenvo-text-muted hover:text-white transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onClick={() => setIsSidebarOpen(false)} />
 
+          {/* Drawer Body */}
+          <aside className="relative w-64 bg-zenov-card border-r border-zenov-border h-full flex flex-col z-10 overflow-hidden">
+            {/* Drawer Header */}
+            <div className="px-5 pt-5 pb-4 border-b border-zenov-border/60 bg-gradient-to-b from-zenov-primary/5 to-transparent shrink-0 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zenov-primary to-blue-700 flex items-center justify-center font-mono font-black text-sm text-white shrink-0">
+                  Z
+                </div>
+                <div>
+                  <h2 className="text-sm font-black text-zenov-text tracking-tight leading-none">ZENOV</h2>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-zenov-success animate-pulse shrink-0" />
+                    <p className="text-[9px] text-zenov-text-muted font-mono uppercase tracking-widest leading-none">Admin</p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-white hover:bg-zenov-error/20 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Scrollable Nav */}
+            <div className="flex-1 overflow-y-auto py-4 px-3 admin-sidebar-scroll">
               {renderSidebarNav(() => setIsSidebarOpen(false))}
             </div>
 
-            <div className="border-t border-zenvo-border pt-4 bg-zenvo-surface/20 -mx-5 px-5 -mb-5 pb-5">
-              <div className="flex items-center gap-2">
-                <img src={user.avatar} className="w-8 h-8 rounded-full border border-zenvo-border" alt="" />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-zenvo-text truncate">{user.name}</p>
-                  <p className="text-[9px] text-zenvo-accent font-mono uppercase mt-0.5">{user.vipTier}</p>
+            {/* Footer */}
+            <div className="px-4 py-4 border-t border-zenov-border/60 bg-zenov-surface/20 shrink-0">
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border/50">
+                <img src={user.avatar} className="w-8 h-8 rounded-lg border border-zenov-border object-cover shrink-0" alt={user.name} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-zenov-text truncate leading-none">{user.name}</p>
+                  <p className="text-[9px] text-zenov-accent font-mono uppercase tracking-wider mt-1">{user.vipTier}</p>
                 </div>
               </div>
-              <Link href="/" className="inline-flex items-center gap-1 mt-4 text-[10px] font-bold uppercase text-zenvo-primary hover:underline">
-                <ArrowLeft className="w-3.5 h-3.5" /> Back to Store
+              <Link href="/" className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-zenov-surface hover:bg-zenov-primary/10 hover:text-zenov-primary border border-zenov-border text-[11px] font-semibold text-zenov-text-secondary transition-all">
+                <ArrowLeft className="w-3 h-3" /> Back to Store
               </Link>
             </div>
           </aside>
         </div>
       )}
 
+
       {/* 3. Desktop Persistent Sidebar */}
-      <aside className="hidden lg:flex flex-col justify-between w-64 bg-zenvo-card border-r border-zenvo-border sticky top-0 h-screen shrink-0 z-20">
-        <div className="p-6 space-y-6 overflow-y-auto">
-          <div className="flex items-center gap-3 border-b border-zenvo-border pb-5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenvo-primary to-blue-700 p-[1.5px] shadow-primary">
-              <div className="w-full h-full rounded-[9px] bg-zenvo-bg flex items-center justify-center font-mono font-black text-base text-zenvo-primary">Z</div>
+      <aside className="hidden lg:flex flex-col w-64 bg-zenov-card border-r border-zenov-border sticky top-0 h-screen shrink-0 z-20">
+        {/* Sidebar Header */}
+        <div className="px-5 pt-5 pb-4 border-b border-zenov-border/60 bg-gradient-to-b from-zenov-primary/5 to-transparent shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenov-primary to-blue-700 flex items-center justify-center font-mono font-black text-sm text-white shadow-lg shadow-zenov-primary/25 shrink-0">
+              Z
             </div>
             <div>
-              <h2 className="text-sm font-black text-zenvo-text tracking-wide uppercase leading-tight">ZENOV CONTROL</h2>
-              <p className="text-[9px] text-zenvo-accent font-mono uppercase tracking-[0.1em] leading-none mt-1">ROOT LEVEL</p>
+              <h2 className="text-sm font-black text-zenov-text tracking-tight leading-none">ZENOV</h2>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-zenov-success animate-pulse shrink-0" />
+                <p className="text-[9px] text-zenov-text-muted font-mono uppercase tracking-widest leading-none">Admin Control</p>
+              </div>
             </div>
           </div>
+        </div>
 
+        {/* Scrollable Nav */}
+        <div className="flex-1 overflow-y-auto py-4 px-3 admin-sidebar-scroll">
           {renderSidebarNav()}
         </div>
 
-        <div className="p-5 border-t border-zenvo-border bg-zenvo-surface/20">
-          <div className="flex items-center gap-2">
-            <img src={user.avatar} className="w-8 h-8 rounded-full border border-zenvo-border" alt="" />
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-zenvo-text truncate">{user.name}</p>
-              <p className="text-[9px] text-zenvo-accent uppercase tracking-wider leading-none mt-0.5">{user.vipTier}</p>
+        {/* Admin User Footer */}
+        <div className="px-4 py-4 border-t border-zenov-border/60 bg-zenov-surface/20 shrink-0">
+          <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border/50">
+            <img src={user.avatar} className="w-8 h-8 rounded-lg border border-zenov-border object-cover shrink-0" alt={user.name} />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-zenov-text truncate leading-none">{user.name}</p>
+              <p className="text-[9px] text-zenov-accent font-mono uppercase tracking-wider mt-1">{user.vipTier}</p>
             </div>
+            <ShieldCheck className="w-4 h-4 text-zenov-primary/60 shrink-0" />
           </div>
-          <Link href="/" className="inline-flex items-center gap-1 mt-4 text-[10px] font-bold uppercase text-zenvo-primary hover:text-zenvo-primary-hover transition-colors">
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Store
+          <Link
+            href="/"
+            className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-zenov-surface hover:bg-zenov-primary/10 hover:text-zenov-primary border border-zenov-border text-[11px] font-semibold text-zenov-text-secondary transition-all"
+          >
+            <ArrowLeft className="w-3 h-3" /> Back to Store
           </Link>
         </div>
       </aside>
@@ -931,17 +921,17 @@ export default function AdminDashboardPage() {
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-7xl w-full mx-auto space-y-6">
         
         {/* Clean Admin Header Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zenvo-border/60">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zenov-border/60">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-zenvo-primary-soft text-zenvo-primary text-[10px] font-mono font-bold uppercase tracking-wider border border-zenvo-primary-border/30">
+              <span className="px-2.5 py-0.5 rounded-full bg-zenov-primary-soft text-zenov-primary text-[10px] font-mono font-bold uppercase tracking-wider border border-zenov-primary-border/30">
                 Zenov Root Control
               </span>
-              <span className="text-[11px] text-zenvo-success flex items-center gap-1 font-semibold">
-                <span className="w-2 h-2 rounded-full bg-zenvo-success animate-pulse" /> Live Telemetry Stream
+              <span className="text-[11px] text-zenov-success flex items-center gap-1 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-zenov-success animate-pulse" /> Live Telemetry Stream
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-zenvo-text tracking-tight capitalize mt-1">
+            <h1 className="text-xl sm:text-2xl font-black text-zenov-text tracking-tight capitalize mt-1">
               {activeTab === 'overview' && '📊 Store Analytics & Revenue Control'}
               {activeTab === 'products' && '📦 SKU Product Catalogue & Inventory'}
               {activeTab === 'orders' && '⚡ Live Orders & Fulfillment Desk'}
@@ -954,12 +944,12 @@ export default function AdminDashboardPage() {
 
           <div className="flex items-center gap-3 shrink-0">
             {/* Currency Selector */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zenvo-card border border-zenvo-border text-xs font-bold text-zenvo-text-secondary shadow-sm">
-              <span className="text-zenvo-text-muted text-[10px] uppercase font-mono">Currency:</span>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zenov-card border border-zenov-border text-xs font-bold text-zenov-text-secondary shadow-sm">
+              <span className="text-zenov-text-muted text-[10px] uppercase font-mono">Currency:</span>
               <select
                 value={selectedCurrency}
                 onChange={(e) => setSelectedCurrency(e.target.value as any)}
-                className="bg-transparent text-zenvo-primary font-mono font-bold text-xs outline-none cursor-pointer"
+                className="bg-transparent text-zenov-primary font-mono font-bold text-xs outline-none cursor-pointer"
               >
                 <option value="BDT">BDT (৳)</option>
                 <option value="USD">USD ($)</option>
@@ -970,7 +960,7 @@ export default function AdminDashboardPage() {
 
             <Link
               href="/"
-              className="px-3.5 py-1.5 rounded-xl bg-zenvo-surface hover:bg-zenvo-primary hover:text-white border border-zenvo-border text-xs font-bold text-zenvo-text-secondary transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+              className="px-3.5 py-1.5 rounded-xl bg-zenov-surface hover:bg-zenov-primary hover:text-white border border-zenov-border text-xs font-bold text-zenov-text-secondary transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Store
             </Link>
@@ -984,21 +974,21 @@ export default function AdminDashboardPage() {
               {kpiCards.map(({ label, value, delta, deltaUp, Icon, accent, iconColor }) => (
                 <div
                   key={label}
-                  className={`relative rounded-2xl p-4 sm:p-5 bg-gradient-to-br ${accent} border border-zenvo-border bg-zenvo-card overflow-hidden transition-all`}
+                  className={`relative rounded-2xl p-4 sm:p-5 bg-gradient-to-br ${accent} border border-zenov-border bg-zenov-card overflow-hidden transition-all`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted mb-1">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted mb-1">
                         {label}
                       </div>
-                      <div className="text-lg sm:text-2xl font-black tracking-tight text-zenvo-text leading-tight truncate font-mono">
+                      <div className="text-lg sm:text-2xl font-black tracking-tight text-zenov-text leading-tight truncate font-mono">
                         {value}
                       </div>
-                      <div className="text-[11px] mt-1.5 inline-flex items-center gap-1 font-semibold text-zenvo-success">
+                      <div className="text-[11px] mt-1.5 inline-flex items-center gap-1 font-semibold text-zenov-success">
                         <TrendingUp className="w-3 h-3" /> {delta}
                       </div>
                     </div>
-                    <div className={`w-9 h-9 shrink-0 rounded-xl bg-zenvo-card border border-zenvo-border flex items-center justify-center ${iconColor}`}>
+                    <div className={`w-9 h-9 shrink-0 rounded-xl bg-zenov-card border border-zenov-border flex items-center justify-center ${iconColor}`}>
                       <Icon className="w-[18px] h-[18px]" />
                     </div>
                   </div>
@@ -1007,8 +997,8 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              <div className="lg:col-span-2 rounded-2xl p-4 sm:p-6 bg-zenvo-card border border-zenvo-border">
-                <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-4">
+              <div className="lg:col-span-2 rounded-2xl p-4 sm:p-6 bg-zenov-card border border-zenov-border">
+                <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text mb-4">
                   Dynamic Sales Revenue Trend
                 </h3>
                 <div className="h-64 sm:h-72">
@@ -1029,11 +1019,11 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl p-4 sm:p-6 bg-zenvo-card border border-zenvo-border flex flex-col">
-                <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-1">
+              <div className="rounded-2xl p-4 sm:p-6 bg-zenov-card border border-zenov-border flex flex-col">
+                <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text mb-1">
                   Category Spread
                 </h3>
-                <p className="text-xs text-zenvo-text-muted mb-4">Catalog item categories</p>
+                <p className="text-xs text-zenov-text-muted mb-4">Catalog item categories</p>
                 <div className="h-44 flex-1">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -1050,8 +1040,8 @@ export default function AdminDashboardPage() {
                   {analyticsData.categoryMix.map((c, i) => (
                     <div key={c.name} className="flex items-center gap-1.5 text-[11px]">
                       <span className="w-2 h-2 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                      <span className="text-zenvo-text-secondary truncate">{c.name}</span>
-                      <span className="ml-auto text-zenvo-text-muted font-bold">{c.value}</span>
+                      <span className="text-zenov-text-secondary truncate">{c.name}</span>
+                      <span className="ml-auto text-zenov-text-muted font-bold">{c.value}</span>
                     </div>
                   ))}
                 </div>
@@ -1059,8 +1049,8 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <div className="rounded-2xl p-4 sm:p-6 bg-zenvo-card border border-zenvo-border">
-                <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-4">
+              <div className="rounded-2xl p-4 sm:p-6 bg-zenov-card border border-zenov-border">
+                <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text mb-4">
                   Top Products by Revenue
                 </h3>
                 <div className="h-60 sm:h-64">
@@ -1075,30 +1065,30 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl p-4 sm:p-6 bg-zenvo-card border border-zenvo-border">
+              <div className="rounded-2xl p-4 sm:p-6 bg-zenov-card border border-zenov-border">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text">
                     Recent Activity Queue
                   </h3>
-                  <button onClick={() => setActiveTab('orders')} className="text-[11px] font-bold text-zenvo-primary hover:underline">
+                  <button onClick={() => setActiveTab('orders')} className="text-[11px] font-bold text-zenov-primary hover:underline">
                     View fulfillment panel →
                   </button>
                 </div>
                 <div className="space-y-2.5 max-h-[250px] overflow-y-auto pr-1">
-                  {orders.slice(0, 5).map((o) => (
-                    <div key={o.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-zenvo-surface/40 border border-zenvo-border">
-                      <div className="w-8 h-8 rounded-lg bg-zenvo-primary-soft flex items-center justify-center shrink-0 border border-zenvo-primary-border/25">
-                        <ShoppingBag className="w-4 h-4 text-zenvo-primary" />
+                  {[...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5).map((o) => (
+                    <div key={o.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-zenov-surface/40 border border-zenov-border">
+                      <div className="w-8 h-8 rounded-lg bg-zenov-primary-soft flex items-center justify-center shrink-0 border border-zenov-primary-border/25">
+                        <ShoppingBag className="w-4 h-4 text-zenov-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-zenvo-text truncate">{o.orderNumber}</div>
-                        <div className="text-[10px] text-zenvo-text-muted truncate">{o.userEmail}</div>
+                        <div className="text-xs font-bold text-zenov-text truncate">{o.orderNumber}</div>
+                        <div className="text-[10px] text-zenov-text-muted truncate">{o.userEmail}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-xs font-black text-zenvo-text font-mono">
+                        <div className="text-xs font-black text-zenov-text font-mono">
                           {formatCurrency(o.totalUSD, selectedCurrency)}
                         </div>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${o.fulfillmentStatus === 'Delivered' ? 'bg-zenvo-success-soft text-zenvo-success' : 'bg-zenvo-warning-soft text-zenvo-warning'}`}>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${o.fulfillmentStatus === 'Delivered' ? 'bg-zenov-success-soft text-zenov-success' : 'bg-zenov-warning-soft text-zenov-warning'}`}>
                           {o.fulfillmentStatus}
                         </span>
                       </div>
@@ -1114,7 +1104,7 @@ export default function AdminDashboardPage() {
         {activeTab === 'products' && (
           <div className="space-y-5">
             {/* Products Sub-Navigation Tabs */}
-            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zenvo-card border border-zenvo-border overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zenov-card border border-zenov-border overflow-x-auto scrollbar-none">
               <button
                 type="button"
                 onClick={() => {
@@ -1124,14 +1114,14 @@ export default function AdminDashboardPage() {
                 }}
                 className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${
                   productSubTab === 'products'
-                    ? 'bg-gradient-to-r from-zenvo-primary to-blue-600 text-white shadow-md'
-                    : 'text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                    ? 'bg-gradient-to-r from-zenov-primary to-blue-600 text-white shadow-md'
+                    : 'text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface'
                 }`}
               >
                 <Package className="w-4 h-4" />
                 <span>SKU Products</span>
                 <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
-                  productSubTab === 'products' ? 'bg-white/20 text-white' : 'bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border'
+                  productSubTab === 'products' ? 'bg-white/20 text-white' : 'bg-zenov-surface text-zenov-text-muted border border-zenov-border'
                 }`}>
                   {products.length}
                 </span>
@@ -1146,14 +1136,14 @@ export default function AdminDashboardPage() {
                 }}
                 className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${
                   productSubTab === 'categories'
-                    ? 'bg-gradient-to-r from-zenvo-primary to-blue-600 text-white shadow-md'
-                    : 'text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                    ? 'bg-gradient-to-r from-zenov-primary to-blue-600 text-white shadow-md'
+                    : 'text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface'
                 }`}
               >
                 <FolderPlus className="w-4 h-4" />
                 <span>Categories</span>
                 <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
-                  productSubTab === 'categories' ? 'bg-white/20 text-white' : 'bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border'
+                  productSubTab === 'categories' ? 'bg-white/20 text-white' : 'bg-zenov-surface text-zenov-text-muted border border-zenov-border'
                 }`}>
                   {categories.length}
                 </span>
@@ -1168,14 +1158,14 @@ export default function AdminDashboardPage() {
                 }}
                 className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all whitespace-nowrap ${
                   productSubTab === 'units'
-                    ? 'bg-gradient-to-r from-zenvo-accent to-orange-500 text-zenvo-bg shadow-md'
-                    : 'text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                    ? 'bg-gradient-to-r from-zenov-accent to-orange-500 text-zenov-bg shadow-md'
+                    : 'text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface'
                 }`}
               >
                 <Zap className="w-4 h-4" />
                 <span>Units & Variants</span>
                 <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
-                  productSubTab === 'units' ? 'bg-black/20 text-zenvo-bg' : 'bg-zenvo-surface text-zenvo-text-muted border border-zenvo-border'
+                  productSubTab === 'units' ? 'bg-black/20 text-zenov-bg' : 'bg-zenov-surface text-zenov-text-muted border border-zenov-border'
                 }`}>
                   {units.length}
                 </span>
@@ -1192,21 +1182,21 @@ export default function AdminDashboardPage() {
             {productSubTab === 'products' && (
               <div className="space-y-4">
                 {(isAddingProduct || editingProduct) ? (
-                  <form onSubmit={handleSaveProduct} className="rounded-2xl p-5 sm:p-6 bg-zenvo-card border border-zenvo-primary-border/40 shadow-2xl space-y-5">
-                    <div className="flex items-center justify-between border-b border-zenvo-border pb-3">
+                  <form onSubmit={handleSaveProduct} className="rounded-2xl p-5 sm:p-6 bg-zenov-card border border-zenov-primary-border/40 shadow-2xl space-y-5">
+                    <div className="flex items-center justify-between border-b border-zenov-border pb-3">
                       <div>
-                        <h3 className="text-sm font-black uppercase text-zenvo-primary flex items-center gap-2">
+                        <h3 className="text-sm font-black uppercase text-zenov-primary flex items-center gap-2">
                           <Package className="w-4 h-4" />
                           {editingProduct ? `Edit SKU Product: ${editingProduct.title}` : 'Create New SKU Product'}
                         </h3>
-                        <p className="text-[11px] text-zenvo-text-muted mt-0.5">
+                        <p className="text-[11px] text-zenov-text-muted mt-0.5">
                           Set up catalog attributes, drag-and-drop imagery, and customizable package denominations.
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => { setEditingProduct(null); setIsAddingProduct(false); }}
-                        className="p-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-zenvo-text-muted hover:text-white"
+                        className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-white"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -1214,7 +1204,7 @@ export default function AdminDashboardPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                           Product Title *
                         </label>
                         <input
@@ -1222,19 +1212,19 @@ export default function AdminDashboardPage() {
                           defaultValue={editingProduct?.title || ''}
                           placeholder="e.g. Free Fire Diamonds / PUBG Mobile UC"
                           required
-                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text font-semibold focus:outline-none focus:border-zenvo-primary-border"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text font-semibold focus:outline-none focus:border-zenov-primary-border"
                         />
                       </div>
 
                       <div>
                         <div className="flex justify-between items-center mb-1">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted">
                             Category *
                           </label>
                           <button
                             type="button"
                             onClick={() => setProductSubTab('categories')}
-                            className="text-[9px] font-bold text-zenvo-primary hover:underline"
+                            className="text-[9px] font-bold text-zenov-primary hover:underline"
                           >
                             + Manage
                           </button>
@@ -1242,7 +1232,7 @@ export default function AdminDashboardPage() {
                         <select
                           name="category"
                           defaultValue={editingProduct?.category || categories[0]?.slug || 'game-topup'}
-                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border font-medium"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border font-medium"
                         >
                           {categories.map((cat) => (
                             <option key={cat.id} value={cat.slug}>
@@ -1254,13 +1244,13 @@ export default function AdminDashboardPage() {
 
                       <div>
                         <div className="flex justify-between items-center mb-1">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted">
                             Denomination Unit Type
                           </label>
                           <button
                             type="button"
                             onClick={() => setProductSubTab('units')}
-                            className="text-[9px] font-bold text-zenvo-accent hover:underline"
+                            className="text-[9px] font-bold text-zenov-accent hover:underline"
                           >
                             + Manage
                           </button>
@@ -1268,7 +1258,7 @@ export default function AdminDashboardPage() {
                         <select
                           name="unitId"
                           defaultValue={editingProduct?.unitId || units[0]?.id || ''}
-                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border font-medium"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border font-medium"
                         >
                           {units.map((u) => (
                             <option key={u.id} value={u.id}>
@@ -1279,37 +1269,37 @@ export default function AdminDashboardPage() {
                       </div>
 
                       <div>
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                           Publisher / Brand
                         </label>
                         <input
                           name="publisher"
                           defaultValue={editingProduct?.publisher || ''}
                           placeholder="e.g. Garena / Krafton / Valve / Apple"
-                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                           Region / Availability
                         </label>
                         <input
                           name="region"
                           defaultValue={editingProduct?.region || 'Global'}
                           placeholder="e.g. Global / Bangladesh / US / Asia"
-                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                           Fulfillment Delivery Speed
                         </label>
                         <select
                           name="deliveryType"
                           defaultValue={editingProduct?.deliveryType || 'Instant'}
-                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none"
                         >
                           <option value="Instant">Instant (Automated ≤30s)</option>
                           <option value="Manual (5-10 min)">Manual Dispatch (5-10m)</option>
@@ -1318,14 +1308,14 @@ export default function AdminDashboardPage() {
                       </div>
 
                       <div className="sm:col-span-2 lg:col-span-3">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                           User Checkout Input Label
                         </label>
                         <input
                           name="playerIdLabel"
                           defaultValue={editingProduct?.playerIdLabel || 'Player ID / Email'}
                           placeholder="e.g. Player ID / UID or Character ID & Zone ID or Email Address"
-                          className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                          className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none"
                         />
                       </div>
                     </div>
@@ -1340,14 +1330,14 @@ export default function AdminDashboardPage() {
                     </div>
 
                     {/* Stock & Highlights Switches */}
-                    <div className="flex gap-4 items-center pt-2 pb-1 flex-wrap bg-zenvo-surface/40 p-3 rounded-xl border border-zenvo-border/60">
-                      <label className="flex items-center gap-2 text-xs text-zenvo-text font-bold cursor-pointer select-none">
+                    <div className="flex gap-4 items-center pt-2 pb-1 flex-wrap bg-zenov-surface/40 p-3 rounded-xl border border-zenov-border/60">
+                      <label className="flex items-center gap-2 text-xs text-zenov-text font-bold cursor-pointer select-none">
                         <input
                           type="checkbox"
                           name="inStock"
                           value="true"
                           defaultChecked={editingProduct ? editingProduct.inStock : true}
-                          className="rounded accent-zenvo-primary w-4 h-4"
+                          className="rounded accent-zenov-primary w-4 h-4"
                         />
                         In Stock (Available for Purchase)
                       </label>
@@ -1383,7 +1373,7 @@ export default function AdminDashboardPage() {
                     {/* Description and Delivery Guide */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                       <div>
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                           Product Description
                         </label>
                         <textarea
@@ -1391,11 +1381,11 @@ export default function AdminDashboardPage() {
                           defaultValue={editingProduct?.description || ''}
                           rows={3}
                           placeholder="Full product overview, redeem terms, and item details..."
-                          className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                          className="w-full px-4 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                           Instructions / Delivery Guide
                         </label>
                         <textarea
@@ -1403,13 +1393,13 @@ export default function AdminDashboardPage() {
                           defaultValue={editingProduct?.instructions || ''}
                           rows={3}
                           placeholder="Customer instructions on how to receive or redeem the top-up..."
-                          className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                          className="w-full px-4 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                         Steps to Find Player ID (1 Step per line)
                       </label>
                       <textarea
@@ -1417,33 +1407,33 @@ export default function AdminDashboardPage() {
                         rows={2}
                         defaultValue={editingProduct?.howToFindPlayerId ? editingProduct.howToFindPlayerId.join('\n') : 'Open the game on your mobile device\nTap your avatar in top left corner to view Player ID\nEnter your UID in the box to checkout'}
                         placeholder="Step 1: Open game profile\nStep 2: Copy your Player UID"
-                        className="w-full px-4 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none font-mono"
+                        className="w-full px-4 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none font-mono"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                         Search Keywords & Tags (Comma-separated)
                       </label>
                       <input
                         name="tags"
                         defaultValue={editingProduct?.tags ? editingProduct.tags.join(', ') : ''}
                         placeholder="e.g. Free Fire, Diamond, Topup, Garena, BD Topup"
-                        className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none"
+                        className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none"
                       />
                     </div>
 
-                    <div className="flex gap-2 pt-3 border-t border-zenvo-border">
+                    <div className="flex gap-2 pt-3 border-t border-zenov-border">
                       <button
                         type="submit"
-                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-zenvo-primary to-blue-600 text-white text-xs font-black uppercase tracking-wide hover:brightness-110 active:scale-95 shadow-md transition-all"
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-zenov-primary to-blue-600 text-white text-xs font-black uppercase tracking-wide hover:brightness-110 active:scale-95 shadow-md transition-all"
                       >
                         {editingProduct ? 'Save Changes' : 'Publish Product'}
                       </button>
                       <button
                         type="button"
                         onClick={() => { setEditingProduct(null); setIsAddingProduct(false); }}
-                        className="px-5 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-bold text-zenvo-text-secondary hover:text-zenvo-text transition-colors"
+                        className="px-5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs font-bold text-zenov-text-secondary hover:text-zenov-text transition-colors"
                       >
                         Cancel
                       </button>
@@ -1452,28 +1442,28 @@ export default function AdminDashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border focus-within:border-zenvo-primary-border">
-                        <Search className="w-[18px] h-[18px] text-zenvo-text-muted shrink-0" />
+                      <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenov-card border border-zenov-border focus-within:border-zenov-primary-border">
+                        <Search className="w-[18px] h-[18px] text-zenov-text-muted shrink-0" />
                         <input
                           value={searchProd}
                           onChange={(e) => setSearchProd(e.target.value)}
                           placeholder="Search SKU inventories..."
-                          className="w-full min-w-0 bg-transparent text-sm text-zenvo-text focus:outline-none"
+                          className="w-full min-w-0 bg-transparent text-sm text-zenov-text focus:outline-none"
                         />
                       </div>
                       <button
                         onClick={() => setIsAddingProduct(true)}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenvo-accent to-orange-500 text-zenvo-bg text-sm font-black uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 shadow-md"
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenov-accent to-orange-500 text-zenov-bg text-sm font-black uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 shadow-md"
                       >
                         <Plus className="w-[18px] h-[18px]" /> Create SKU
                       </button>
                     </div>
 
                 {/* Products Table (Desktop View) */}
-                <div className="hidden md:block rounded-2xl overflow-hidden bg-zenvo-card border border-zenvo-border">
+                <div className="hidden md:block rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border">
                   <table className="w-full text-sm text-left">
                     <thead>
-                      <tr className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted bg-zenvo-surface/70 border-b border-zenvo-border">
+                      <tr className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted bg-zenov-surface/70 border-b border-zenov-border">
                         <th className="p-4">SKU Product</th>
                         <th className="p-4 hidden lg:table-cell">Category</th>
                         <th className="p-4">Stock Status</th>
@@ -1481,41 +1471,41 @@ export default function AdminDashboardPage() {
                         <th className="p-4 text-right w-[110px]">Operations</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zenvo-border/40">
+                    <tbody className="divide-y divide-zenov-border/40">
                       {filteredProducts.map((p) => (
-                        <tr key={p.id} className="hover:bg-zenvo-surface/30 transition-colors">
+                        <tr key={p.id} className="hover:bg-zenov-surface/30 transition-colors">
                           <td className="p-4 flex items-center gap-3">
-                            <img src={p.image} className="w-10 h-10 rounded-lg object-cover bg-zenvo-surface border border-zenvo-border" alt="" />
+                            <img src={p.image} className="w-10 h-10 rounded-lg object-cover bg-zenov-surface border border-zenov-border" alt="" />
                             <div className="min-w-0">
-                              <p className="font-bold text-zenvo-text truncate">{p.title}</p>
-                              <p className="text-[10px] text-zenvo-text-muted">ID: {p.id}</p>
+                              <p className="font-bold text-zenov-text truncate">{p.title}</p>
+                              <p className="text-[10px] text-zenov-text-muted">ID: {p.id}</p>
                             </div>
                           </td>
                           <td className="p-4 hidden lg:table-cell">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-zenvo-primary-soft text-zenvo-primary border border-zenvo-primary-border/20">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-zenov-primary-soft text-zenov-primary border border-zenov-primary-border/20">
                               {p.category.replace('-', ' ')}
                             </span>
                           </td>
                           <td className="p-4">
                             {p.inStock ? (
-                              <span className="text-[11px] font-bold text-zenvo-success flex items-center gap-1">
+                              <span className="text-[11px] font-bold text-zenov-success flex items-center gap-1">
                                 <CheckCircle2 className="w-3.5 h-3.5" /> In-Stock
                               </span>
                             ) : (
-                              <span className="text-[11px] font-bold text-zenvo-error flex items-center gap-1">
+                              <span className="text-[11px] font-bold text-zenov-error flex items-center gap-1">
                                 <AlertTriangle className="w-3.5 h-3.5" /> Out-of-Stock
                               </span>
                             )}
                           </td>
-                          <td className="p-4 text-right font-black font-mono text-zenvo-primary text-sm">
+                          <td className="p-4 text-right font-black font-mono text-zenov-primary text-sm">
                             {formatCurrency(p.denominations?.[0]?.amount || 0, selectedCurrency)}
                           </td>
                           <td className="p-4 text-right">
                             <div className="inline-flex gap-1">
-                              <button onClick={() => setEditingProduct(p)} className="p-1.5 rounded-lg bg-zenvo-surface hover:bg-zenvo-primary hover:text-white border border-zenvo-border transition-colors">
+                              <button onClick={() => setEditingProduct(p)} className="p-1.5 rounded-lg bg-zenov-surface hover:bg-zenov-primary hover:text-white border border-zenov-border transition-colors">
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
-                              <button onClick={() => deleteProduct(p.id)} className="p-1.5 rounded-lg bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white border border-zenvo-error/20 text-zenvo-error transition-all">
+                              <button onClick={() => deleteProduct(p.id)} className="p-1.5 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white border border-zenov-error/20 text-zenov-error transition-all">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -1529,37 +1519,37 @@ export default function AdminDashboardPage() {
                 {/* Products Cards (Mobile View) */}
                 <div className="grid grid-cols-1 gap-3.5 md:hidden">
                   {filteredProducts.map((p) => (
-                    <div key={p.id} className="p-4 rounded-2xl bg-zenvo-card border border-zenvo-border flex flex-col gap-3">
+                    <div key={p.id} className="p-4 rounded-2xl bg-zenov-card border border-zenov-border flex flex-col gap-3">
                       <div className="flex items-center gap-3">
-                        <img src={p.image} className="w-12 h-12 rounded-xl object-cover border border-zenvo-border" alt="" />
+                        <img src={p.image} className="w-12 h-12 rounded-xl object-cover border border-zenov-border" alt="" />
                         <div className="min-w-0 flex-1">
-                          <p className="font-bold text-zenvo-text text-sm truncate leading-snug">{p.title}</p>
-                          <p className="text-[10px] text-zenvo-text-muted mt-0.5">ID: {p.id}</p>
-                          <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-zenvo-primary-soft text-zenvo-primary border border-zenvo-primary-border/20">
+                          <p className="font-bold text-zenov-text text-sm truncate leading-snug">{p.title}</p>
+                          <p className="text-[10px] text-zenov-text-muted mt-0.5">ID: {p.id}</p>
+                          <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-zenov-primary-soft text-zenov-primary border border-zenov-primary-border/20">
                             {p.category.replace('-', ' ')}
                           </span>
                         </div>
                         <div className="text-right">
-                          <p className="text-[9px] text-zenvo-text-muted uppercase">Base Price</p>
-                          <p className="font-mono font-black text-zenvo-primary text-sm mt-0.5">
+                          <p className="text-[9px] text-zenov-text-muted uppercase">Base Price</p>
+                          <p className="font-mono font-black text-zenov-primary text-sm mt-0.5">
                             {formatCurrency(p.denominations?.[0]?.amount || 0, selectedCurrency)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between border-t border-zenvo-border/40 pt-2.5 mt-0.5">
+                      <div className="flex items-center justify-between border-t border-zenov-border/40 pt-2.5 mt-0.5">
                         <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold flex items-center gap-1 ${p.inStock ? 'text-zenvo-success' : 'text-zenvo-error'}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${p.inStock ? 'bg-zenvo-success animate-pulse' : 'bg-zenvo-error'}`} />
+                          <span className={`text-[10px] font-bold flex items-center gap-1 ${p.inStock ? 'text-zenov-success' : 'text-zenov-error'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${p.inStock ? 'bg-zenov-success animate-pulse' : 'bg-zenov-error'}`} />
                             {p.inStock ? 'In Stock' : 'Out'}
                           </span>
-                          {p.isHot && <span className="px-1.5 py-0.2 rounded bg-zenvo-accent-soft text-zenvo-accent text-[8px] font-bold uppercase border border-zenvo-accent-border/20">Hot</span>}
+                          {p.isHot && <span className="px-1.5 py-0.2 rounded bg-zenov-accent-soft text-zenov-accent text-[8px] font-bold uppercase border border-zenov-accent-border/20">Hot</span>}
                           {p.isNew && <span className="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 text-[8px] font-bold uppercase border border-blue-500/20">New</span>}
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <button onClick={() => setEditingProduct(p)} className="p-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-primary hover:border-zenvo-primary-border transition-colors">
+                          <button onClick={() => setEditingProduct(p)} className="p-2 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:border-zenov-primary-border transition-colors">
                             <Edit className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => deleteProduct(p.id)} className="p-2 rounded-xl bg-zenvo-error-soft/30 border border-zenvo-error/20 text-zenvo-error hover:bg-zenvo-error hover:text-white transition-all">
+                          <button onClick={() => deleteProduct(p.id)} className="p-2 rounded-xl bg-zenov-error-soft/30 border border-zenov-error/20 text-zenov-error hover:bg-zenov-error hover:text-white transition-all">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -1578,13 +1568,13 @@ export default function AdminDashboardPage() {
         {activeTab === 'orders' && (
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border focus-within:border-zenvo-primary-border">
-                <Search className="w-[18px] h-[18px] text-zenvo-text-muted shrink-0" />
+              <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenov-card border border-zenov-border focus-within:border-zenov-primary-border">
+                <Search className="w-[18px] h-[18px] text-zenov-text-muted shrink-0" />
                 <input
                   value={searchOrder}
                   onChange={(e) => setSearchOrder(e.target.value)}
                   placeholder="Search orders by TrxID, Player ID, order number, or phone..."
-                  className="w-full min-w-0 bg-transparent text-sm text-zenvo-text focus:outline-none"
+                  className="w-full min-w-0 bg-transparent text-sm text-zenov-text focus:outline-none"
                 />
               </div>
               <div className="flex gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
@@ -1594,8 +1584,8 @@ export default function AdminDashboardPage() {
                     onClick={() => setOrderFilter(st as any)}
                     className={`px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase transition-all whitespace-nowrap ${
                       orderFilter === st
-                        ? 'bg-zenvo-primary text-white border border-zenvo-primary shadow-sm'
-                        : 'bg-zenvo-card border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-text hover:bg-zenvo-surface'
+                        ? 'bg-zenov-primary text-white border border-zenov-primary shadow-sm'
+                        : 'bg-zenov-card border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface'
                     }`}
                   >
                     {st}
@@ -1605,10 +1595,10 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Orders Table (Desktop View) */}
-            <div className="hidden md:block rounded-2xl overflow-hidden bg-zenvo-card border border-zenvo-border shadow-xl">
+            <div className="hidden md:block rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border shadow-xl">
               <table className="w-full text-sm text-left">
                 <thead>
-                  <tr className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted bg-zenvo-surface/70 border-b border-zenvo-border">
+                  <tr className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted bg-zenov-surface/70 border-b border-zenov-border">
                     <th className="p-4">Order & Customer</th>
                     <th className="p-4">UID / Destination</th>
                     <th className="p-4">Product & Package</th>
@@ -1618,30 +1608,30 @@ export default function AdminDashboardPage() {
                     <th className="p-4 text-right">Verification & Control</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zenvo-border/40">
+                <tbody className="divide-y divide-zenov-border/40">
                   {filteredOrders.map((o) => (
-                    <tr key={o.id} className="hover:bg-zenvo-surface/30 transition-colors">
+                    <tr key={o.id} className="hover:bg-zenov-surface/30 transition-colors">
                       <td className="p-4">
-                        <div className="font-bold text-zenvo-text font-mono text-sm">{o.orderNumber}</div>
-                        <div className="text-[10px] text-zenvo-text-muted mt-0.5">{o.createdAt}</div>
-                        <div className="text-xs font-semibold text-zenvo-text mt-1">{o.customerName || 'Gamer'}</div>
-                        <div className="text-[10px] text-zenvo-primary mt-0.5">{o.userEmail}</div>
+                        <div className="font-bold text-zenov-text font-mono text-sm">{o.orderNumber}</div>
+                        <div className="text-[10px] text-zenov-text-muted mt-0.5">{o.createdAt}</div>
+                        <div className="text-xs font-semibold text-zenov-text mt-1">{o.customerName || 'Gamer'}</div>
+                        <div className="text-[10px] text-zenov-primary mt-0.5">{o.userEmail}</div>
                         {o.customerPhone && (
                           <div className="text-[10px] text-emerald-400 font-mono mt-0.5">📞 {o.customerPhone}</div>
                         )}
                       </td>
-                      <td className="p-4 font-mono text-xs text-zenvo-text-secondary">
-                        <span className="px-2 py-1 rounded bg-zenvo-surface border border-zenvo-border">
+                      <td className="p-4 font-mono text-xs text-zenov-text-secondary">
+                        <span className="px-2 py-1 rounded bg-zenov-surface border border-zenov-border">
                           {o.playerId}
                         </span>
-                        {o.serverId && <p className="text-[10px] text-zenvo-text-muted mt-1">Server: {o.serverId}</p>}
+                        {o.serverId && <p className="text-[10px] text-zenov-text-muted mt-1">Server: {o.serverId}</p>}
                       </td>
                       <td className="p-4">
-                        <p className="font-bold text-zenvo-text text-xs leading-snug">{o.items[0]?.productTitle}</p>
-                        <p className="text-[10px] text-zenvo-text-secondary leading-snug">{o.items[0]?.denomination.name} (Qty {o.items[0]?.quantity})</p>
+                        <p className="font-bold text-zenov-text text-xs leading-snug">{o.items[0]?.productTitle}</p>
+                        <p className="text-[10px] text-zenov-text-secondary leading-snug">{o.items[0]?.denomination.name} (Qty {o.items[0]?.quantity})</p>
                       </td>
                       <td className="p-4">
-                        <p className="text-xs font-bold text-zenvo-text">{o.paymentMethod}</p>
+                        <p className="text-xs font-bold text-zenov-text">{o.paymentMethod}</p>
                         {o.senderNumber && (
                           <p className="text-[10px] font-mono text-amber-400 mt-0.5">
                             Sender: <span className="font-bold">{o.senderNumber}</span>
@@ -1653,18 +1643,18 @@ export default function AdminDashboardPage() {
                           </div>
                         )}
                       </td>
-                      <td className="p-4 text-right font-black font-mono text-sm text-zenvo-success">
+                      <td className="p-4 text-right font-black font-mono text-sm text-zenov-success">
                         {formatCurrency(o.totalUSD, o.currency as any)}
                       </td>
                       <td className="p-4 text-center">
                         <span className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold border uppercase tracking-wider ${
                           o.fulfillmentStatus === 'Delivered'
-                            ? 'bg-zenvo-success-soft text-zenvo-success border-zenvo-success/20'
+                            ? 'bg-zenov-success-soft text-zenov-success border-zenov-success/20'
                             : o.fulfillmentStatus === 'Pending Verification'
                               ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 animate-pulse'
                               : o.fulfillmentStatus === 'Processing'
-                                ? 'bg-zenvo-warning-soft text-zenvo-warning border-zenvo-warning/20'
-                                : 'bg-zenvo-error-soft text-zenvo-error border-zenvo-error/20'
+                                ? 'bg-zenov-warning-soft text-zenov-warning border-zenov-warning/20'
+                                : 'bg-zenov-error-soft text-zenov-error border-zenov-error/20'
                         }`}>
                           {o.fulfillmentStatus}
                         </span>
@@ -1682,7 +1672,7 @@ export default function AdminDashboardPage() {
                           {o.fulfillmentStatus !== 'Refunded' && (
                             <button
                               onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
-                              className="px-2.5 py-1 rounded-lg bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white border border-zenvo-error/20 text-zenvo-error font-semibold text-[10px] uppercase transition-all"
+                              className="px-2.5 py-1 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white border border-zenov-error/20 text-zenov-error font-semibold text-[10px] uppercase transition-all"
                             >
                               Reject / Refund
                             </button>
@@ -1698,61 +1688,61 @@ export default function AdminDashboardPage() {
             {/* Orders Cards (Mobile View) */}
             <div className="grid grid-cols-1 gap-3.5 md:hidden">
               {filteredOrders.map((o) => (
-                <div key={o.id} className="p-4 rounded-2xl bg-zenvo-card border border-zenvo-border flex flex-col gap-3 shadow-lg">
+                <div key={o.id} className="p-4 rounded-2xl bg-zenov-card border border-zenov-border flex flex-col gap-3 shadow-lg">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="font-mono text-xs font-bold text-zenvo-primary">{o.orderNumber}</span>
-                      <p className="text-[10px] text-zenvo-text-muted mt-0.5">{o.createdAt}</p>
+                      <span className="font-mono text-xs font-bold text-zenov-primary">{o.orderNumber}</span>
+                      <p className="text-[10px] text-zenov-text-muted mt-0.5">{o.createdAt}</p>
                     </div>
                     <span className={`px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
                       o.fulfillmentStatus === 'Delivered'
-                        ? 'bg-zenvo-success-soft text-zenvo-success border-zenvo-success/20'
+                        ? 'bg-zenov-success-soft text-zenov-success border-zenov-success/20'
                         : o.fulfillmentStatus === 'Pending Verification'
                           ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-                          : 'bg-zenvo-warning-soft text-zenvo-warning border-zenvo-warning/20'
+                          : 'bg-zenov-warning-soft text-zenov-warning border-zenov-warning/20'
                     }`}>
                       {o.fulfillmentStatus}
                     </span>
                   </div>
 
-                  <div className="bg-zenvo-surface/40 p-3 rounded-xl space-y-1.5 text-xs border border-zenvo-border/30">
+                  <div className="bg-zenov-surface/40 p-3 rounded-xl space-y-1.5 text-xs border border-zenov-border/30">
                     <div className="flex justify-between">
-                      <span className="text-zenvo-text-muted">Client:</span>
-                      <span className="text-zenvo-text font-medium">{o.customerName || 'Gamer'} ({o.userEmail})</span>
+                      <span className="text-zenov-text-muted">Client:</span>
+                      <span className="text-zenov-text font-medium">{o.customerName || 'Gamer'} ({o.userEmail})</span>
                     </div>
                     {o.customerPhone && (
                       <div className="flex justify-between">
-                        <span className="text-zenvo-text-muted">Phone:</span>
+                        <span className="text-zenov-text-muted">Phone:</span>
                         <span className="font-mono text-emerald-400 font-bold">{o.customerPhone}</span>
                       </div>
                     )}
                     <div className="flex justify-between">
-                      <span className="text-zenvo-text-muted">Destination:</span>
-                      <span className="font-mono text-zenvo-text font-bold">{o.playerId}</span>
+                      <span className="text-zenov-text-muted">Destination:</span>
+                      <span className="font-mono text-zenov-text font-bold">{o.playerId}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zenvo-text-muted">Product:</span>
-                      <span className="text-zenvo-text text-right font-bold">{o.items[0]?.productTitle}</span>
+                      <span className="text-zenov-text-muted">Product:</span>
+                      <span className="text-zenov-text text-right font-bold">{o.items[0]?.productTitle}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zenvo-text-muted">Gateway:</span>
-                      <span className="text-zenvo-text font-bold">{o.paymentMethod}</span>
+                      <span className="text-zenov-text-muted">Gateway:</span>
+                      <span className="text-zenov-text font-bold">{o.paymentMethod}</span>
                     </div>
                     {o.senderNumber && (
                       <div className="flex justify-between">
-                        <span className="text-zenvo-text-muted">Sender Num:</span>
+                        <span className="text-zenov-text-muted">Sender Num:</span>
                         <span className="font-mono text-amber-400 font-bold">{o.senderNumber}</span>
                       </div>
                     )}
                     {o.transactionId && (
                       <div className="flex justify-between">
-                        <span className="text-zenvo-text-muted">TrxID:</span>
+                        <span className="text-zenov-text-muted">TrxID:</span>
                         <span className="font-mono text-sky-400 font-black">{o.transactionId}</span>
                       </div>
                     )}
-                    <div className="flex justify-between border-t border-zenvo-border/30 pt-1.5 mt-1.5 text-zenvo-text">
+                    <div className="flex justify-between border-t border-zenov-border/30 pt-1.5 mt-1.5 text-zenov-text">
                       <span>Total Amount:</span>
-                      <span className="font-black font-mono text-zenvo-success">{formatCurrency(o.totalUSD, o.currency as any)}</span>
+                      <span className="font-black font-mono text-zenov-success">{formatCurrency(o.totalUSD, o.currency as any)}</span>
                     </div>
                   </div>
 
@@ -1768,7 +1758,7 @@ export default function AdminDashboardPage() {
                     {o.fulfillmentStatus !== 'Refunded' && (
                       <button
                         onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
-                        className="px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-error/40 text-zenvo-error font-bold text-xs uppercase transition-all"
+                        className="px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-error/40 text-zenov-error font-bold text-xs uppercase transition-all"
                       >
                         Reject
                       </button>
@@ -1785,39 +1775,39 @@ export default function AdminDashboardPage() {
         {activeTab === 'users' && (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border focus-within:border-zenvo-primary-border">
-                <Search className="w-[18px] h-[18px] text-zenvo-text-muted shrink-0" />
+              <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenov-card border border-zenov-border focus-within:border-zenov-primary-border">
+                <Search className="w-[18px] h-[18px] text-zenov-text-muted shrink-0" />
                 <input
                   value={searchUser}
                   onChange={(e) => setSearchUser(e.target.value)}
                   placeholder="Search registered gamers by name, email, VIP tiers..."
-                  className="w-full min-w-0 bg-transparent text-sm text-zenvo-text focus:outline-none"
+                  className="w-full min-w-0 bg-transparent text-sm text-zenov-text focus:outline-none"
                 />
               </div>
             </div>
 
             {editingUser && (
-              <form onSubmit={handleSaveUser} className="rounded-2xl p-5 sm:p-6 bg-zenvo-card border border-zenvo-accent-border/30 space-y-4 max-w-xl">
-                <h4 className="text-sm font-black uppercase text-zenvo-accent">Edit Gamer Account Details</h4>
+              <form onSubmit={handleSaveUser} className="rounded-2xl p-5 sm:p-6 bg-zenov-card border border-zenov-accent-border/30 space-y-4 max-w-xl">
+                <h4 className="text-sm font-black uppercase text-zenov-accent">Edit Gamer Account Details</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Gamer Name</label>
-                    <input name="name" defaultValue={editingUser.name} required className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">Gamer Name</label>
+                    <input name="name" defaultValue={editingUser.name} required className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">E-mail Address</label>
-                    <input name="email" type="email" defaultValue={editingUser.email} required className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">E-mail Address</label>
+                    <input name="email" type="email" defaultValue={editingUser.email} required className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Access Role</label>
-                    <select name="role" defaultValue={editingUser.role} className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">Access Role</label>
+                    <select name="role" defaultValue={editingUser.role} className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none">
                       <option value="user">User Role</option>
                       <option value="admin">Administrator Root</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">VIP Club Rank</label>
-                    <select name="vipTier" defaultValue={editingUser.vipTier} className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">VIP Club Rank</label>
+                    <select name="vipTier" defaultValue={editingUser.vipTier} className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none">
                       <option value="Bronze">Bronze (Tier 1)</option>
                       <option value="Silver">Silver (Tier 2)</option>
                       <option value="Gold">Gold (Tier 3)</option>
@@ -1826,10 +1816,10 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button type="submit" className="px-5 py-2.5 rounded-xl bg-zenvo-accent text-zenvo-bg text-xs font-bold uppercase hover:brightness-110">
+                  <button type="submit" className="px-5 py-2.5 rounded-xl bg-zenov-accent text-zenov-bg text-xs font-bold uppercase hover:brightness-110">
                     Save Account
                   </button>
-                  <button type="button" onClick={() => setEditingUser(null)} className="px-5 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-bold text-zenvo-text-secondary hover:text-zenvo-text">
+                  <button type="button" onClick={() => setEditingUser(null)} className="px-5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs font-bold text-zenov-text-secondary hover:text-zenov-text">
                     Cancel
                   </button>
                 </div>
@@ -1837,30 +1827,30 @@ export default function AdminDashboardPage() {
             )}
 
             {walletAdjustUser && (
-              <form onSubmit={handleWalletAdjustSubmit} className="rounded-2xl p-5 sm:p-6 bg-zenvo-card border border-zenvo-primary-border/30 space-y-4 max-w-xl">
-                <h4 className="text-sm font-black uppercase text-zenvo-primary">Adjust Wallet Float: {walletAdjustUser.name}</h4>
+              <form onSubmit={handleWalletAdjustSubmit} className="rounded-2xl p-5 sm:p-6 bg-zenov-card border border-zenov-primary-border/30 space-y-4 max-w-xl">
+                <h4 className="text-sm font-black uppercase text-zenov-primary">Adjust Wallet Float: {walletAdjustUser.name}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Type of operation</label>
-                    <select value={walletType} onChange={(e: any) => setWalletType(e.target.value)} className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">Type of operation</label>
+                    <select value={walletType} onChange={(e: any) => setWalletType(e.target.value)} className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none">
                       <option value="deposit">Deposit (Load balance)</option>
                       <option value="deduction">Deduction (Debit balance)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Amount to adjust (USD)</label>
-                    <input type="number" step="0.01" value={walletAmount} onChange={(e) => setWalletAmount(e.target.value)} required placeholder="e.g. 50.00" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">Amount to adjust (USD)</label>
+                    <input type="number" step="0.01" value={walletAmount} onChange={(e) => setWalletAmount(e.target.value)} required placeholder="e.g. 50.00" className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted block mb-1">Operation Memo / Reference Note</label>
-                  <input value={walletRef} onChange={(e) => setWalletRef(e.target.value)} placeholder="e.g. Admin reward credits" className="w-full px-3 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none" />
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">Operation Memo / Reference Note</label>
+                  <input value={walletRef} onChange={(e) => setWalletRef(e.target.value)} placeholder="e.g. Admin reward credits" className="w-full px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none" />
                 </div>
                 <div className="flex gap-2">
-                  <button type="submit" className="px-5 py-2.5 rounded-xl bg-zenvo-primary text-white text-xs font-bold uppercase hover:brightness-110">
+                  <button type="submit" className="px-5 py-2.5 rounded-xl bg-zenov-primary text-white text-xs font-bold uppercase hover:brightness-110">
                     Submit Adjustment
                   </button>
-                  <button type="button" onClick={() => setWalletAdjustUser(null)} className="px-5 py-2.5 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-bold text-zenvo-text-secondary hover:text-zenvo-text">
+                  <button type="button" onClick={() => setWalletAdjustUser(null)} className="px-5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs font-bold text-zenov-text-secondary hover:text-zenov-text">
                     Cancel
                   </button>
                 </div>
@@ -1868,10 +1858,10 @@ export default function AdminDashboardPage() {
             )}
 
             {/* Users Table (Desktop View) */}
-            <div className="hidden md:block rounded-2xl overflow-hidden bg-zenvo-card border border-zenvo-border">
+            <div className="hidden md:block rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border">
               <table className="w-full text-sm text-left">
                 <thead>
-                  <tr className="text-[10px] font-bold uppercase tracking-wider text-zenvo-text-muted bg-zenvo-surface/70 border-b border-zenvo-border">
+                  <tr className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted bg-zenov-surface/70 border-b border-zenov-border">
                     <th className="p-4">Account Gamer</th>
                     <th className="p-4">System Role</th>
                     <th className="p-4">VIP Club Rank</th>
@@ -1879,39 +1869,39 @@ export default function AdminDashboardPage() {
                     <th className="p-4 text-right w-[180px]">Wallet & Edit control</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zenvo-border/40">
+                <tbody className="divide-y divide-zenov-border/40">
                   {filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-zenvo-surface/30">
+                    <tr key={u.id} className="hover:bg-zenov-surface/30">
                       <td className="p-4 flex items-center gap-3">
-                        <img src={u.avatar} className="w-9 h-9 rounded-full object-cover bg-zenvo-surface border border-zenvo-border" alt="" />
+                        <img src={u.avatar} className="w-9 h-9 rounded-full object-cover bg-zenov-surface border border-zenov-border" alt="" />
                         <div className="min-w-0">
-                          <p className="font-bold text-zenvo-text truncate">{u.name}</p>
-                          <p className="text-[10px] text-zenvo-text-muted truncate">{u.email}</p>
+                          <p className="font-bold text-zenov-text truncate">{u.name}</p>
+                          <p className="text-[10px] text-zenov-text-muted truncate">{u.email}</p>
                         </div>
                       </td>
                       <td className="p-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${u.role === 'admin' ? 'bg-zenvo-error-soft text-zenvo-error border border-zenvo-error/20' : 'bg-slate-500/10 text-slate-300'}`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${u.role === 'admin' ? 'bg-zenov-error-soft text-zenov-error border border-zenov-error/20' : 'bg-slate-500/10 text-slate-300'}`}>
                           {u.role}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-zenvo-accent-soft text-zenvo-accent border border-zenvo-accent-border/30">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-zenov-accent-soft text-zenov-accent border border-zenov-accent-border/30">
                           {u.vipTier}
                         </span>
                       </td>
-                      <td className="p-4 text-right font-mono font-black text-sm text-zenvo-primary">
+                      <td className="p-4 text-right font-mono font-black text-sm text-zenov-primary">
                         {formatCurrency(u.walletBalanceUSD, selectedCurrency)}
                       </td>
                       <td className="p-4 text-right">
                         <div className="inline-flex gap-1.5">
-                          <button onClick={() => setWalletAdjustUser(u)} className="px-2.5 py-1.5 rounded-lg bg-zenvo-primary-soft/30 hover:bg-zenvo-primary hover:text-white border border-zenvo-primary-border/25 text-zenvo-primary font-bold text-[10px] uppercase flex items-center gap-1 transition-all">
+                          <button onClick={() => setWalletAdjustUser(u)} className="px-2.5 py-1.5 rounded-lg bg-zenov-primary-soft/30 hover:bg-zenov-primary hover:text-white border border-zenov-primary-border/25 text-zenov-primary font-bold text-[10px] uppercase flex items-center gap-1 transition-all">
                             <Coins className="w-3 h-3" /> Ledger
                           </button>
-                          <button onClick={() => setEditingUser(u)} className="p-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-accent hover:border-zenvo-accent-border transition-colors">
+                          <button onClick={() => setEditingUser(u)} className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-accent hover:border-zenov-accent-border transition-colors">
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           {u.id !== user.id && (
-                            <button onClick={() => deleteUser(u.id)} className="p-1.5 rounded-lg bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white text-zenvo-error border border-zenvo-error/20 transition-all">
+                            <button onClick={() => deleteUser(u.id)} className="p-1.5 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white text-zenov-error border border-zenov-error/20 transition-all">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -1926,37 +1916,37 @@ export default function AdminDashboardPage() {
             {/* Users Cards (Mobile View) */}
             <div className="grid grid-cols-1 gap-3.5 md:hidden">
               {filteredUsers.map((u) => (
-                <div key={u.id} className="p-4 rounded-2xl bg-zenvo-card border border-zenvo-border flex flex-col gap-3">
+                <div key={u.id} className="p-4 rounded-2xl bg-zenov-card border border-zenov-border flex flex-col gap-3">
                   <div className="flex items-center gap-3">
-                    <img src={u.avatar} className="w-10 h-10 rounded-full object-cover border border-zenvo-border bg-zenvo-surface shrink-0" alt="" />
+                    <img src={u.avatar} className="w-10 h-10 rounded-full object-cover border border-zenov-border bg-zenov-surface shrink-0" alt="" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-zenvo-text text-sm truncate leading-none">{u.name}</p>
-                      <p className="text-[10px] text-zenvo-text-muted truncate mt-1 leading-none">{u.email}</p>
+                      <p className="font-bold text-zenov-text text-sm truncate leading-none">{u.name}</p>
+                      <p className="text-[10px] text-zenov-text-muted truncate mt-1 leading-none">{u.email}</p>
                     </div>
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${u.role === 'admin' ? 'bg-zenvo-error-soft text-zenvo-error border border-zenvo-error/20' : 'bg-slate-500/10 text-slate-300'}`}>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${u.role === 'admin' ? 'bg-zenov-error-soft text-zenov-error border border-zenov-error/20' : 'bg-slate-500/10 text-slate-300'}`}>
                       {u.role}
                     </span>
                   </div>
                   
-                  <div className="flex justify-between items-center border-t border-b border-zenvo-border/40 py-2.5 my-0.5 text-xs">
-                    <span className="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase bg-zenvo-accent-soft text-zenvo-accent border border-zenvo-accent-border/30 tracking-wider">
+                  <div className="flex justify-between items-center border-t border-b border-zenov-border/40 py-2.5 my-0.5 text-xs">
+                    <span className="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase bg-zenov-accent-soft text-zenov-accent border border-zenov-accent-border/30 tracking-wider">
                       VIP: {u.vipTier}
                     </span>
                     <div className="text-right">
-                      <span className="text-[10px] text-zenvo-text-muted">Balance: </span>
-                      <span className="font-mono font-black text-zenvo-primary text-sm">{formatCurrency(u.walletBalanceUSD, selectedCurrency)}</span>
+                      <span className="text-[10px] text-zenov-text-muted">Balance: </span>
+                      <span className="font-mono font-black text-zenov-primary text-sm">{formatCurrency(u.walletBalanceUSD, selectedCurrency)}</span>
                     </div>
                   </div>
 
                   <div className="flex justify-end gap-1.5 mt-0.5">
-                    <button onClick={() => setWalletAdjustUser(u)} className="px-3.5 py-2 rounded-xl bg-zenvo-primary-soft/40 hover:bg-zenvo-primary hover:text-white border border-zenvo-primary-border/25 text-zenvo-primary font-bold text-[10px] uppercase flex items-center justify-center gap-1.5 flex-1 transition-all">
+                    <button onClick={() => setWalletAdjustUser(u)} className="px-3.5 py-2 rounded-xl bg-zenov-primary-soft/40 hover:bg-zenov-primary hover:text-white border border-zenov-primary-border/25 text-zenov-primary font-bold text-[10px] uppercase flex items-center justify-center gap-1.5 flex-1 transition-all">
                       <Coins className="w-3.5 h-3.5" /> Adjust Balance
                     </button>
-                    <button onClick={() => setEditingUser(u)} className="p-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-accent hover:border-zenvo-accent-border transition-colors">
+                    <button onClick={() => setEditingUser(u)} className="p-2 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-accent hover:border-zenov-accent-border transition-colors">
                       <Edit className="w-3.5 h-3.5" />
                     </button>
                     {u.id !== user.id && (
-                      <button onClick={() => deleteUser(u.id)} className="p-2 rounded-xl bg-zenvo-error-soft/30 border border-zenvo-error/20 text-zenvo-error hover:bg-zenvo-error hover:text-white transition-all">
+                      <button onClick={() => deleteUser(u.id)} className="p-2 rounded-xl bg-zenov-error-soft/30 border border-zenov-error/20 text-zenov-error hover:bg-zenov-error hover:text-white transition-all">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
@@ -1971,11 +1961,11 @@ export default function AdminDashboardPage() {
         {/* CMS Tab: Hero Banners & Blogs */}
         {activeTab === 'cms' && (
           <div className="space-y-6">
-            <div className="p-1 rounded-2xl bg-zenvo-surface border border-zenvo-border inline-flex gap-1">
-              <button onClick={() => setCmsSubTab('banners')} className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all ${cmsSubTab === 'banners' ? 'bg-zenvo-card text-zenvo-primary shadow-sm border border-zenvo-border' : 'text-zenvo-text-secondary hover:text-zenvo-text'}`}>
+            <div className="p-1 rounded-2xl bg-zenov-surface border border-zenov-border inline-flex gap-1">
+              <button onClick={() => setCmsSubTab('banners')} className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all ${cmsSubTab === 'banners' ? 'bg-zenov-card text-zenov-primary shadow-sm border border-zenov-border' : 'text-zenov-text-secondary hover:text-zenov-text'}`}>
                 Homepage Banners
               </button>
-              <button onClick={() => setCmsSubTab('blogs')} className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all ${cmsSubTab === 'blogs' ? 'bg-zenvo-card text-zenvo-primary shadow-sm border border-zenvo-border' : 'text-zenvo-text-secondary hover:text-zenvo-text'}`}>
+              <button onClick={() => setCmsSubTab('blogs')} className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all ${cmsSubTab === 'blogs' ? 'bg-zenov-card text-zenov-primary shadow-sm border border-zenov-border' : 'text-zenov-text-secondary hover:text-zenov-text'}`}>
                 Blog Posts
               </button>
             </div>
@@ -1983,24 +1973,24 @@ export default function AdminDashboardPage() {
             {cmsSubTab === 'banners' && (
               <div className="space-y-4">
                 {(isAddingBanner || editingBanner) ? (
-                  <form onSubmit={handleSaveBanner} className="rounded-2xl p-5 bg-zenvo-card border border-zenvo-primary-border/20 space-y-4">
-                    <h4 className="text-sm font-black uppercase text-zenvo-primary">{editingBanner ? `Edit Carousel: ${editingBanner.title}` : '+ Add Homepage banner'}</h4>
+                  <form onSubmit={handleSaveBanner} className="rounded-2xl p-5 bg-zenov-card border border-zenov-primary-border/20 space-y-4">
+                    <h4 className="text-sm font-black uppercase text-zenov-primary">{editingBanner ? `Edit Carousel: ${editingBanner.title}` : '+ Add Homepage banner'}</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Banner Title</label>
-                        <input name="title" defaultValue={editingBanner?.title || ''} required className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="title" defaultValue={editingBanner?.title || ''} required className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Sub-title details</label>
-                        <input name="subtitle" defaultValue={editingBanner?.subtitle || ''} className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="subtitle" defaultValue={editingBanner?.subtitle || ''} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Banner Badge Tag</label>
-                        <input name="badge" defaultValue={editingBanner?.badge || 'OFFICIAL RESELLER'} className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="badge" defaultValue={editingBanner?.badge || 'OFFICIAL RESELLER'} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Gradation color theme</label>
-                        <select name="bgGradient" defaultValue={editingBanner?.bgGradient || GRADIENT_THEMES[0].value} className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs">
+                        <select name="bgGradient" defaultValue={editingBanner?.bgGradient || GRADIENT_THEMES[0].value} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs">
                           {GRADIENT_THEMES.map((theme) => (
                             <option key={theme.value} value={theme.value}>{theme.label}</option>
                           ))}
@@ -2008,47 +1998,47 @@ export default function AdminDashboardPage() {
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Link Target (Product ID)</label>
-                        <input name="gameId" defaultValue={editingBanner?.gameId || 'google-play-gift-card'} className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="gameId" defaultValue={editingBanner?.gameId || 'google-play-gift-card'} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Action CTA Button Text</label>
-                        <input name="ctaText" defaultValue={editingBanner?.ctaText || 'RECHARGE NOW'} className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="ctaText" defaultValue={editingBanner?.ctaText || 'RECHARGE NOW'} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                     </div>
                     <div>
                       <label className="text-[10px] font-bold uppercase block mb-1">Graphic URL (Unsplash/Imgur)</label>
-                      <input name="image" defaultValue={editingBanner?.image || ''} required placeholder="https://..." className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                      <input name="image" defaultValue={editingBanner?.image || ''} required placeholder="https://..." className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                     </div>
                     <div className="flex gap-2">
-                      <button type="submit" className="px-5 py-2 rounded-xl bg-zenvo-primary text-white text-xs font-bold uppercase">Save Banner</button>
-                      <button type="button" onClick={() => { setEditingBanner(null); setIsAddingBanner(false); }} className="px-5 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text-secondary">Cancel</button>
+                      <button type="submit" className="px-5 py-2 rounded-xl bg-zenov-primary text-white text-xs font-bold uppercase">Save Banner</button>
+                      <button type="button" onClick={() => { setEditingBanner(null); setIsAddingBanner(false); }} className="px-5 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text-secondary">Cancel</button>
                     </div>
                   </form>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center gap-2">
-                      <h4 className="text-xs font-black uppercase text-zenvo-text-muted">Home Carousel Cards ({heroBanners.length})</h4>
-                      <button onClick={() => setIsAddingBanner(true)} className="px-4 py-2.5 bg-zenvo-primary text-white text-xs font-bold uppercase rounded-xl flex items-center gap-1 active:scale-95 shadow-sm whitespace-nowrap">
+                      <h4 className="text-xs font-black uppercase text-zenov-text-muted">Home Carousel Cards ({heroBanners.length})</h4>
+                      <button onClick={() => setIsAddingBanner(true)} className="px-4 py-2.5 bg-zenov-primary text-white text-xs font-bold uppercase rounded-xl flex items-center gap-1 active:scale-95 shadow-sm whitespace-nowrap">
                         <Plus className="w-4 h-4" /> Add banner
                       </button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {heroBanners.map((b) => (
-                        <div key={b.id} className="rounded-2xl border border-zenvo-border bg-zenvo-card overflow-hidden flex flex-col justify-between">
+                        <div key={b.id} className="rounded-2xl border border-zenov-border bg-zenov-card overflow-hidden flex flex-col justify-between">
                           <div className="p-4 space-y-2">
                             <div className={`px-2.5 py-1 text-[10px] rounded uppercase font-bold text-center bg-gradient-to-r ${b.bgGradient} text-white`}>
                               {b.badge || 'TAG'}
                             </div>
-                            <h5 className="font-bold text-zenvo-text leading-tight text-sm uppercase">{b.title}</h5>
-                            <p className="text-xs text-zenvo-text-secondary leading-snug line-clamp-2">{b.subtitle}</p>
-                            <div className="text-[10px] text-zenvo-accent font-semibold">Targets: {b.gameId}</div>
+                            <h5 className="font-bold text-zenov-text leading-tight text-sm uppercase">{b.title}</h5>
+                            <p className="text-xs text-zenov-text-secondary leading-snug line-clamp-2">{b.subtitle}</p>
+                            <div className="text-[10px] text-zenov-accent font-semibold">Targets: {b.gameId}</div>
                           </div>
-                          <div className="p-4 border-t border-zenvo-border bg-zenvo-surface/40 flex justify-between gap-2">
-                            <button onClick={() => setEditingBanner(b)} className="px-3 py-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text-secondary hover:text-zenvo-primary flex items-center gap-1 transition-colors">
+                          <div className="p-4 border-t border-zenov-border bg-zenov-surface/40 flex justify-between gap-2">
+                            <button onClick={() => setEditingBanner(b)} className="px-3 py-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-xs text-zenov-text-secondary hover:text-zenov-primary flex items-center gap-1 transition-colors">
                               <Edit className="w-3.5 h-3.5" /> Edit
                             </button>
-                            <button onClick={() => deleteBanner(b.id)} className="px-3 py-1.5 rounded-lg bg-zenvo-error-soft/30 text-zenvo-error hover:bg-zenvo-error hover:text-white border border-zenvo-error/20 text-xs flex items-center gap-1 transition-all">
+                            <button onClick={() => deleteBanner(b.id)} className="px-3 py-1.5 rounded-lg bg-zenov-error-soft/30 text-zenov-error hover:bg-zenov-error hover:text-white border border-zenov-error/20 text-xs flex items-center gap-1 transition-all">
                               <Trash2 className="w-3.5 h-3.5" /> Remove
                             </button>
                           </div>
@@ -2063,78 +2053,78 @@ export default function AdminDashboardPage() {
             {cmsSubTab === 'blogs' && (
               <div className="space-y-4">
                 {(isAddingBlog || editingBlog) ? (
-                  <form onSubmit={handleSaveBlog} className="rounded-2xl p-5 bg-zenvo-card border border-zenvo-primary-border/20 space-y-4">
-                    <h4 className="text-sm font-black uppercase text-zenvo-primary">{editingBlog ? `Edit Blog: ${editingBlog.title}` : '+ Author New Blog Article'}</h4>
+                  <form onSubmit={handleSaveBlog} className="rounded-2xl p-5 bg-zenov-card border border-zenov-primary-border/20 space-y-4">
+                    <h4 className="text-sm font-black uppercase text-zenov-primary">{editingBlog ? `Edit Blog: ${editingBlog.title}` : '+ Author New Blog Article'}</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Article Title</label>
-                        <input name="title" defaultValue={editingBlog?.title || ''} required className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="title" defaultValue={editingBlog?.title || ''} required className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Author Name</label>
-                        <input name="author" defaultValue={editingBlog?.author || 'ZENOV Staff'} className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="author" defaultValue={editingBlog?.author || 'ZENOV Staff'} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Topic Category</label>
-                        <input name="category" defaultValue={editingBlog?.category || 'Guides'} className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="category" defaultValue={editingBlog?.category || 'Guides'} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Read Time text</label>
-                        <input name="readTime" defaultValue={editingBlog?.readTime || '3 min read'} className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="readTime" defaultValue={editingBlog?.readTime || '3 min read'} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Tags (Comma-separated)</label>
-                        <input name="tags" defaultValue={editingBlog?.tags?.join(', ') || ''} placeholder="Free Fire, Diamonds, Event" className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="tags" defaultValue={editingBlog?.tags?.join(', ') || ''} placeholder="Free Fire, Diamonds, Event" className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                       <div>
                         <label className="text-[10px] font-bold uppercase block mb-1">Image URL</label>
-                        <input name="image" defaultValue={editingBlog?.image || ''} required placeholder="https://..." className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                        <input name="image" defaultValue={editingBlog?.image || ''} required placeholder="https://..." className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                     </div>
                     <div>
                       <label className="text-[10px] font-bold uppercase block mb-1">Blog Excerpt (Brief description)</label>
-                      <input name="excerpt" defaultValue={editingBlog?.excerpt || ''} required className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                      <input name="excerpt" defaultValue={editingBlog?.excerpt || ''} required className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                     </div>
                     <div>
                       <label className="text-[10px] font-bold uppercase block mb-1">Main Article Content</label>
-                      <textarea name="content" defaultValue={editingBlog?.content || ''} rows={6} required placeholder="Write markdown content..." className="w-full px-3 py-2 bg-zenvo-surface border border-zenvo-border rounded-lg text-xs" />
+                      <textarea name="content" defaultValue={editingBlog?.content || ''} rows={6} required placeholder="Write markdown content..." className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                     </div>
                     <div className="flex gap-2">
-                      <button type="submit" className="px-5 py-2 rounded-xl bg-zenvo-primary text-white text-xs font-bold uppercase">Publish Blog</button>
-                      <button type="button" onClick={() => { setEditingBlog(null); setIsAddingBlog(false); }} className="px-5 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text-secondary">Cancel</button>
+                      <button type="submit" className="px-5 py-2 rounded-xl bg-zenov-primary text-white text-xs font-bold uppercase">Publish Blog</button>
+                      <button type="button" onClick={() => { setEditingBlog(null); setIsAddingBlog(false); }} className="px-5 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text-secondary">Cancel</button>
                     </div>
                   </form>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center gap-2">
-                      <h4 className="text-xs font-black uppercase text-zenvo-text-muted">Active Blog Articles ({blogArticles.length})</h4>
-                      <button onClick={() => setIsAddingBlog(true)} className="px-4 py-2.5 bg-zenvo-primary text-white text-xs font-bold uppercase rounded-xl flex items-center gap-1 active:scale-95 shadow-sm whitespace-nowrap">
+                      <h4 className="text-xs font-black uppercase text-zenov-text-muted">Active Blog Articles ({blogArticles.length})</h4>
+                      <button onClick={() => setIsAddingBlog(true)} className="px-4 py-2.5 bg-zenov-primary text-white text-xs font-bold uppercase rounded-xl flex items-center gap-1 active:scale-95 shadow-sm whitespace-nowrap">
                         <Plus className="w-4 h-4" /> Author Article
                       </button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {blogArticles.map((b) => (
-                        <div key={b.id} className="rounded-2xl border border-zenvo-border bg-zenvo-card overflow-hidden flex flex-col justify-between p-4 space-y-3">
+                        <div key={b.id} className="rounded-2xl border border-zenov-border bg-zenov-card overflow-hidden flex flex-col justify-between p-4 space-y-3">
                           <div className="flex items-center gap-3">
-                            <img src={b.image} className="w-12 h-12 rounded-lg object-cover border border-zenvo-border" alt="" />
+                            <img src={b.image} className="w-12 h-12 rounded-lg object-cover border border-zenov-border" alt="" />
                             <div className="min-w-0">
-                              <span className="px-2 py-0.2 rounded bg-zenvo-accent-soft text-zenvo-accent text-[9px] uppercase font-bold border border-zenvo-accent-border/30">
+                              <span className="px-2 py-0.2 rounded bg-zenov-accent-soft text-zenov-accent text-[9px] uppercase font-bold border border-zenov-accent-border/30">
                                 {b.category}
                               </span>
-                              <h5 className="font-bold text-zenvo-text leading-tight text-sm mt-1">{b.title}</h5>
+                              <h5 className="font-bold text-zenov-text leading-tight text-sm mt-1">{b.title}</h5>
                             </div>
                           </div>
-                          <p className="text-xs text-zenvo-text-secondary leading-snug line-clamp-2">{b.excerpt}</p>
-                          <div className="flex items-center justify-between text-[10px] text-zenvo-text-muted">
+                          <p className="text-xs text-zenov-text-secondary leading-snug line-clamp-2">{b.excerpt}</p>
+                          <div className="flex items-center justify-between text-[10px] text-zenov-text-muted">
                             <span>By {b.author} • {b.readTime}</span>
                             <span>{b.date}</span>
                           </div>
-                          <div className="pt-2 border-t border-zenvo-border flex justify-end gap-2">
-                            <button onClick={() => setEditingBlog(b)} className="px-3 py-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text-secondary hover:text-zenvo-primary flex items-center gap-1">
+                          <div className="pt-2 border-t border-zenov-border flex justify-end gap-2">
+                            <button onClick={() => setEditingBlog(b)} className="px-3 py-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-xs text-zenov-text-secondary hover:text-zenov-primary flex items-center gap-1">
                               <Edit className="w-3.5 h-3.5" /> Edit
                             </button>
-                            <button onClick={() => deleteBlog(b.id)} className="px-3 py-1.5 rounded-lg bg-zenvo-error-soft/30 text-zenvo-error hover:bg-zenvo-error hover:text-white border border-zenvo-error/20 text-xs flex items-center gap-1">
+                            <button onClick={() => deleteBlog(b.id)} className="px-3 py-1.5 rounded-lg bg-zenov-error-soft/30 text-zenov-error hover:bg-zenov-error hover:text-white border border-zenov-error/20 text-xs flex items-center gap-1">
                               <Trash2 className="w-3.5 h-3.5" /> Remove
                             </button>
                           </div>
@@ -2154,13 +2144,13 @@ export default function AdminDashboardPage() {
             
             {/* Left: Tickets List Panel (hidden on mobile if chat is active) */}
             <div className={`lg:col-span-2 space-y-4 ${isViewingChat ? 'hidden lg:block' : 'block'}`}>
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border">
-                <Search className="w-4 h-4 text-zenvo-text-muted shrink-0" />
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-zenov-card border border-zenov-border">
+                <Search className="w-4 h-4 text-zenov-text-muted shrink-0" />
                 <input
                   value={ticketSearch}
                   onChange={(e) => setTicketSearch(e.target.value)}
                   placeholder="Search ticket number or subject..."
-                  className="w-full bg-transparent text-xs text-zenvo-text focus:outline-none"
+                  className="w-full bg-transparent text-xs text-zenov-text focus:outline-none"
                 />
               </div>
 
@@ -2176,24 +2166,24 @@ export default function AdminDashboardPage() {
                       }}
                       className={`w-full text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-1.5 ${
                         active
-                          ? 'bg-zenvo-primary-soft/60 border-zenvo-primary-border ring-1 ring-zenvo-primary-border/30 shadow-sm'
-                          : 'bg-zenvo-card border-zenvo-border hover:border-zenvo-border-hover'
+                          ? 'bg-zenov-primary-soft/60 border-zenov-primary-border ring-1 ring-zenov-primary-border/30 shadow-sm'
+                          : 'bg-zenov-card border-zenov-border hover:border-zenov-border-hover'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-xs font-bold text-zenvo-primary">{t.ticketNumber}</span>
+                        <span className="font-mono text-xs font-bold text-zenov-primary">{t.ticketNumber}</span>
                         <span className={`px-2 py-0.2 rounded text-[9px] uppercase font-bold tracking-wide border ${
                           t.status === 'Open'
-                            ? 'bg-zenvo-primary-soft text-zenvo-primary border-zenvo-primary-border/20'
+                            ? 'bg-zenov-primary-soft text-zenov-primary border-zenov-primary-border/20'
                             : t.status === 'In Progress'
-                              ? 'bg-zenvo-warning-soft text-zenvo-warning border-zenvo-warning/20'
-                              : 'bg-zenvo-success-soft text-zenvo-success border-zenvo-success/20'
+                              ? 'bg-zenov-warning-soft text-zenov-warning border-zenov-warning/20'
+                              : 'bg-zenov-success-soft text-zenov-success border-zenov-success/20'
                         }`}>
                           {t.status}
                         </span>
                       </div>
-                      <div className="font-black text-xs text-zenvo-text truncate w-full">{t.subject}</div>
-                      <div className="flex justify-between items-center text-[10px] text-zenvo-text-muted mt-1">
+                      <div className="font-black text-xs text-zenov-text truncate w-full">{t.subject}</div>
+                      <div className="flex justify-between items-center text-[10px] text-zenov-text-muted mt-1">
                         <span>Cat: {t.category}</span>
                         <span>{t.updatedAt}</span>
                       </div>
@@ -2206,9 +2196,9 @@ export default function AdminDashboardPage() {
             {/* Right: Active Ticket Conversation Box (hidden on mobile if chat is NOT active) */}
             <div className={`lg:col-span-3 ${!isViewingChat ? 'hidden lg:block' : 'block'}`}>
               {activeTicket ? (
-                <div className="rounded-2xl border border-zenvo-border bg-zenvo-card flex flex-col h-[520px] lg:h-[560px]">
+                <div className="rounded-2xl border border-zenov-border bg-zenov-card flex flex-col h-[520px] lg:h-[560px]">
                   {/* Chat header panel */}
-                  <div className="p-4 border-b border-zenvo-border bg-zenvo-surface/50 flex items-center justify-between flex-wrap gap-3">
+                  <div className="p-4 border-b border-zenov-border bg-zenov-surface/50 flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-3">
                       {/* Back button on mobile view */}
                       <button
@@ -2216,18 +2206,18 @@ export default function AdminDashboardPage() {
                           setActiveTicketId(null);
                           setIsViewingChat(false);
                         }}
-                        className="lg:hidden p-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-zenvo-text-secondary hover:text-zenvo-primary transition-all active:scale-95"
+                        className="lg:hidden p-2 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary transition-all active:scale-95"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
                       <div>
-                        <h4 className="font-black text-sm text-zenvo-text flex items-center gap-1.5">
+                        <h4 className="font-black text-sm text-zenov-text flex items-center gap-1.5">
                           <span>{activeTicket.ticketNumber}</span>
-                          <span className="text-zenvo-text-muted font-normal">•</span>
-                          <span className="text-xs text-zenvo-text-secondary">{activeTicket.subject}</span>
+                          <span className="text-zenov-text-muted font-normal">•</span>
+                          <span className="text-xs text-zenov-text-secondary">{activeTicket.subject}</span>
                         </h4>
-                        <p className="text-[10px] text-zenvo-text-muted mt-0.5">
-                          Client: <span className="font-semibold text-zenvo-primary">{activeTicket.userEmail}</span>
+                        <p className="text-[10px] text-zenov-text-muted mt-0.5">
+                          Client: <span className="font-semibold text-zenov-primary">{activeTicket.userEmail}</span>
                         </p>
                       </div>
                     </div>
@@ -2235,7 +2225,7 @@ export default function AdminDashboardPage() {
                       <select
                         value={activeTicket.status}
                         onChange={(e) => updateTicketStatus(activeTicket.id, e.target.value as any)}
-                        className="px-2 py-1 rounded bg-zenvo-card border border-zenvo-border text-[11px] font-bold uppercase text-zenvo-text focus:outline-none"
+                        className="px-2 py-1 rounded bg-zenov-card border border-zenov-border text-[11px] font-bold uppercase text-zenov-text focus:outline-none"
                       >
                         <option value="Open">Open</option>
                         <option value="In Progress">In Progress</option>
@@ -2246,7 +2236,7 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* Messages feed */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-zenvo-surface/20">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-zenov-surface/20">
                     {activeTicket.messages.map((msg) => {
                       const isSupport = msg.sender === 'support';
                       const isAi = msg.sender === 'ai';
@@ -2255,13 +2245,13 @@ export default function AdminDashboardPage() {
                           key={msg.id}
                           className={`max-w-[85%] rounded-2xl p-3.5 text-xs space-y-1 ${
                             isSupport
-                              ? 'ml-auto bg-zenvo-primary text-white'
+                              ? 'ml-auto bg-zenov-primary text-white'
                               : isAi
-                                ? 'mr-auto bg-zenvo-card border border-zenvo-accent-border/30 text-zenvo-text'
-                                : 'mr-auto bg-zenvo-card border border-zenvo-border text-zenvo-text'
+                                ? 'mr-auto bg-zenov-card border border-zenov-accent-border/30 text-zenov-text'
+                                : 'mr-auto bg-zenov-card border border-zenov-border text-zenov-text'
                           }`}
                         >
-                          <div className={`flex items-center gap-1.5 text-[9px] ${isSupport ? 'text-white/70' : 'text-zenvo-text-muted'} font-bold mb-1`}>
+                          <div className={`flex items-center gap-1.5 text-[9px] ${isSupport ? 'text-white/70' : 'text-zenov-text-muted'} font-bold mb-1`}>
                             <span>{msg.senderName}</span>
                             <span>•</span>
                             <span>{msg.timestamp}</span>
@@ -2275,23 +2265,23 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* Reply Form */}
-                  <form onSubmit={handleSendSupportReply} className="p-3 border-t border-zenvo-border flex gap-2 bg-zenvo-card/60">
+                  <form onSubmit={handleSendSupportReply} className="p-3 border-t border-zenov-border flex gap-2 bg-zenov-card/60">
                     <input
                       value={ticketReply}
                       onChange={(e) => setTicketReply(e.target.value)}
                       placeholder="Type support response message..."
-                      className="flex-1 bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border rounded-xl px-3.5 py-2.5 text-xs text-zenvo-text focus:outline-none"
+                      className="flex-1 bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border rounded-xl px-3.5 py-2.5 text-xs text-zenov-text focus:outline-none"
                     />
-                    <button type="submit" className="px-4 py-2.5 rounded-xl bg-zenvo-primary hover:bg-zenvo-primary-hover text-white text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
+                    <button type="submit" className="px-4 py-2.5 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-white text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm">
                       <Send className="w-4 h-4" />
                     </button>
                   </form>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-zenvo-border bg-zenvo-card h-[500px] lg:h-[560px] flex flex-col items-center justify-center text-center p-6">
-                  <MessageSquare className="w-14 h-14 text-zenvo-text-muted mb-4 opacity-50" />
-                  <h4 className="font-black text-zenvo-text mb-1">Helpdesk Dashboard Inbox</h4>
-                  <p className="text-xs text-zenvo-text-secondary max-w-xs leading-relaxed">
+                <div className="rounded-2xl border border-zenov-border bg-zenov-card h-[500px] lg:h-[560px] flex flex-col items-center justify-center text-center p-6">
+                  <MessageSquare className="w-14 h-14 text-zenov-text-muted mb-4 opacity-50" />
+                  <h4 className="font-black text-zenov-text mb-1">Helpdesk Dashboard Inbox</h4>
+                  <p className="text-xs text-zenov-text-secondary max-w-xs leading-relaxed">
                     Select any ticket from the left panel to review message transcripts and reply.
                   </p>
                 </div>
@@ -2303,17 +2293,17 @@ export default function AdminDashboardPage() {
         {/* Compliance / Security Tab */}
         {activeTab === 'security' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-2xl p-5 bg-zenvo-card border border-zenvo-success/30 bg-gradient-to-br from-zenvo-success/5 to-transparent">
-              <Check className="w-9 h-9 text-zenvo-success mb-3" />
-              <h3 className="text-base font-black text-zenvo-text mb-2">PCI-DSS Tokenization Gateways</h3>
-              <p className="text-xs text-zenvo-text-secondary leading-relaxed">
+            <div className="rounded-2xl p-5 bg-zenov-card border border-zenov-success/30 bg-gradient-to-br from-zenov-success/5 to-transparent">
+              <Check className="w-9 h-9 text-zenov-success mb-3" />
+              <h3 className="text-base font-black text-zenov-text mb-2">PCI-DSS Tokenization Gateways</h3>
+              <p className="text-xs text-zenov-text-secondary leading-relaxed">
                 Full bank-grade card numbers never transit through local servers. API triggers with bKash / Nagad operate strictly via secured webhook signatures. Last audit: Q3 2026.
               </p>
             </div>
-            <div className="rounded-2xl p-5 bg-zenvo-card border border-zenvo-border">
-              <ShieldCheck className="w-9 h-9 text-zenvo-primary mb-3" />
-              <h3 className="text-base font-black text-zenvo-text mb-2">WAF Rate-Limiter Policies</h3>
-              <p className="text-xs text-zenvo-text-secondary leading-relaxed">
+            <div className="rounded-2xl p-5 bg-zenov-card border border-zenov-border">
+              <ShieldCheck className="w-9 h-9 text-zenov-primary mb-3" />
+              <h3 className="text-base font-black text-zenov-text mb-2">WAF Rate-Limiter Policies</h3>
+              <p className="text-xs text-zenov-text-secondary leading-relaxed">
                 Cloudflare enterprise level shield parameters are initialized. API request thresholds set to max 120 calls/min per client IP address. System alerts logged directly to telemetry stream.
               </p>
             </div>

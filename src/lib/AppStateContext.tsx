@@ -20,6 +20,7 @@ import {
   INITIAL_CATEGORIES,
   INITIAL_UNITS,
   INITIAL_USER,
+  GUEST_USER,
   INITIAL_ORDERS,
   INITIAL_TICKETS,
   HERO_BANNERS,
@@ -31,7 +32,7 @@ export type PaymentMethod =
   | 'bKash'
   | 'Nagad'
   | 'Rocket'
-  | 'Visa/Mastercard'
+  | 'Bank Transfer'
   | 'Crypto/USDT'
   | 'Zenov Wallet';
 
@@ -39,7 +40,7 @@ const MOCK_USERS: UserProfile[] = [
   {
     id: 'usr_789012',
     name: 'CyberGamer_99',
-    email: 'gamer@zenvogames.com',
+    email: 'gamer@zenovgames.com',
     avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=200',
     walletBalanceUSD: 45.80,
     role: 'admin',
@@ -74,6 +75,7 @@ interface AppState {
   orders: Order[];
   walletTransactions: WalletTransaction[];
   tickets: SupportTicket[];
+  authLoading: boolean;
 }
 
 interface AppActions {
@@ -133,6 +135,12 @@ interface AppActions {
   logout: () => Promise<void>;
 }
 
+export const checkIsAdmin = (email?: string): boolean => {
+  if (!email) return false;
+  const cleanEmail = email.toLowerCase().trim();
+  return cleanEmail.includes('admin') || cleanEmail === 'almumeetu@gmail.com' || cleanEmail === 'zenovgamesbd@gmail.com';
+};
+
 type AppStateValue = AppState & AppActions;
 
 const AppCtx = createContext<AppStateValue | null>(null);
@@ -145,7 +153,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [blogArticles, setBlogArticles] = useState<BlogArticle[]>(BLOG_ARTICLES);
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | 'all'>('all');
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('BDT');
-  const [user, setUser] = useState<UserProfile>(INITIAL_USER);
+  const [user, setUser] = useState<UserProfile>(GUEST_USER);
   const [users, setUsers] = useState<UserProfile[]>(MOCK_USERS);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
@@ -154,21 +162,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const [isMounted, setIsMounted] = useState(false);
   const [isDbConnected, setIsDbConnected] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // Fast Instant Hydration + Background SWR Sync
   useEffect(() => {
     // 1. Instantly load cache from localStorage (0ms render time)
     try {
-      const storedProducts = localStorage.getItem('zenvo_v3_products');
-      const storedCategories = localStorage.getItem('zenvo_v3_categories');
-      const storedUnits = localStorage.getItem('zenvo_v3_units');
-      const storedBanners = localStorage.getItem('zenvo_v3_banners');
-      const storedBlogs = localStorage.getItem('zenvo_v3_blogs');
-      const storedUser = localStorage.getItem('zenvo_v3_user');
-      const storedUsers = localStorage.getItem('zenvo_v3_users');
-      const storedOrders = localStorage.getItem('zenvo_v3_orders');
-      const storedTransactions = localStorage.getItem('zenvo_v3_transactions');
-      const storedTickets = localStorage.getItem('zenvo_v3_tickets');
+      const storedProducts = localStorage.getItem('zenov_v3_products');
+      const storedCategories = localStorage.getItem('zenov_v3_categories');
+      const storedUnits = localStorage.getItem('zenov_v3_units');
+      const storedBanners = localStorage.getItem('zenov_v3_banners');
+      const storedBlogs = localStorage.getItem('zenov_v3_blogs');
+      const storedUser = localStorage.getItem('zenov_v3_user');
+      const storedUsers = localStorage.getItem('zenov_v3_users');
+      const storedOrders = localStorage.getItem('zenov_v3_orders');
+      const storedTransactions = localStorage.getItem('zenov_v3_transactions');
+      const storedTickets = localStorage.getItem('zenov_v3_tickets');
 
       if (storedProducts) setProducts(JSON.parse(storedProducts));
       if (storedCategories) setCategories(JSON.parse(storedCategories));
@@ -207,7 +216,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   // Listen to Supabase Auth State Changes
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase) {
+      setAuthLoading(false);
+      return;
+    }
 
     // Get current session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -215,15 +227,29 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         const u = session.user;
         const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Gamer';
         const avatar = u.user_metadata?.avatar_url || u.user_metadata?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`;
-        setUser((prev) => ({
-          ...prev,
-          id: u.id,
-          email: u.email || prev.email,
-          name,
-          avatar,
-          role: u.email?.includes('admin') ? 'admin' : (prev.role === 'admin' ? 'admin' : 'user'),
-        }));
+        setUser((prev) => {
+          const newRole: 'user' | 'admin' = checkIsAdmin(u.email) ? 'admin' : 'user';
+          const updated = {
+            ...prev,
+            id: u.id,
+            email: u.email || prev.email,
+            name,
+            avatar,
+            role: newRole,
+          };
+          if (prev.id === 'guest' || prev.id === '' || prev.role === 'user') {
+            setOrders((ords) =>
+              ords.map((o) =>
+                o.userId === 'guest' || o.userId === '' || o.userEmail === 'guest@zenovgames.com' || o.userEmail === prev.email
+                  ? { ...o, userId: u.id, userEmail: u.email || prev.email }
+                  : o
+              )
+            );
+          }
+          return updated;
+        });
       }
+      setAuthLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -231,20 +257,34 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         const u = session.user;
         const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Gamer';
         const avatar = u.user_metadata?.avatar_url || u.user_metadata?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`;
-        setUser((prev) => ({
-          ...prev,
-          id: u.id,
-          email: u.email || prev.email,
-          name,
-          avatar,
-          role: u.email?.includes('admin') ? 'admin' : (prev.role === 'admin' ? 'admin' : 'user'),
-        }));
+        setUser((prev) => {
+          const newRole: 'user' | 'admin' = checkIsAdmin(u.email) ? 'admin' : 'user';
+          const updated = {
+            ...prev,
+            id: u.id,
+            email: u.email || prev.email,
+            name,
+            avatar,
+            role: newRole,
+          };
+          if (prev.id === 'guest' || prev.id === '' || prev.role === 'user') {
+            setOrders((ords) =>
+              ords.map((o) =>
+                o.userId === 'guest' || o.userId === '' || o.userEmail === 'guest@zenovgames.com' || o.userEmail === prev.email
+                  ? { ...o, userId: u.id, userEmail: u.email || prev.email }
+                  : o
+              )
+            );
+          }
+          return updated;
+        });
       } else if (event === 'SIGNED_OUT') {
-        setUser(INITIAL_USER);
+        setUser(GUEST_USER);
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('zenvo_v3_user');
+          localStorage.removeItem('zenov_v3_user');
         }
       }
+      setAuthLoading(false);
     });
 
     return () => {
@@ -255,52 +295,52 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // Save changes to localStorage (only as fallback sync)
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_products', JSON.stringify(products));
+    localStorage.setItem('zenov_v3_products', JSON.stringify(products));
   }, [products, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_categories', JSON.stringify(categories));
+    localStorage.setItem('zenov_v3_categories', JSON.stringify(categories));
   }, [categories, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_units', JSON.stringify(units));
+    localStorage.setItem('zenov_v3_units', JSON.stringify(units));
   }, [units, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_banners', JSON.stringify(heroBanners));
+    localStorage.setItem('zenov_v3_banners', JSON.stringify(heroBanners));
   }, [heroBanners, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_blogs', JSON.stringify(blogArticles));
+    localStorage.setItem('zenov_v3_blogs', JSON.stringify(blogArticles));
   }, [blogArticles, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_user', JSON.stringify(user));
+    localStorage.setItem('zenov_v3_user', JSON.stringify(user));
   }, [user, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_users', JSON.stringify(users));
+    localStorage.setItem('zenov_v3_users', JSON.stringify(users));
   }, [users, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_orders', JSON.stringify(orders));
+    localStorage.setItem('zenov_v3_orders', JSON.stringify(orders));
   }, [orders, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_transactions', JSON.stringify(walletTransactions));
+    localStorage.setItem('zenov_v3_transactions', JSON.stringify(walletTransactions));
   }, [walletTransactions, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenvo_v3_tickets', JSON.stringify(tickets));
+    localStorage.setItem('zenov_v3_tickets', JSON.stringify(tickets));
   }, [tickets, isMounted]);
 
   const addToCart = (item: CartItem) => setCartItems((p) => [...p, item]);
@@ -332,7 +372,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const senderNumber = customerInfo?.senderNumber?.trim() || customerInfo?.phone || '';
 
     const customerName = customerInfo?.name || user.name || 'Guest Gamer';
-    const customerEmail = customerInfo?.email || user.email || 'guest@zenvogames.com';
+    const customerEmail = customerInfo?.email || user.email || 'guest@zenovgames.com';
     const customerPhone = customerInfo?.phone || user.phone || '';
     const isManualVerification = Boolean(customerInfo?.trxId);
 
@@ -393,7 +433,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const senderNumber = customerInfo?.senderNumber?.trim() || customerInfo?.phone || '';
 
     const customerName = customerInfo?.name || user.name || 'Guest Gamer';
-    const customerEmail = customerInfo?.email || user.email || 'guest@zenvogames.com';
+    const customerEmail = customerInfo?.email || user.email || 'guest@zenovgames.com';
     const customerPhone = customerInfo?.phone || user.phone || '';
     const isManualVerification = Boolean(customerInfo?.trxId);
 
@@ -824,7 +864,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const signInWithEmail = async (email: string, password: string) => {
     if (!supabase) {
       const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-      setUser((prev) => ({ ...prev, email, name }));
+      setUser((prev) => {
+        const newRole: 'user' | 'admin' = checkIsAdmin(email) ? 'admin' : 'user';
+        const updated = { ...prev, email, name, role: newRole };
+        if (prev.id === 'guest' || prev.id === '') {
+          setOrders((ords) =>
+            ords.map((o) =>
+              o.userId === 'guest' || o.userId === '' || o.userEmail === 'guest@zenovgames.com' || o.userEmail === prev.email
+                ? { ...o, userId: 'usr_' + Date.now(), userEmail: email }
+                : o
+            )
+          );
+        }
+        return updated;
+      });
       return { success: true };
     }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -839,6 +892,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         id: authUser.id,
         email: authUser.email || email,
         name,
+        role: checkIsAdmin(authUser.email || email) ? 'admin' : 'user',
       }));
     }
     return { success: true };
@@ -846,7 +900,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const signUpWithEmail = async (email: string, password: string, name: string, phone?: string) => {
     if (!supabase) {
-      setUser((prev) => ({ ...prev, email, name, phone: phone || prev.phone }));
+      setUser((prev) => ({ ...prev, email, name, phone: phone || prev.phone, role: checkIsAdmin(email) ? 'admin' : 'user' }));
       return { success: true };
     }
     const { data, error } = await supabase.auth.signUp({
@@ -870,6 +924,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         email: authUser.email || email,
         name,
         phone: phone || prev.phone,
+        role: checkIsAdmin(authUser.email || email) ? 'admin' : 'user',
       }));
     }
     return { success: true, needsConfirmation: data.session === null };
@@ -879,9 +934,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (supabase) {
       await supabase.auth.signOut();
     }
-    setUser(INITIAL_USER);
+    setUser(GUEST_USER);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('zenvo_v3_user');
+      localStorage.removeItem('zenov_v3_user');
     }
   };
 
@@ -937,6 +992,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     signInWithEmail,
     signUpWithEmail,
     logout,
+    authLoading,
   };
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;

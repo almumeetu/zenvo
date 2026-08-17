@@ -139,20 +139,20 @@ export function CategoryManager() {
     <div className="space-y-5">
       {/* Header Actions */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-        <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenvo-card border border-zenvo-border focus-within:border-zenvo-primary-border">
-          <Search className="w-4 h-4 text-zenvo-text-muted shrink-0" />
+        <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenov-card border border-zenov-border focus-within:border-zenov-primary-border">
+          <Search className="w-4 h-4 text-zenov-text-muted shrink-0" />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search categories by name, slug, or keywords..."
-            className="w-full bg-transparent text-xs text-zenvo-text focus:outline-none"
+            className="w-full bg-transparent text-xs text-zenov-text focus:outline-none"
           />
         </div>
 
         <button
           type="button"
           onClick={openAddModal}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenvo-primary to-blue-600 hover:brightness-110 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all shrink-0"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenov-primary to-blue-600 hover:brightness-110 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all shrink-0"
         >
           <FolderPlus className="w-4 h-4" /> Add New Category
         </button>
@@ -168,16 +168,16 @@ export function CategoryManager() {
           return (
             <div
               key={cat.id}
-              className="rounded-2xl bg-zenvo-card border border-zenvo-border hover:border-zenvo-border-hover p-4 sm:p-5 flex flex-col justify-between gap-4 transition-all group hover:shadow-lg relative overflow-hidden"
+              className="rounded-2xl bg-zenov-card border border-zenov-border hover:border-zenov-border-hover p-4 sm:p-5 flex flex-col justify-between gap-4 transition-all group hover:shadow-lg relative overflow-hidden"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-zenvo-primary-soft flex items-center justify-center border border-zenvo-primary-border/30 text-zenvo-primary group-hover:scale-105 transition-transform shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-zenov-primary-soft flex items-center justify-center border border-zenov-primary-border/30 text-zenov-primary group-hover:scale-105 transition-transform shrink-0">
                       <IconComp className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-zenvo-text text-sm leading-snug flex items-center gap-2">
+                      <h4 className="font-bold text-zenov-text text-sm leading-snug flex items-center gap-2">
                         {cat.name}
                         {cat.badge && (
                           <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[9px] font-black uppercase">
@@ -185,8 +185,8 @@ export function CategoryManager() {
                           </span>
                         )}
                       </h4>
-                      <p className="text-[11px] font-mono text-zenvo-text-muted mt-0.5">
-                        slug: <span className="text-zenvo-primary">{cat.slug}</span>
+                      <p className="text-[11px] font-mono text-zenov-text-muted mt-0.5">
+                        slug: <span className="text-zenov-primary">{cat.slug}</span>
                       </p>
                     </div>
                   </div>
@@ -194,22 +194,22 @@ export function CategoryManager() {
                   <span
                     className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${
                       cat.active !== false
-                        ? 'bg-zenvo-success-soft text-zenvo-success border-zenvo-success/20'
-                        : 'bg-zenvo-error-soft text-zenvo-error border-zenvo-error/20'
+                        ? 'bg-zenov-success-soft text-zenov-success border-zenov-success/20'
+                        : 'bg-zenov-error-soft text-zenov-error border-zenov-error/20'
                     }`}
                   >
                     {cat.active !== false ? 'Active' : 'Disabled'}
                   </span>
                 </div>
 
-                <p className="text-xs text-zenvo-text-secondary line-clamp-2 leading-relaxed min-h-[32px]">
+                <p className="text-xs text-zenov-text-secondary line-clamp-2 leading-relaxed min-h-[32px]">
                   {cat.description || 'No description provided for this category.'}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-zenvo-border/50 flex items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-1.5 text-zenvo-text-muted font-bold text-[11px]">
-                  <Package className="w-3.5 h-3.5 text-zenvo-accent" />
+              <div className="pt-3 border-t border-zenov-border/50 flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-1.5 text-zenov-text-muted font-bold text-[11px]">
+                  <Package className="w-3.5 h-3.5 text-zenov-accent" />
                   <span>{productCount} SKU Products</span>
                 </div>
 
@@ -217,14 +217,14 @@ export function CategoryManager() {
                   <button
                     type="button"
                     onClick={() => openEditModal(cat)}
-                    className="px-2.5 py-1 rounded-lg bg-zenvo-surface hover:bg-zenvo-primary hover:text-white border border-zenvo-border text-zenvo-text-secondary text-xs font-bold transition-all flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-lg bg-zenov-surface hover:bg-zenov-primary hover:text-white border border-zenov-border text-zenov-text-secondary text-xs font-bold transition-all flex items-center gap-1"
                   >
                     <Edit className="w-3 h-3" /> Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDelete(cat)}
-                    className="p-1.5 rounded-lg bg-zenvo-error-soft/30 hover:bg-zenvo-error hover:text-white text-zenvo-error border border-zenvo-error/20 text-xs font-bold transition-all"
+                    className="p-1.5 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white text-zenov-error border border-zenov-error/20 text-xs font-bold transition-all"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -236,10 +236,10 @@ export function CategoryManager() {
       </div>
 
       {filteredCategories.length === 0 && (
-        <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-8 text-center space-y-2">
-          <Layers3 className="w-10 h-10 text-zenvo-text-muted mx-auto opacity-50" />
-          <h4 className="font-bold text-zenvo-text">No Categories Found</h4>
-          <p className="text-xs text-zenvo-text-secondary max-w-sm mx-auto">
+        <div className="rounded-2xl bg-zenov-card border border-zenov-border p-8 text-center space-y-2">
+          <Layers3 className="w-10 h-10 text-zenov-text-muted mx-auto opacity-50" />
+          <h4 className="font-bold text-zenov-text">No Categories Found</h4>
+          <p className="text-xs text-zenov-text-secondary max-w-sm mx-auto">
             Try adjusting your search query or click "Add New Category" above to create one.
           </p>
         </div>
@@ -248,16 +248,16 @@ export function CategoryManager() {
       {/* Add / Edit Category Modal */}
       {isAddingCategory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-zenvo-card border border-zenvo-primary-border/40 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-zenvo-border pb-3">
-              <h3 className="text-sm font-black uppercase text-zenvo-primary flex items-center gap-2">
+          <div className="w-full max-w-lg rounded-2xl bg-zenov-card border border-zenov-primary-border/40 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-zenov-border pb-3">
+              <h3 className="text-sm font-black uppercase text-zenov-primary flex items-center gap-2">
                 <FolderPlus className="w-4 h-4" />
                 {editingCategory ? `Edit Category: ${editingCategory.name}` : 'Create New Category'}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsAddingCategory(false)}
-                className="p-1.5 rounded-lg bg-zenvo-surface border border-zenvo-border text-zenvo-text-muted hover:text-white"
+                className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -266,7 +266,7 @@ export function CategoryManager() {
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                  <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                     Category Name *
                   </label>
                   <input
@@ -275,12 +275,12 @@ export function CategoryManager() {
                     value={name}
                     onChange={(e) => handleNameChange(e.target.value)}
                     placeholder="e.g. Game Top-Up"
-                    className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                  <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                     Slug ID *
                   </label>
                   <input
@@ -289,20 +289,20 @@ export function CategoryManager() {
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder="e.g. game-topup"
-                    className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-mono text-zenvo-primary focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs font-mono text-zenov-primary focus:outline-none focus:border-zenov-primary-border"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                  <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                     Display Icon
                   </label>
                   <select
                     value={icon}
                     onChange={(e) => setIcon(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                   >
                     {ICON_OPTIONS.map((opt) => (
                       <option key={opt.id} value={opt.id}>
@@ -313,7 +313,7 @@ export function CategoryManager() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                  <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                     Badge Label (Optional)
                   </label>
                   <input
@@ -321,13 +321,13 @@ export function CategoryManager() {
                     value={badge}
                     onChange={(e) => setBadge(e.target.value)}
                     placeholder="e.g. Popular / Instant / Hot"
-                    className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                    className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase text-zenvo-text-muted block mb-1">
+                <label className="text-[10px] font-bold uppercase text-zenov-text-muted block mb-1">
                   Category Description
                 </label>
                 <textarea
@@ -335,33 +335,33 @@ export function CategoryManager() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Summary of products and items in this category..."
-                  className="w-full px-3 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs text-zenvo-text focus:outline-none focus:border-zenvo-primary-border"
+                  className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text focus:outline-none focus:border-zenov-primary-border"
                 />
               </div>
 
               <div className="flex items-center gap-2 pt-1">
-                <label className="flex items-center gap-2 text-xs font-bold text-zenvo-text cursor-pointer select-none">
+                <label className="flex items-center gap-2 text-xs font-bold text-zenov-text cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={active}
                     onChange={(e) => setActive(e.target.checked)}
-                    className="rounded accent-zenvo-primary w-4 h-4"
+                    className="rounded accent-zenov-primary w-4 h-4"
                   />
                   Enable Category (Visible on Storefront)
                 </label>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-zenvo-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-zenov-border">
                 <button
                   type="button"
                   onClick={() => setIsAddingCategory(false)}
-                  className="px-4 py-2 rounded-xl bg-zenvo-surface border border-zenvo-border text-xs font-bold text-zenvo-text-secondary hover:text-zenvo-text"
+                  className="px-4 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs font-bold text-zenov-text-secondary hover:text-zenov-text"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-zenvo-primary hover:bg-zenvo-primary-hover text-white text-xs font-bold uppercase shadow-sm transition-all"
+                  className="px-5 py-2 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-white text-xs font-bold uppercase shadow-sm transition-all"
                 >
                   {editingCategory ? 'Update Category' : 'Save Category'}
                 </button>

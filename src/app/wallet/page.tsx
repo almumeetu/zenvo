@@ -62,32 +62,31 @@ export default function WalletPage() {
     { id: 'bKash', I: Phone, c: 'from-pink-500 to-rose-500', tag: 'Popular' },
     { id: 'Nagad', I: Phone, c: 'from-orange-500 to-red-500', tag: '' },
     { id: 'Rocket', I: Phone, c: 'from-purple-500 to-violet-500', tag: '' },
-    { id: 'Visa', I: CreditCard, c: 'from-blue-600 to-sky-500', tag: 'Cards' },
-    { id: 'MC', I: CreditCard, c: 'from-red-600 to-amber-500', tag: 'Cards' },
+    { id: 'Bank Transfer', I: CreditCard, c: 'from-blue-600 to-sky-500', tag: 'Bank' },
     { id: 'USDT', I: Bitcoin, c: 'from-amber-500 to-yellow-500', tag: 'Crypto' },
   ];
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-      <div className="flex items-center gap-2 text-xs text-zenvo-text-muted mb-6 flex-wrap">
-        <Link href="/" className="hover:text-zenvo-primary transition-colors">Home</Link>
+      <div className="flex items-center gap-2 text-xs text-zenov-text-muted mb-6 flex-wrap">
+        <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-zenvo-text font-semibold">My Wallet</span>
+        <span className="text-zenov-text font-semibold">My Wallet</span>
       </div>
 
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <span className="p-3 rounded-2xl bg-zenvo-primary-soft border border-zenvo-primary-border">
-            <Wallet className="w-6 h-6 text-zenvo-primary" />
+          <span className="p-3 rounded-2xl bg-zenov-primary-soft border border-zenov-primary-border">
+            <Wallet className="w-6 h-6 text-zenov-primary" />
           </span>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-zenvo-text tracking-tight">Zenvo Wallet</h1>
-            <p className="text-sm text-zenvo-text-secondary">Pay faster with wallet balance • 0% internal fees</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-zenov-text tracking-tight">Zenvo Wallet</h1>
+            <p className="text-sm text-zenov-text-secondary">Pay faster with wallet balance • 0% internal fees</p>
           </div>
         </div>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-1.5 text-sm text-zenvo-text-secondary hover:text-zenvo-primary transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-zenov-text-secondary hover:text-zenov-primary transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Shop
         </Link>
@@ -95,9 +94,9 @@ export default function WalletPage() {
 
       {/* Balance + stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7">
-        <div className="md:col-span-2 p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-zenvo-primary via-indigo-800 to-violet-900 text-white relative overflow-hidden shadow-xl">
+        <div className="md:col-span-2 p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-zenov-primary via-indigo-800 to-violet-900 text-white relative overflow-hidden shadow-xl">
           <div className="absolute -top-20 -right-10 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-zenvo-accent/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-10 w-72 h-72 rounded-full bg-zenov-accent/20 blur-3xl" />
           <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70 mb-2">Available Balance</p>
@@ -123,7 +122,7 @@ export default function WalletPage() {
                 Cashback: 2.5%
               </div>
               <div className="px-3 py-2 rounded-lg bg-white/10 border border-white/15 text-xs font-semibold inline-flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-zenvo-success" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-zenov-success" />
                 Verified Account
               </div>
             </div>
@@ -131,15 +130,15 @@ export default function WalletPage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
-          <div className="p-5 rounded-2xl bg-zenvo-card border border-zenvo-border">
-            <p className="text-[11px] uppercase font-bold tracking-widest text-zenvo-text-muted mb-1.5">Total Deposited</p>
-            <p className="text-2xl font-black font-mono text-zenvo-success">
+          <div className="p-5 rounded-2xl bg-zenov-card border border-zenov-border">
+            <p className="text-[11px] uppercase font-bold tracking-widest text-zenov-text-muted mb-1.5">Total Deposited</p>
+            <p className="text-2xl font-black font-mono text-zenov-success">
               +{formatCurrency(totalDeposit, selectedCurrency)}
             </p>
           </div>
-          <div className="p-5 rounded-2xl bg-zenvo-card border border-zenvo-border">
-            <p className="text-[11px] uppercase font-bold tracking-widest text-zenvo-text-muted mb-1.5">Total Spent</p>
-            <p className="text-2xl font-black font-mono text-zenvo-text">
+          <div className="p-5 rounded-2xl bg-zenov-card border border-zenov-border">
+            <p className="text-[11px] uppercase font-bold tracking-widest text-zenov-text-muted mb-1.5">Total Spent</p>
+            <p className="text-2xl font-black font-mono text-zenov-text">
               −{formatCurrency(totalSpent, selectedCurrency)}
             </p>
           </div>
@@ -149,7 +148,7 @@ export default function WalletPage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
         {/* LEFT: Tabs + deposit form OR history */}
         <div className="lg:col-span-3 space-y-5">
-          <div className="p-1 rounded-2xl bg-zenvo-surface border border-zenvo-border inline-flex gap-1">
+          <div className="p-1 rounded-2xl bg-zenov-surface border border-zenov-border inline-flex gap-1">
             {[
               { id: 'deposit', I: Plus, l: 'Deposit Funds' },
               { id: 'history', I: Receipt, l: `History (${walletTransactions.length})` },
@@ -159,8 +158,8 @@ export default function WalletPage() {
                 onClick={() => setTab(id as any)}
                 className={`px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold transition-all inline-flex items-center gap-1.5 flex-1 sm:flex-none ${
                   tab === id
-                    ? 'bg-zenvo-card text-zenvo-primary shadow-sm border border-zenvo-border'
-                    : 'text-zenvo-text-secondary hover:text-zenvo-text'
+                    ? 'bg-zenov-card text-zenov-primary shadow-sm border border-zenov-border'
+                    : 'text-zenov-text-secondary hover:text-zenov-text'
                 }`}
               >
                 <I className="w-4 h-4" /> {l}
@@ -169,9 +168,9 @@ export default function WalletPage() {
           </div>
 
           {tab === 'deposit' && (
-            <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-5 sm:p-6 space-y-6">
+            <div className="rounded-2xl bg-zenov-card border border-zenov-border p-5 sm:p-6 space-y-6">
               <div>
-                <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-3">Quick Amounts</h3>
+                <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text mb-3">Quick Amounts</h3>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
                   {QUICK_AMOUNTS.map((v) => (
                     <button
@@ -179,8 +178,8 @@ export default function WalletPage() {
                       onClick={() => { setAmount(v); setCustom(''); }}
                       className={`py-3 rounded-xl border transition-all text-sm font-black font-mono active:scale-[0.98] ${
                         !custom && amount === v
-                          ? 'bg-zenvo-primary-soft border-zenvo-primary-border text-zenvo-primary ring-2 ring-zenvo-primary-border/40'
-                          : 'bg-zenvo-surface/60 border-zenvo-border hover:border-zenvo-border-hover text-zenvo-text'
+                          ? 'bg-zenov-primary-soft border-zenov-primary-border text-zenov-primary ring-2 ring-zenov-primary-border/40'
+                          : 'bg-zenov-surface/60 border-zenov-border hover:border-zenov-border-hover text-zenov-text'
                       }`}
                     >
                       ${v}
@@ -188,31 +187,31 @@ export default function WalletPage() {
                   ))}
                 </div>
                 <div className="mt-3">
-                  <label className="text-[11px] uppercase font-bold tracking-wider text-zenvo-text-muted block mb-1.5">Or enter custom amount (USD)</label>
+                  <label className="text-[11px] uppercase font-bold tracking-wider text-zenov-text-muted block mb-1.5">Or enter custom amount (USD)</label>
                   <div className="relative">
-                    <Banknote className="w-4 h-4 text-zenvo-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Banknote className="w-4 h-4 text-zenov-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="number"
                       min={1}
                       value={custom}
                       onChange={(e) => setCustom(e.target.value)}
                       placeholder="e.g. 75"
-                      className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none transition-all text-sm font-mono"
+                      className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-2 focus:ring-zenov-primary-border/40 outline-none transition-all text-sm font-mono"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-3">Payment Method</h3>
+                <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text mb-3">Payment Method</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {[
-                    { id: 'bKash', label: 'bKash Merchant', tag: 'Popular' },
-                    { id: 'Nagad', label: 'Nagad Pay', tag: 'Instant' },
-                    { id: 'Rocket', label: 'Rocket DBBL', tag: 'Bank' },
-                    { id: 'Visa', label: 'Visa / Mastercard', tag: 'Cards' },
-                    { id: 'USDT', label: 'Crypto USDT', tag: 'TRC20' },
-                  ].map(({ id, label, tag }) => {
+                   {[
+                     { id: 'bKash', label: 'bKash Merchant', tag: 'Popular' },
+                     { id: 'Nagad', label: 'Nagad Pay', tag: 'Instant' },
+                     { id: 'Rocket', label: 'Rocket DBBL', tag: 'Bank' },
+                     { id: 'Bank Transfer', label: 'Bank Transfer', tag: 'Local Bank' },
+                     { id: 'USDT', label: 'Crypto USDT', tag: 'TRC20' },
+                   ].map(({ id, label, tag }) => {
                     const active = method === id;
                     return (
                       <button
@@ -220,14 +219,14 @@ export default function WalletPage() {
                         onClick={() => setMethod(id)}
                         className={`relative p-3 rounded-xl border transition-all text-left flex items-center gap-3 ${
                           active
-                            ? 'bg-zenvo-primary-soft/40 border-zenvo-primary-border ring-2 ring-zenvo-primary-border/30 shadow-sm'
-                            : 'bg-zenvo-surface/60 border-zenvo-border hover:border-zenvo-border-hover'
+                            ? 'bg-zenov-primary-soft/40 border-zenov-primary-border ring-2 ring-zenov-primary-border/30 shadow-sm'
+                            : 'bg-zenov-surface/60 border-zenov-border hover:border-zenov-border-hover'
                         }`}
                       >
                         <PaymentLogo method={id} className="w-8 h-8 rounded-lg shadow-sm shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <p className={`text-xs font-bold truncate ${active ? 'text-white' : 'text-zenvo-text'}`}>{label}</p>
-                          {tag && <p className="text-[9px] font-mono text-zenvo-text-muted mt-0.5">{tag}</p>}
+                          <p className={`text-xs font-bold truncate ${active ? 'text-white' : 'text-zenov-text'}`}>{label}</p>
+                          {tag && <p className="text-[9px] font-mono text-zenov-text-muted mt-0.5">{tag}</p>}
                         </div>
                       </button>
                     );
@@ -236,7 +235,7 @@ export default function WalletPage() {
               </div>
 
               <div>
-                <label className="text-[11px] uppercase font-bold tracking-wider text-zenvo-text-muted block mb-1.5">
+                <label className="text-[11px] uppercase font-bold tracking-wider text-zenov-text-muted block mb-1.5">
                   Transaction Reference (optional)
                 </label>
                 <input
@@ -244,12 +243,12 @@ export default function WalletPage() {
                   value={ref}
                   onChange={(e) => setRef(e.target.value)}
                   placeholder="Payment TX ID or bKash/Nagad reference"
-                  className="w-full px-3.5 py-3 rounded-xl bg-zenvo-surface border border-zenvo-border focus:border-zenvo-primary-border focus:ring-2 focus:ring-zenvo-primary-border/40 outline-none transition-all text-sm font-mono"
+                  className="w-full px-3.5 py-3 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-2 focus:ring-zenov-primary-border/40 outline-none transition-all text-sm font-mono"
                 />
               </div>
 
               {successMsg && (
-                <div className="p-4 rounded-xl bg-zenvo-success-soft/60 border border-zenvo-success/30 text-zenvo-success text-sm font-semibold inline-flex items-center gap-2">
+                <div className="p-4 rounded-xl bg-zenov-success-soft/60 border border-zenov-success/30 text-zenov-success text-sm font-semibold inline-flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5" /> {successMsg}
                 </div>
               )}
@@ -257,7 +256,7 @@ export default function WalletPage() {
               <button
                 onClick={onDeposit}
                 disabled={loading || (!custom && amount <= 0)}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenvo-primary via-blue-600 to-indigo-600 text-white text-sm font-black uppercase tracking-wider shadow-primary hover:shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenov-primary via-blue-600 to-indigo-600 text-white text-sm font-black uppercase tracking-wider shadow-primary hover:shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>Processing <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
@@ -272,36 +271,36 @@ export default function WalletPage() {
           )}
 
           {tab === 'history' && (
-            <div className="rounded-2xl bg-zenvo-card border border-zenvo-border overflow-hidden">
+            <div className="rounded-2xl bg-zenov-card border border-zenov-border overflow-hidden">
               {walletTransactions.length === 0 ? (
-                <div className="p-10 text-center text-zenvo-text-secondary text-sm">
+                <div className="p-10 text-center text-zenov-text-secondary text-sm">
                   No wallet activity yet. Deposit funds or make a purchase to see history here.
                 </div>
               ) : (
-                <div className="divide-y divide-zenvo-border">
+                <div className="divide-y divide-zenov-border">
                   {walletTransactions.map((tx) => (
                     <div key={tx.id} className="p-4 sm:p-5 flex items-center gap-4">
                       <div
                         className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
                           tx.type === 'deposit'
-                            ? 'bg-zenvo-success-soft/60 text-zenvo-success'
-                            : 'bg-zenvo-error/10 text-zenvo-error'
+                            ? 'bg-zenov-success-soft/60 text-zenov-success'
+                            : 'bg-zenov-error/10 text-zenov-error'
                         }`}
                       >
                         {tx.type === 'deposit' ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-zenvo-text truncate">
+                        <p className="text-sm font-bold text-zenov-text truncate">
                           {tx.type === 'deposit' ? `Wallet Deposit via ${tx.paymentMethod}` : tx.reference || 'Purchase'}
                         </p>
-                        <p className="text-xs text-zenvo-text-secondary mt-0.5 inline-flex items-center gap-1.5">
+                        <p className="text-xs text-zenov-text-secondary mt-0.5 inline-flex items-center gap-1.5">
                           <Clock className="w-3 h-3" /> {new Date(tx.createdAt).toLocaleString()}
                           {tx.status && (
                             <>
-                              <span className="w-1 h-1 rounded-full bg-zenvo-border" />
+                              <span className="w-1 h-1 rounded-full bg-zenov-border" />
                               <span className={`font-semibold ${
-                                tx.status === 'Completed' ? 'text-zenvo-success' :
-                                tx.status === 'Pending' ? 'text-zenvo-accent' : 'text-zenvo-error'
+                                tx.status === 'Completed' ? 'text-zenov-success' :
+                                tx.status === 'Pending' ? 'text-zenov-accent' : 'text-zenov-error'
                               }`}>
                                 {tx.status}
                               </span>
@@ -310,7 +309,7 @@ export default function WalletPage() {
                         </p>
                       </div>
                       <p className={`text-base font-black font-mono ${
-                        tx.type === 'deposit' ? 'text-zenvo-success' : 'text-zenvo-text'
+                        tx.type === 'deposit' ? 'text-zenov-success' : 'text-zenov-text'
                       }`}>
                         {tx.type === 'deposit' ? '+' : '−'}{formatCurrency(tx.amount, selectedCurrency)}
                       </p>
@@ -324,8 +323,8 @@ export default function WalletPage() {
 
         {/* RIGHT: perks */}
         <div className="lg:col-span-2 space-y-5">
-          <div className="rounded-2xl bg-zenvo-card border border-zenvo-border p-5 sm:p-6">
-            <h3 className="text-sm font-black uppercase tracking-wider text-zenvo-text mb-4">How Wallet Works</h3>
+          <div className="rounded-2xl bg-zenov-card border border-zenov-border p-5 sm:p-6">
+            <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text mb-4">How Wallet Works</h3>
             <div className="space-y-4 text-sm">
               {[
                 { n: 1, t: 'Top Up Wallet', s: 'Use any local or global payment method to fund your wallet instantly.' },
@@ -334,27 +333,27 @@ export default function WalletPage() {
                 { n: 4, t: 'Track Everything', s: 'Full audit trail of deposits, purchases and refunds with statuses.' },
               ].map((r) => (
                 <div key={r.n} className="flex gap-4">
-                  <div className="shrink-0 w-8 h-8 rounded-lg bg-zenvo-primary-soft text-zenvo-primary font-black text-sm flex items-center justify-center">
+                  <div className="shrink-0 w-8 h-8 rounded-lg bg-zenov-primary-soft text-zenov-primary font-black text-sm flex items-center justify-center">
                     {r.n}
                   </div>
                   <div>
-                    <p className="font-bold text-zenvo-text mb-0.5">{r.t}</p>
-                    <p className="text-zenvo-text-secondary">{r.s}</p>
+                    <p className="font-bold text-zenov-text mb-0.5">{r.t}</p>
+                    <p className="text-zenov-text-secondary">{r.s}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="rounded-2xl bg-gradient-to-br from-amber-950/50 via-zenvo-accent-soft/50 to-orange-950/50 border border-zenvo-accent-border p-5 sm:p-6 relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-zenvo-accent/20 blur-2xl" />
-            <p className="text-[11px] uppercase font-black tracking-[0.2em] text-zenvo-accent mb-2">PRO TIP</p>
-            <h3 className="text-xl font-black text-zenvo-text mb-2 leading-tight">Unlock up to 5% cashback</h3>
-            <p className="text-sm text-zenvo-text-secondary mb-4">
+          <div className="rounded-2xl bg-gradient-to-br from-amber-950/50 via-zenov-accent-soft/50 to-orange-950/50 border border-zenov-accent-border p-5 sm:p-6 relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-zenov-accent/20 blur-2xl" />
+            <p className="text-[11px] uppercase font-black tracking-[0.2em] text-zenov-accent mb-2">PRO TIP</p>
+            <h3 className="text-xl font-black text-zenov-text mb-2 leading-tight">Unlock up to 5% cashback</h3>
+            <p className="text-sm text-zenov-text-secondary mb-4">
               Use Zenvo Wallet for every purchase and accumulate VIP XP faster — Platinum tier receives 5% back on every order.
             </p>
             <Link
               href="/shop"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-zenvo-accent hover:bg-zenvo-accent-hover text-zenvo-bg text-xs font-black uppercase tracking-wider transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-zenov-accent hover:bg-zenov-accent-hover text-zenov-bg text-xs font-black uppercase tracking-wider transition-all"
             >
               Start Shopping <ChevronRight className="w-3.5 h-3.5" />
             </Link>

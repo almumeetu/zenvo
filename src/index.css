@@ -5,44 +5,44 @@
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Background layers */
-  --color-zenvo-bg: #070a10;
-  --color-zenvo-surface: #0c1119;
-  --color-zenvo-card: #111826;
-  --color-zenvo-card-hover: #151d2e;
-  --color-zenvo-border: #1e2738;
-  --color-zenvo-border-hover: #2a3550;
+  --color-zenov-bg: #070a10;
+  --color-zenov-surface: #0c1119;
+  --color-zenov-card: #111826;
+  --color-zenov-card-hover: #151d2e;
+  --color-zenov-border: #1e2738;
+  --color-zenov-border-hover: #2a3550;
 
   /* Text layers — with short aliases for terser class names */
-  --color-zenvo-text: #f1f5f9;
-  --color-zenvo-text-secondary: #94a3b8;
-  --color-zenvo-text-muted: #64748b;
-  --color-zenvo-secondary: var(--color-zenvo-text-secondary);
-  --color-zenvo-muted: var(--color-zenvo-text-muted);
+  --color-zenov-text: #f1f5f9;
+  --color-zenov-text-secondary: #94a3b8;
+  --color-zenov-text-muted: #64748b;
+  --color-zenov-secondary: var(--color-zenov-text-secondary);
+  --color-zenov-muted: var(--color-zenov-text-muted);
 
   /* Primary (Electric Blue) */
-  --color-zenvo-primary: #3b82f6;
-  --color-zenvo-primary-hover: #60a5fa;
-  --color-zenvo-primary-soft: rgba(59, 130, 246, 0.12);
-  --color-zenvo-primary-border: rgba(59, 130, 246, 0.25);
+  --color-zenov-primary: #3b82f6;
+  --color-zenov-primary-hover: #60a5fa;
+  --color-zenov-primary-soft: rgba(59, 130, 246, 0.12);
+  --color-zenov-primary-border: rgba(59, 130, 246, 0.25);
 
   /* Accent (Warm Amber) */
-  --color-zenvo-accent: #f59e0b;
-  --color-zenvo-accent-hover: #fbbf24;
-  --color-zenvo-accent-soft: rgba(245, 158, 11, 0.12);
-  --color-zenvo-accent-border: rgba(245, 158, 11, 0.3);
+  --color-zenov-accent: #f59e0b;
+  --color-zenov-accent-hover: #fbbf24;
+  --color-zenov-accent-soft: rgba(245, 158, 11, 0.12);
+  --color-zenov-accent-border: rgba(245, 158, 11, 0.3);
 
   /* Semantic status colors */
-  --color-zenvo-success: #10b981;
-  --color-zenvo-success-soft: rgba(16, 185, 129, 0.12);
-  --color-zenvo-success-border: rgba(16, 185, 129, 0.3);
+  --color-zenov-success: #10b981;
+  --color-zenov-success-soft: rgba(16, 185, 129, 0.12);
+  --color-zenov-success-border: rgba(16, 185, 129, 0.3);
 
-  --color-zenvo-warning: #f59e0b;
-  --color-zenvo-warning-soft: rgba(245, 158, 11, 0.12);
-  --color-zenvo-warning-border: rgba(245, 158, 11, 0.3);
+  --color-zenov-warning: #f59e0b;
+  --color-zenov-warning-soft: rgba(245, 158, 11, 0.12);
+  --color-zenov-warning-border: rgba(245, 158, 11, 0.3);
 
-  --color-zenvo-error: #ef4444;
-  --color-zenvo-error-soft: rgba(239, 68, 68, 0.12);
-  --color-zenvo-error-border: rgba(239, 68, 68, 0.3);
+  --color-zenov-error: #ef4444;
+  --color-zenov-error-soft: rgba(239, 68, 68, 0.12);
+  --color-zenov-error-border: rgba(239, 68, 68, 0.3);
 
   /* Custom radii */
   --radius-sm: 0.375rem; /* 6px */
@@ -73,15 +73,15 @@ html {
 
 body {
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  background-color: var(--color-zenvo-bg);
-  color: var(--color-zenvo-text);
+  background-color: var(--color-zenov-bg);
+  color: var(--color-zenov-text);
   line-height: 1.5;
   letter-spacing: -0.01em;
   overflow-x: hidden;
 }
 
 ::selection {
-  background-color: var(--color-zenvo-primary);
+  background-color: var(--color-zenov-primary);
   color: #ffffff;
 }
 
@@ -91,14 +91,14 @@ body {
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-zenvo-bg);
+  background: var(--color-zenov-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-zenvo-border-hover);
+  background: var(--color-zenov-border-hover);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-zenvo-primary);
+  background: var(--color-zenov-primary);
 }
 
 /* Hide scrollbar for horizontal scroll areas */
@@ -255,7 +255,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-zenvo-primary), var(--color-zenvo-accent));
+  background: linear-gradient(90deg, var(--color-zenov-primary), var(--color-zenov-accent));
   transform-origin: left;
   transform: scaleX(0);
   z-index: 9999;
@@ -318,21 +318,21 @@ body {
    GRADIENT TEXT
    ============================================================ */
 .text-gradient-primary {
-  background: linear-gradient(135deg, var(--color-zenvo-primary), #818cf8);
+  background: linear-gradient(135deg, var(--color-zenov-primary), #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-accent {
-  background: linear-gradient(135deg, var(--color-zenvo-accent), #fb923c);
+  background: linear-gradient(135deg, var(--color-zenov-accent), #fb923c);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-full {
-  background: linear-gradient(135deg, var(--color-zenvo-primary), var(--color-zenvo-accent));
+  background: linear-gradient(135deg, var(--color-zenov-primary), var(--color-zenov-accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -371,7 +371,7 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--color-zenvo-primary), #4f46e5);
+  background: linear-gradient(135deg, var(--color-zenov-primary), #4f46e5);
   color: white;
   display: flex;
   align-items: center;

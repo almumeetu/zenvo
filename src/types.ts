@@ -105,7 +105,7 @@ export interface Order {
   totalUSD: number;
   currency: CurrencyCode;
   paidAmountCurrency: number;
-  paymentMethod: 'bKash' | 'Nagad' | 'Rocket' | 'Visa/Mastercard' | 'Crypto/USDT' | 'Zenov Wallet';
+  paymentMethod: 'bKash' | 'Nagad' | 'Rocket' | 'Bank Transfer' | 'Crypto/USDT' | 'Zenov Wallet';
   paymentStatus: 'Paid' | 'Pending' | 'Failed' | 'Pending Verification';
   fulfillmentStatus: 'Processing' | 'Delivered' | 'Pending Verification' | 'Refunded';
   playerId: string;
