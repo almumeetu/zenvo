@@ -61,6 +61,11 @@ const MOCK_USERS: UserProfile[] = [
   },
 ];
 
+interface AdminToast {
+  type: 'success' | 'error' | 'info';
+  message: string;
+}
+
 interface AppState {
   products: Product[];
   categories: CategoryItem[];
@@ -76,6 +81,8 @@ interface AppState {
   walletTransactions: WalletTransaction[];
   tickets: SupportTicket[];
   authLoading: boolean;
+  productsLoading: boolean;
+  adminToast: AdminToast | null;
 }
 
 interface AppActions {
@@ -98,9 +105,10 @@ interface AppActions {
   searchOrder: (orderId: string) => Promise<Order | null>;
   createTicket: (subject: string, category: any, priority: any, message: string) => Promise<void>;
   replyTicket: (ticketId: string, message: string) => Promise<void>;
-  addProduct: (p: Product) => void;
-  updateProduct: (p: Product) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (p: Product) => Promise<void>;
+  updateProduct: (p: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  dismissAdminToast: () => void;
   addCategory: (c: CategoryItem) => void;
   updateCategory: (c: CategoryItem) => void;
   deleteCategory: (id: string) => void;
@@ -163,6 +171,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isDbConnected, setIsDbConnected] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [adminToast, setAdminToast] = useState<AdminToast | null>(null);
+
+  const showAdminToast = (type: AdminToast['type'], message: string) => {
+    setAdminToast({ type, message });
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => setAdminToast(null), 5000);
+  };
+
+  const dismissAdminToast = () => setAdminToast(null);
 
   // Fast Instant Hydration + Background SWR Sync
   useEffect(() => {
@@ -195,22 +213,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setIsMounted(true);
 
     // 2. Background parallel sync with database (non-blocking)
+    // CRITICAL: always replace state with DB results when the fetch succeeds,
+    // even if the result is an empty array. The old `length > 0` guard was
+    // causing stale seed data to persist when Supabase returned empty due to
+    // RLS policies or missing tables.
+    setProductsLoading(true);
     Promise.allSettled([
       fetch('/api/products').then((r) => r.ok ? r.json() : null),
       fetch('/api/orders').then((r) => r.ok ? r.json() : null),
       fetch('/api/tickets').then((r) => r.ok ? r.json() : null),
     ]).then(([pRes, oRes, tRes]) => {
-      if (pRes.status === 'fulfilled' && pRes.value?.success && pRes.value?.products?.length > 0) {
-        setProducts(pRes.value.products);
+      if (pRes.status === 'fulfilled' && pRes.value?.success) {
+        // Always update — DB is the source of truth, even if it returns []
+        setProducts(pRes.value.products ?? []);
       }
-      if (oRes.status === 'fulfilled' && oRes.value?.success && oRes.value?.orders?.length > 0) {
-        setOrders(oRes.value.orders);
+      if (oRes.status === 'fulfilled' && oRes.value?.success) {
+        setOrders(oRes.value.orders ?? []);
       }
-      if (tRes.status === 'fulfilled' && tRes.value?.success && tRes.value?.tickets?.length > 0) {
-        setTickets(tRes.value.tickets);
+      if (tRes.status === 'fulfilled' && tRes.value?.success) {
+        setTickets(tRes.value.tickets ?? []);
       }
     }).catch((err) => {
       console.warn('Background sync error (using local cache):', err);
+    }).finally(() => {
+      setProductsLoading(false);
     });
   }, []);
 
@@ -615,9 +641,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         if (!data.success) {
           console.error('Failed to create product in database:', data.message);
+          showAdminToast('error', `❌ Failed to save product to database: ${data.message || 'Unknown error'}`);
+          return; // Don't update local state if DB save failed
         }
-      } catch (e) {
+        showAdminToast('success', `✅ Product "${np.title}" created successfully.`);
+      } catch (e: any) {
         console.error('Failed to create product in database API', e);
+        showAdminToast('error', `❌ Network error saving product: ${e?.message || 'Check your connection'}`);
+        return;
       }
     }
     setProducts((p) => [np, ...p]);
@@ -634,9 +665,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         if (!data.success) {
           console.error('Failed to update product in database:', data.message);
+          showAdminToast('error', `❌ Failed to update product in database: ${data.message || 'Unknown error'}`);
+          return;
         }
-      } catch (e) {
+        showAdminToast('success', `✅ Product "${updatedProd.title}" updated successfully.`);
+      } catch (e: any) {
         console.error('Failed to update product in database API', e);
+        showAdminToast('error', `❌ Network error updating product: ${e?.message || 'Check your connection'}`);
+        return;
       }
     }
     setProducts((prev) =>
@@ -651,9 +687,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         if (!data.success) {
           console.error('Failed to delete product from database:', data.message);
+          showAdminToast('error', `❌ Failed to delete product from database: ${data.message || 'Unknown error'}`);
+          return;
         }
-      } catch (e) {
+        showAdminToast('success', `🗑️ Product deleted successfully.`);
+      } catch (e: any) {
         console.error('Failed to delete product in database API', e);
+        showAdminToast('error', `❌ Network error deleting product: ${e?.message || 'Check your connection'}`);
+        return;
       }
     }
     setProducts((p) => p.filter((x) => x.id !== id));
@@ -970,6 +1011,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     orders,
     walletTransactions,
     tickets,
+    productsLoading,
+    adminToast,
     setSelectedCategory,
     setSelectedCurrency,
     addToCart,
@@ -1004,6 +1047,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     deleteBlog,
     adminReplyTicket,
     updateTicketStatus,
+    dismissAdminToast,
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,

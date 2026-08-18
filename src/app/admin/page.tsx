@@ -9,6 +9,7 @@ import { ImageDropzone } from '@/components/admin/ImageDropzone';
 import { DenominationsBuilder } from '@/components/admin/DenominationsBuilder';
 import { CategoryManager } from '@/components/admin/CategoryManager';
 import { UnitManager } from '@/components/admin/UnitManager';
+import { AdminToast } from '@/components/admin/AdminToast';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -103,6 +104,8 @@ export default function AdminDashboardPage() {
     adminReplyTicket,
     updateTicketStatus,
     authLoading,
+    adminToast,
+    dismissAdminToast,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
@@ -776,6 +779,14 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="admin-panel-wrapper min-h-screen bg-zenov-bg flex flex-col lg:flex-row text-zenov-text">
+      {/* Admin Toast Notification */}
+      {adminToast && (
+        <AdminToast
+          type={adminToast.type}
+          message={adminToast.message}
+          onDismiss={dismissAdminToast}
+        />
+      )}
       <style dangerouslySetInnerHTML={{ __html: `
         .admin-panel-wrapper {
           line-height: 1.6;

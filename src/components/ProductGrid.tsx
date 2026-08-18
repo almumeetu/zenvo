@@ -16,7 +16,20 @@ interface ProductGridProps {
   selectedCategory: CategoryType | 'all';
   selectedCurrency: CurrencyCode;
   onSelectProduct: (product: Product) => void;
+  loading?: boolean;
 }
+
+// Skeleton card shown while products are loading from the database
+const SkeletonCard = () => (
+  <div className="rounded-xl overflow-hidden bg-zenov-card border border-zenov-border animate-pulse">
+    <div className="aspect-square bg-zenov-surface/60" />
+    <div className="p-2 sm:p-3 space-y-2">
+      <div className="h-3 bg-zenov-surface rounded-md w-3/4" />
+      <div className="h-2.5 bg-zenov-surface/60 rounded-md w-1/2" />
+      <div className="h-7 bg-zenov-surface/40 rounded-lg mt-1" />
+    </div>
+  </div>
+);
 
 interface ProductSectionProps {
   title: string;
@@ -131,6 +144,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   selectedCategory,
   selectedCurrency,
   onSelectProduct,
+  loading = false,
 }) => {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     hot: false,
@@ -179,6 +193,36 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // Loading skeleton
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-5">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state — products loaded but DB returned nothing
+  if (!loading && products.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 rounded-2xl bg-zenov-primary-soft border border-zenov-primary-border flex items-center justify-center mb-4">
+          <Gift className="w-8 h-8 text-zenov-primary" />
+        </div>
+        <h3 className="text-xl font-black text-zenov-text uppercase tracking-tight mb-2">
+          No Products Yet
+        </h3>
+        <p className="text-sm text-zenov-text-muted max-w-xs">
+          Products will appear here once they are added from the admin panel.
+        </p>
       </div>
     );
   }

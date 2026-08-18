@@ -19,7 +19,7 @@ function ShopContent() {
   const catParam = (searchParams.get('cat') || 'all') as CategoryType | 'all';
   const qParam = searchParams.get('q') || '';
 
-  const { products, selectedCurrency, selectedCategory, setSelectedCategory } = useApp();
+  const { products, selectedCurrency, selectedCategory, setSelectedCategory, productsLoading } = useApp();
 
   const [query, setQuery] = useState(qParam);
   const [sort, setSort] = useState<SortKey>('featured');
@@ -199,7 +199,20 @@ function ShopContent() {
       </div>
 
       {/* Results */}
-      {filtered.length === 0 ? (
+      {productsLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-xl overflow-hidden bg-zenov-card border border-zenov-border animate-pulse">
+              <div className="aspect-square bg-zenov-surface/60" />
+              <div className="p-2 sm:p-3 space-y-2">
+                <div className="h-3 bg-zenov-surface rounded-md w-3/4" />
+                <div className="h-2.5 bg-zenov-surface/60 rounded-md w-1/2" />
+                <div className="h-7 bg-zenov-surface/40 rounded-lg mt-1" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="py-24 text-center">
           <div className="w-20 h-20 rounded-2xl bg-zenov-surface border border-zenov-border flex items-center justify-center mx-auto mb-5">
             <Search className="w-8 h-8 text-zenov-text-muted" />

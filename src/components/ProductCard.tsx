@@ -85,7 +85,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={handleMouseEnter}
-      className="group relative bg-zenov-card border border-zenov-border hover:border-zenov-primary-border rounded-xl overflow-hidden transition-all duration-300 ease-out shadow-sm hover:shadow-lg hover:shadow-zenov-primary/10 flex flex-col will-change-transform"
+      className="group relative bg-zenov-card border border-zenov-border hover:border-zenov-primary-border rounded-xl overflow-hidden transition-all duration-300 ease-out shadow-sm hover:shadow-xl hover:shadow-zenov-primary/15 hover:-translate-y-0.5 flex flex-col will-change-transform"
       style={{ transformStyle: 'preserve-3d' }}
     >
       {/* Hover ring */}
@@ -194,7 +194,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <Link
             href={`/top-up/${product.id}`}
-            className="magnetic-btn shrink-0 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-zenov-primary hover:bg-zenov-primary-hover text-white text-[9px] sm:text-[11px] font-black uppercase tracking-wide inline-flex items-center gap-0.5 sm:gap-1 transition-all duration-200 shadow-sm"
+            className="magnetic-btn shrink-0 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-zenov-primary hover:bg-zenov-primary-hover active:scale-95 active:brightness-90 text-white text-[9px] sm:text-[11px] font-black uppercase tracking-wide inline-flex items-center gap-0.5 sm:gap-1 transition-all duration-150 shadow-sm hover:shadow-md hover:shadow-zenov-primary/30"
           >
             <span className="hidden sm:inline">Top Up</span>
             <span className="sm:hidden">Buy</span>

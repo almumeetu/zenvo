@@ -421,11 +421,11 @@ export default function TopUpPage() {
                 </h3>
                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                   {[
-                    { id: 'bKash', tag: 'Personal', accent: 'border-pink-500/60 bg-pink-500/10' },
-                    { id: 'Nagad', tag: 'Personal', accent: 'border-orange-500/60 bg-orange-500/10' },
-                    { id: 'Rocket', tag: 'Personal', accent: 'border-purple-500/60 bg-purple-500/10' },
-                    { id: 'Bank Transfer', tag: 'Local Bank', accent: 'border-blue-500/60 bg-blue-500/10' },
-                    { id: 'Crypto/USDT', tag: 'TRC20', accent: 'border-emerald-500/60 bg-emerald-500/10' },
+                    { id: 'bKash', tag: 'Personal', accent: 'border-pink-500 bg-pink-500/15 shadow-pink-500/20' },
+                    { id: 'Nagad', tag: 'Personal', accent: 'border-orange-500 bg-orange-500/15 shadow-orange-500/20' },
+                    { id: 'Rocket', tag: 'Personal', accent: 'border-purple-500 bg-purple-500/15 shadow-purple-500/20' },
+                    { id: 'Bank Transfer', tag: 'Local Bank', accent: 'border-blue-500 bg-blue-500/15 shadow-blue-500/20' },
+                    { id: 'Crypto/USDT', tag: 'TRC20', accent: 'border-emerald-500 bg-emerald-500/15 shadow-emerald-500/20' },
                   ].map(({ id, tag, accent }) => {
                     const active = paymentMethod === (id as PaymentMethod);
                     return (
@@ -433,9 +433,9 @@ export default function TopUpPage() {
                         key={id}
                         type="button"
                         onClick={() => setPaymentMethod(id as PaymentMethod)}
-                        className={`relative p-2.5 sm:p-3 rounded-xl border transition-all flex items-center gap-2.5 text-left ${
+                        className={`relative p-2.5 sm:p-3 rounded-xl border-2 transition-all flex items-center gap-2.5 text-left ${
                           active
-                            ? `${accent} ring-2 ring-zenov-primary-border shadow-md scale-[1.01]`
+                            ? `${accent} shadow-md scale-[1.02]`
                             : 'bg-zenov-surface/70 border-zenov-border hover:border-zenov-border-hover hover:bg-zenov-surface'
                         }`}
                       >
@@ -446,8 +446,13 @@ export default function TopUpPage() {
                           </p>
                           {tag && <p className="text-[9px] text-zenov-text-muted font-medium leading-none mt-0.5">{tag}</p>}
                         </div>
+                        {/* Active checkmark */}
                         {active && (
-                          <div className="w-2 h-2 rounded-full bg-zenov-primary animate-pulse shrink-0" />
+                          <div className="w-4 h-4 rounded-full bg-white/90 flex items-center justify-center shrink-0">
+                            <svg className="w-2.5 h-2.5 text-zenov-bg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
                         )}
                       </button>
                     );
@@ -488,28 +493,48 @@ export default function TopUpPage() {
               </div>
 
               <div className="p-3.5 sm:p-5 pt-1 space-y-2">
-                <button
-                  onClick={onPay}
-                  disabled={!denom || (requiresPlayerId && !playerId.trim()) || !trxId.trim() || submitting || total <= 0}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenov-primary via-blue-600 to-indigo-600 hover:shadow-primary text-white text-xs sm:text-sm font-black uppercase tracking-wider disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md"
-                >
-                  {submitting ? (
-                    <>Submitting Order <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
-                  ) : (
-                    <>
-                      <Zap className="w-3.5 h-3.5 fill-white" />
-                      Submit Order with TrxID ({formatCurrency(total, selectedCurrency)})
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={onAddToCart}
-                  disabled={!denom || total <= 0}
-                  className="w-full py-2.5 rounded-xl bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/40 disabled:opacity-50 text-xs sm:text-sm font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all flex items-center justify-center gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Add to Cart
-                </button>
+                {/* PRIMARY ACTION: Submit with TrxID */}
+                <div className="relative">
+                  <div className="absolute -top-2.5 left-3 px-1.5 bg-zenov-card z-10">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zenov-primary">Step 1 — Pay &amp; Submit TrxID</span>
+                  </div>
+                  <button
+                    onClick={onPay}
+                    disabled={!denom || (requiresPlayerId && !playerId.trim()) || !trxId.trim() || submitting || total <= 0}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenov-primary via-blue-600 to-indigo-600 hover:shadow-primary text-white text-xs sm:text-sm font-black uppercase tracking-wider disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md"
+                  >
+                    {submitting ? (
+                      <>Submitting Order <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
+                    ) : (
+                      <>
+                        <Zap className="w-3.5 h-3.5 fill-white" />
+                        Submit Order with TrxID ({formatCurrency(total, selectedCurrency)})
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* DIVIDER */}
+                <div className="relative flex items-center gap-2 py-1">
+                  <div className="flex-1 h-px bg-zenov-border" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-zenov-text-muted px-1">or</span>
+                  <div className="flex-1 h-px bg-zenov-border" />
+                </div>
+
+                {/* SECONDARY ACTION: Add to Cart */}
+                <div className="relative">
+                  <div className="absolute -top-2.5 left-3 px-1.5 bg-zenov-card z-10">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zenov-text-muted">Step 1 alt — Add to Cart</span>
+                  </div>
+                  <button
+                    onClick={onAddToCart}
+                    disabled={!denom || total <= 0}
+                    className="w-full py-2.5 rounded-xl bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/40 disabled:opacity-50 text-xs sm:text-sm font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add to Cart &amp; Pay Later
+                  </button>
+                </div>
                 <div className="flex items-center justify-center gap-2 sm:gap-3 pt-0.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-zenov-text-muted flex-wrap">
                   <span className="flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> SSL</span>
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> 24/7</span>

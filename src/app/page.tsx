@@ -23,6 +23,7 @@ export default function HomePage() {
     blogArticles,
     selectedCategory,
     selectedCurrency,
+    productsLoading,
   } = useApp();
   const router = useRouter();
   const blogHeaderRef = useRef<HTMLDivElement>(null);
@@ -95,6 +96,7 @@ export default function HomePage() {
         selectedCategory={selectedCategory}
         selectedCurrency={selectedCurrency}
         onSelectProduct={onSelectProduct}
+        loading={productsLoading}
       />
 
       {/* WHY CHOOSE US */}
