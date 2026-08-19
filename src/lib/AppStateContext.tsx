@@ -120,6 +120,10 @@ interface AppActions {
     status: 'Processing' | 'Delivered' | 'Refunded' | 'Pending Verification',
     paymentStatus?: 'Paid' | 'Pending' | 'Failed' | 'Pending Verification'
   ) => void;
+  createAdminOrder: (
+    orderData: Partial<Order>
+  ) => Promise<{ success: boolean; orderNumber?: string; order?: Order; message?: string }>;
+  refreshOrders: () => Promise<Order[]>;
   updateUser: (u: UserProfile) => void;
   createUser: (u: UserProfile) => void;
   deleteUser: (id: string) => void;
@@ -397,7 +401,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const transactionId = customerInfo?.trxId?.trim() || ('TX-' + Math.random().toString(36).slice(2, 10).toUpperCase());
     const senderNumber = customerInfo?.senderNumber?.trim() || customerInfo?.phone || '';
 
-    const customerName = customerInfo?.name || user.name || 'Guest Gamer';
+    const customerName = customerInfo?.name || user.name || (user.id === 'guest' || !user.id ? 'Guest Gamer' : 'Customer');
     const customerEmail = customerInfo?.email || user.email || 'guest@zenovgames.com';
     const customerPhone = customerInfo?.phone || user.phone || '';
     const isManualVerification = Boolean(customerInfo?.trxId);
@@ -417,24 +421,31 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       paymentMethod,
       paymentStatus: isManualVerification ? 'Pending Verification' : 'Paid',
       fulfillmentStatus: isManualVerification ? 'Pending Verification' : 'Processing',
-      createdAt: new Date().toLocaleString(),
-      updatedAt: new Date().toLocaleString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       playerId: item.playerId || 'PLAYER_GUEST',
       serverId: item.serverId || '',
       transactionId,
     } as unknown as Order;
 
+    let finalOrder = newOrder;
     try {
-      await fetch('/api/orders', {
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrder),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.order) {
+          finalOrder = data.order;
+        }
+      }
     } catch (e) {
       console.error('Failed to post order to database API', e);
     }
 
-    setOrders((p) => [newOrder, ...p]);
+    setOrders((p) => [finalOrder, ...p]);
 
     // Clear item from cart
     setCartItems((p) =>
@@ -444,7 +455,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       )
     );
 
-    return { success: true, orderNumber, message: 'Order submitted! Payment verification in progress.' };
+    return { success: true, orderNumber: finalOrder.orderNumber, message: 'Order submitted! Payment verification in progress.' };
   };
 
   const placeOrder = async (
@@ -458,7 +469,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const transactionId = customerInfo?.trxId?.trim() || ('TX-' + Math.random().toString(36).slice(2, 10).toUpperCase());
     const senderNumber = customerInfo?.senderNumber?.trim() || customerInfo?.phone || '';
 
-    const customerName = customerInfo?.name || user.name || 'Guest Gamer';
+    const customerName = customerInfo?.name || user.name || (user.id === 'guest' || !user.id ? 'Guest Gamer' : 'Customer');
     const customerEmail = customerInfo?.email || user.email || 'guest@zenovgames.com';
     const customerPhone = customerInfo?.phone || user.phone || '';
     const isManualVerification = Boolean(customerInfo?.trxId);
@@ -478,27 +489,103 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       paymentMethod,
       paymentStatus: isManualVerification ? 'Pending Verification' : 'Paid',
       fulfillmentStatus: isManualVerification ? 'Pending Verification' : 'Processing',
-      createdAt: new Date().toLocaleString(),
-      updatedAt: new Date().toLocaleString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       playerId: cartItems[0]?.playerId || 'PLAYER_GUEST',
       serverId: cartItems[0]?.serverId || '',
       transactionId,
     } as unknown as Order;
 
+    let finalOrder = newOrder;
     try {
-      await fetch('/api/orders', {
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrder),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.order) {
+          finalOrder = data.order;
+        }
+      }
     } catch (e) {
       console.error('Failed to post cart order to database API', e);
     }
 
-    setOrders((p) => [newOrder, ...p]);
+    setOrders((p) => [finalOrder, ...p]);
     clearCart();
 
-    return { success: true, orderNumber, message: 'Order submitted! Payment verification in progress.' };
+    return { success: true, orderNumber: finalOrder.orderNumber, message: 'Order submitted! Payment verification in progress.' };
+  };
+
+  const createAdminOrder = async (orderData: Partial<Order>) => {
+    const id = orderData.id || 'ord_' + Date.now();
+    const orderNumber =
+      orderData.orderNumber ||
+      'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
+    const transactionId =
+      orderData.transactionId?.trim() ||
+      'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+
+    const newOrder: Order = {
+      id,
+      orderNumber,
+      userId: orderData.userId || 'guest',
+      userEmail: orderData.userEmail || 'guest@zenovgames.com',
+      customerName: orderData.customerName || (orderData.userId === 'guest' || !orderData.userId ? 'Guest Gamer' : 'Customer'),
+      customerPhone: orderData.customerPhone || '',
+      senderNumber: orderData.senderNumber || '',
+      items: orderData.items || [],
+      totalUSD: Number(orderData.totalUSD) || 0,
+      currency: orderData.currency || selectedCurrency,
+      paidAmountCurrency: Number(orderData.paidAmountCurrency) || Number(orderData.totalUSD) || 0,
+      paymentMethod: orderData.paymentMethod || 'bKash',
+      paymentStatus: orderData.paymentStatus || 'Paid',
+      fulfillmentStatus: orderData.fulfillmentStatus || 'Delivered',
+      playerId: orderData.playerId || orderData.items?.[0]?.playerId || 'PLAYER_GUEST',
+      serverId: orderData.serverId || orderData.items?.[0]?.serverId || '',
+      transactionId,
+      notes: orderData.notes || '',
+      createdAt: orderData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as Order;
+
+    let finalOrder = newOrder;
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.order) {
+          finalOrder = data.order;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to post manual admin order to API', e);
+    }
+
+    setOrders((p) => [finalOrder, ...p]);
+    return { success: true, orderNumber: finalOrder.orderNumber, order: finalOrder, message: 'Order created successfully!' };
+  };
+
+  const refreshOrders = async () => {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders)) {
+          setOrders(data.orders);
+          return data.orders;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to refresh orders from server:', err);
+    }
+    return orders;
   };
 
   const depositWallet = async (amountUSD: number, method: string, reference: string) => {
@@ -1035,6 +1122,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     updateUnit,
     deleteUnit,
     updateOrderStatus,
+    createAdminOrder,
+    refreshOrders,
     updateUser: setUser,
     createUser,
     deleteUser,

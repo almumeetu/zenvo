@@ -14,6 +14,40 @@ import { sendOrderNotificationEmail } from '@/lib/resend';
 
 export const dynamic = 'force-dynamic';
 
+function parseOrderNotes(rawOrder: any) {
+  let customerName = rawOrder.customerName || (rawOrder.userId === 'guest' ? 'Guest Customer' : 'Customer');
+  let customerPhone = rawOrder.customerPhone || '';
+  let senderNumber = rawOrder.senderNumber || '';
+  let ipAddress = rawOrder.ipAddress || '';
+  let cleanNotes = rawOrder.notes || '';
+
+  if (rawOrder.notes && typeof rawOrder.notes === 'string') {
+    try {
+      if (rawOrder.notes.startsWith('{') && rawOrder.notes.endsWith('}')) {
+        const parsed = JSON.parse(rawOrder.notes);
+        if (parsed.customerName) customerName = parsed.customerName;
+        if (parsed.customerPhone) customerPhone = parsed.customerPhone;
+        if (parsed.senderNumber) senderNumber = parsed.senderNumber;
+        if (parsed.ipAddress) ipAddress = parsed.ipAddress;
+        cleanNotes = parsed.adminNotes || parsed.notes || '';
+      }
+    } catch {
+      // plain string note
+    }
+  }
+
+  return {
+    ...rawOrder,
+    customerName,
+    customerPhone,
+    senderNumber,
+    ipAddress,
+    notes: cleanNotes,
+    createdAt: rawOrder.createdAt || rawOrder.created_at || new Date().toISOString(),
+    updatedAt: rawOrder.updatedAt || rawOrder.updated_at || new Date().toISOString(),
+  };
+}
+
 export async function GET() {
   try {
     if (!supabaseAdmin) {
@@ -21,17 +55,30 @@ export async function GET() {
       return NextResponse.json({ success: true, orders: [] });
     }
 
-    const { data: orders, error } = await supabaseAdmin
+    // Try ordering by createdAt (camelCase schema in Supabase)
+    let { data: orders, error } = await supabaseAdmin
       .from('orders')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('createdAt', { ascending: false });
+
+    // Fallback if schema uses created_at or unordered
+    if (error) {
+      console.warn('[API /orders GET] order("createdAt") fallback:', error.message);
+      const fallback = await supabaseAdmin.from('orders').select('*');
+      orders = fallback.data ?? [];
+      error = fallback.error;
+    }
 
     if (error) {
       console.error('[API /orders GET] Supabase query error:', error.message, error.details);
       return NextResponse.json({ success: false, orders: [], message: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, orders: orders ?? [] });
+    const formattedOrders = (orders ?? [])
+      .map(parseOrderNotes)
+      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return NextResponse.json({ success: true, orders: formattedOrders });
   } catch (error: any) {
     console.error('[API /orders GET] Unexpected error:', error);
     return NextResponse.json({ success: false, orders: [], message: error.message }, { status: 500 });
@@ -53,78 +100,86 @@ export async function POST(request: Request) {
     const body = await request.json();
     const clientIp = getClientIp(request);
 
-    // Auto-generate order fields if missing
+    // Auto-generate order identifiers if missing
     const id = body.id || 'ord_' + Date.now();
     const orderNumber =
       body.orderNumber ||
       'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
     const transactionId =
-      body.transactionId || 'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+      body.transactionId?.trim() ||
+      'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
 
-    const newOrder = {
+    const customerName = body.customerName || body.userName || (body.userId === 'guest' || !body.userId ? 'Guest Gamer' : 'Customer');
+    const customerPhone = body.customerPhone || body.phone || '';
+    const senderNumber = body.senderNumber || '';
+    const userEmail = body.customerEmail || body.userEmail || (body.userId === 'guest' ? 'guest@zenovgames.com' : 'user@zenovgames.com');
+    const playerId = body.playerId || body.items?.[0]?.playerId || 'PLAYER_GUEST';
+    const serverId = body.serverId || body.items?.[0]?.serverId || '';
+
+    // Metadata packed into notes for seamless database compatibility
+    const metaObj = {
+      customerName,
+      customerPhone,
+      senderNumber,
+      ipAddress: clientIp,
+      adminNotes: body.notes || body.adminNotes || '',
+    };
+
+    // Exact schema payload matching Supabase orders table columns
+    const dbOrder = {
       id,
       orderNumber,
       userId: body.userId || 'guest',
-      customerName: body.customerName || body.userName || 'Guest Customer',
-      customerEmail: body.customerEmail || body.userEmail || 'guest@zenov.gg',
-      customerPhone: body.customerPhone || body.phone || '',
-      userEmail: body.customerEmail || body.userEmail || 'guest@zenov.gg',
-      ipAddress: clientIp,
+      userEmail,
       items: body.items || [],
-      totalUSD: body.totalUSD || 0,
+      totalUSD: Number(body.totalUSD) || 0,
       currency: body.currency || 'BDT',
-      paidAmountCurrency: body.paidAmountCurrency || 0,
+      paidAmountCurrency: Number(body.paidAmountCurrency) || Number(body.totalUSD) || 0,
       paymentMethod: body.paymentMethod || 'bKash',
       paymentStatus: body.paymentStatus || 'Pending Verification',
       fulfillmentStatus: body.fulfillmentStatus || 'Processing',
-      playerId: body.playerId || 'PLAYER_GUEST',
-      serverId: body.serverId || '',
+      playerId,
+      serverId,
       transactionId,
-      senderNumber: body.senderNumber || '',
-      productTitle: body.items?.[0]?.productTitle || body.productTitle || '',
-      denominationName: body.items?.[0]?.denomination?.name || body.denominationName || '',
-      priceBDT: body.paidAmountCurrency || body.totalUSD || 0,
-      quantity: body.items?.[0]?.quantity || body.quantity || 1,
+      notes: JSON.stringify(metaObj),
+      createdAt: body.createdAt || new Date().toISOString(),
+      updatedAt: body.updatedAt || new Date().toISOString(),
     };
 
-    // 1. Save order to database first
-    let savedOrder = newOrder;
+    // 1. Save order to Supabase database
+    let savedOrder: any = dbOrder;
     if (supabaseAdmin) {
       const { data, error } = await supabaseAdmin
         .from('orders')
-        .insert([newOrder])
+        .insert([dbOrder])
         .select()
         .single();
 
       if (error) {
-        // Log the real error — don't silently swallow it
         console.error('[API /orders POST] Supabase insert error:', error.message, error.details, error.hint);
-        // Still return success to the customer — order is tracked in client state
-        // but log clearly so Vercel logs show the DB failure
-      } else {
-        savedOrder = data || newOrder;
+      } else if (data) {
+        savedOrder = data;
       }
     } else {
-      console.warn('[API /orders POST] supabaseAdmin is not initialized. Order not persisted to DB. Check SUPABASE_SERVICE_ROLE_KEY in Vercel env vars.');
+      console.warn('[API /orders POST] supabaseAdmin is not initialized. Check SUPABASE_SERVICE_ROLE_KEY.');
     }
+
+    const formattedSavedOrder = parseOrderNotes(savedOrder);
 
     // 2. Send email notification (non-blocking, never fails the order)
     try {
       const emailResult = await sendOrderNotificationEmail({
-        ...newOrder,
+        ...formattedSavedOrder,
+        customerName,
+        customerPhone,
+        senderNumber,
         ipAddress: clientIp,
       });
 
       if (!emailResult.success) {
-        // Log the actual Resend error for debugging in Vercel Function Logs
         console.error(
           '[API /orders POST] Order email failed. Resend error:',
           JSON.stringify(emailResult?.error || emailResult.message)
-        );
-        console.error(
-          '[API /orders POST] REMINDER: If RESEND_FROM_EMAIL is "onboarding@resend.dev", ' +
-            'emails can only be delivered to the Resend account owner email in sandbox mode. ' +
-            'Verify a custom domain in Resend dashboard and update RESEND_FROM_EMAIL env var to fix this.'
         );
       } else {
         console.log('[API /orders POST] Order notification email sent successfully for order:', orderNumber);
@@ -133,7 +188,7 @@ export async function POST(request: Request) {
       console.error('[API /orders POST] Order email notification threw an exception:', mailErr?.message || mailErr);
     }
 
-    return NextResponse.json({ success: true, orderNumber, order: savedOrder });
+    return NextResponse.json({ success: true, orderNumber, order: formattedSavedOrder });
   } catch (error: any) {
     console.error('[API /orders POST] Unexpected error:', error);
     return NextResponse.json(
@@ -142,3 +197,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

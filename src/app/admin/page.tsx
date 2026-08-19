@@ -10,6 +10,8 @@ import { DenominationsBuilder } from '@/components/admin/DenominationsBuilder';
 import { CategoryManager } from '@/components/admin/CategoryManager';
 import { UnitManager } from '@/components/admin/UnitManager';
 import { AdminToast } from '@/components/admin/AdminToast';
+import { CreateOrderModal } from '@/components/admin/CreateOrderModal';
+import { OrderDetailsModal } from '@/components/admin/OrderDetailsModal';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -60,6 +62,9 @@ import {
   Menu,
   X,
   Zap,
+  Copy,
+  Eye,
+  Filter,
 } from 'lucide-react';
 
 type AdminTab = 'overview' | 'products' | 'orders' | 'users' | 'cms' | 'tickets' | 'security';
@@ -91,6 +96,8 @@ export default function AdminDashboardPage() {
     updateProduct,
     deleteProduct,
     updateOrderStatus,
+    createAdminOrder,
+    refreshOrders,
     updateUser,
     createUser,
     deleteUser,
@@ -123,6 +130,11 @@ export default function AdminDashboardPage() {
   // --- Orders State ---
   const [searchOrder, setSearchOrder] = useState('');
   const [orderFilter, setOrderFilter] = useState<'All' | 'Pending Verification' | 'Processing' | 'Delivered' | 'Refunded'>('All');
+  const [orderPaymentFilter, setOrderPaymentFilter] = useState<string>('All');
+  const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // --- Users State ---
   const [searchUser, setSearchUser] = useState('');
@@ -226,12 +238,14 @@ export default function AdminDashboardPage() {
           o.userEmail.toLowerCase().includes(q) ||
           (o.customerPhone || '').includes(q) ||
           (o.transactionId || '').toLowerCase().includes(q) ||
-          (o.customerName || '').toLowerCase().includes(q);
+          (o.customerName || '').toLowerCase().includes(q) ||
+          (o.items?.[0]?.productTitle || '').toLowerCase().includes(q);
         const matchStatus = orderFilter === 'All' || o.fulfillmentStatus === orderFilter;
-        return matchQuery && matchStatus;
+        const matchPayment = orderPaymentFilter === 'All' || o.paymentMethod === orderPaymentFilter;
+        return matchQuery && matchStatus && matchPayment;
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [orders, searchOrder, orderFilter]);
+  }, [orders, searchOrder, orderFilter, orderPaymentFilter]);
 
   const filteredUsers = useMemo(() => {
     const q = searchUser.trim().toLowerCase();
@@ -1577,208 +1591,620 @@ export default function AdminDashboardPage() {
 
         {/* Live Orders Fulfillment Tab */}
         {activeTab === 'orders' && (
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zenov-card border border-zenov-border focus-within:border-zenov-primary-border">
-                <Search className="w-[18px] h-[18px] text-zenov-text-muted shrink-0" />
-                <input
-                  value={searchOrder}
-                  onChange={(e) => setSearchOrder(e.target.value)}
-                  placeholder="Search orders by TrxID, Player ID, order number, or phone..."
-                  className="w-full min-w-0 bg-transparent text-sm text-zenov-text focus:outline-none"
-                />
+          <div className="space-y-5 animate-fadeIn">
+            {/* Top Metrics Row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="p-4 rounded-2xl bg-zenov-card border border-zenov-border/80 shadow-md">
+                <div className="flex items-center justify-between text-zenov-text-muted mb-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Total Orders</span>
+                  <ShoppingBag className="w-4 h-4 text-zenov-primary" />
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black font-mono text-zenov-text">{orders.length}</span>
+                  <span className="text-[10px] text-zenov-text-muted font-semibold">Lifetime</span>
+                </div>
               </div>
-              <div className="flex gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-                {['All', 'Pending Verification', 'Processing', 'Delivered', 'Refunded'].map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setOrderFilter(st as any)}
-                    className={`px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase transition-all whitespace-nowrap ${
-                      orderFilter === st
-                        ? 'bg-zenov-primary text-white border border-zenov-primary shadow-sm'
-                        : 'bg-zenov-card border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface'
-                    }`}
+
+              <div className="p-4 rounded-2xl bg-zenov-card border border-sky-500/30 bg-gradient-to-br from-sky-500/5 to-transparent shadow-md">
+                <div className="flex items-center justify-between text-sky-400 mb-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Pending Action</span>
+                  <AlertTriangle className="w-4 h-4 text-sky-400" />
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black font-mono text-sky-400">
+                    {orders.filter((o) => o.fulfillmentStatus === 'Pending Verification').length}
+                  </span>
+                  <span className="text-[10px] text-sky-300/80 font-semibold">Verify Payment</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-zenov-card border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent shadow-md">
+                <div className="flex items-center justify-between text-amber-400 mb-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">In Processing</span>
+                  <Clock className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black font-mono text-amber-400">
+                    {orders.filter((o) => o.fulfillmentStatus === 'Processing').length}
+                  </span>
+                  <span className="text-[10px] text-amber-300/80 font-semibold">Delivering</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-zenov-card border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-transparent shadow-md">
+                <div className="flex items-center justify-between text-emerald-400 mb-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Completed Value</span>
+                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-black font-mono text-emerald-400">
+                    {formatCurrency(
+                      orders
+                        .filter((o) => o.fulfillmentStatus === 'Delivered')
+                        .reduce((acc, o) => acc + o.totalUSD, 0),
+                      selectedCurrency
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter & Action Controls Bar */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-zenov-card border border-zenov-border space-y-3.5 shadow-lg">
+              <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                {/* Search input */}
+                <div className="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border focus-within:border-zenov-primary focus-within:ring-1 focus-within:ring-zenov-primary/30 transition-all">
+                  <Search className="w-4 h-4 text-zenov-text-muted shrink-0" />
+                  <input
+                    value={searchOrder}
+                    onChange={(e) => setSearchOrder(e.target.value)}
+                    placeholder="Search by Order #, Name, Email, Phone, UID, TrxID, Product..."
+                    className="w-full min-w-0 bg-transparent text-xs sm:text-sm text-zenov-text focus:outline-none placeholder:text-zenov-text-muted/60"
+                  />
+                  {searchOrder && (
+                    <button
+                      onClick={() => setSearchOrder('')}
+                      className="p-1 rounded text-zenov-text-muted hover:text-zenov-text"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Gateway Dropdown, Refresh & Create Order Button */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={orderPaymentFilter}
+                    onChange={(e) => setOrderPaymentFilter(e.target.value)}
+                    className="px-3 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-xs font-semibold text-zenov-text focus:border-zenov-primary focus:outline-none"
                   >
-                    {st}
+                    <option value="All">All Gateways</option>
+                    <option value="bKash">bKash</option>
+                    <option value="Nagad">Nagad</option>
+                    <option value="Rocket">Rocket</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Crypto/USDT">Crypto / USDT</option>
+                    <option value="Zenov Wallet">Zenov Wallet</option>
+                  </select>
+
+                  <button
+                    onClick={async () => {
+                      setIsRefreshingOrders(true);
+                      try {
+                        await refreshOrders();
+                      } finally {
+                        setTimeout(() => setIsRefreshingOrders(false), 600);
+                      }
+                    }}
+                    disabled={isRefreshingOrders}
+                    className="p-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:border-zenov-primary transition-all active:scale-95 disabled:opacity-50"
+                    title="Refresh orders from database"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isRefreshingOrders ? 'animate-spin text-zenov-primary' : ''}`} />
                   </button>
-                ))}
+
+                  <button
+                    onClick={() => setIsCreateOrderOpen(true)}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-zenov-primary to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-blue-500/25 transition-all flex items-center gap-1.5 active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create Order</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-t border-zenov-border/60 pt-3">
+                {[
+                  { key: 'All', label: 'All Orders', count: orders.length },
+                  {
+                    key: 'Pending Verification',
+                    label: 'Pending Verification',
+                    count: orders.filter((o) => o.fulfillmentStatus === 'Pending Verification').length,
+                    badgeColor: 'bg-sky-500/20 text-sky-300',
+                  },
+                  {
+                    key: 'Processing',
+                    label: 'Processing',
+                    count: orders.filter((o) => o.fulfillmentStatus === 'Processing').length,
+                    badgeColor: 'bg-amber-500/20 text-amber-300',
+                  },
+                  {
+                    key: 'Delivered',
+                    label: 'Delivered',
+                    count: orders.filter((o) => o.fulfillmentStatus === 'Delivered').length,
+                    badgeColor: 'bg-emerald-500/20 text-emerald-300',
+                  },
+                  {
+                    key: 'Refunded',
+                    label: 'Refunded',
+                    count: orders.filter((o) => o.fulfillmentStatus === 'Refunded').length,
+                    badgeColor: 'bg-red-500/20 text-red-300',
+                  },
+                ].map((tab) => {
+                  const isSelected = orderFilter === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setOrderFilter(tab.key as any)}
+                      className={`shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                        isSelected
+                          ? 'bg-zenov-primary text-white shadow-sm'
+                          : 'bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface/80'
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span
+                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md font-bold ${
+                          isSelected
+                            ? 'bg-white/20 text-white'
+                            : tab.badgeColor || 'bg-zenov-border text-zenov-text-muted'
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Orders Table (Desktop View) */}
-            <div className="hidden md:block rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border shadow-xl">
-              <table className="w-full text-sm text-left">
-                <thead>
-                  <tr className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted bg-zenov-surface/70 border-b border-zenov-border">
-                    <th className="p-4">Order & Customer</th>
-                    <th className="p-4">UID / Destination</th>
-                    <th className="p-4">Product & Package</th>
-                    <th className="p-4">Payment & TrxID</th>
-                    <th className="p-4 text-right">Amount</th>
-                    <th className="p-4 text-center">Status</th>
-                    <th className="p-4 text-right">Verification & Control</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zenov-border/40">
-                  {filteredOrders.map((o) => (
-                    <tr key={o.id} className="hover:bg-zenov-surface/30 transition-colors">
-                      <td className="p-4">
-                        <div className="font-bold text-zenov-text font-mono text-sm">{o.orderNumber}</div>
-                        <div className="text-[10px] text-zenov-text-muted mt-0.5">{o.createdAt}</div>
-                        <div className="text-xs font-semibold text-zenov-text mt-1">{o.customerName || 'Gamer'}</div>
-                        <div className="text-[10px] text-zenov-primary mt-0.5">{o.userEmail}</div>
-                        {o.customerPhone && (
-                          <div className="text-[10px] text-emerald-400 font-mono mt-0.5">📞 {o.customerPhone}</div>
-                        )}
-                      </td>
-                      <td className="p-4 font-mono text-xs text-zenov-text-secondary">
-                        <span className="px-2 py-1 rounded bg-zenov-surface border border-zenov-border">
-                          {o.playerId}
-                        </span>
-                        {o.serverId && <p className="text-[10px] text-zenov-text-muted mt-1">Server: {o.serverId}</p>}
-                      </td>
-                      <td className="p-4">
-                        <p className="font-bold text-zenov-text text-xs leading-snug">{o.items[0]?.productTitle}</p>
-                        <p className="text-[10px] text-zenov-text-secondary leading-snug">{o.items[0]?.denomination.name} (Qty {o.items[0]?.quantity})</p>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-xs font-bold text-zenov-text">{o.paymentMethod}</p>
-                        {o.senderNumber && (
-                          <p className="text-[10px] font-mono text-amber-400 mt-0.5">
-                            Sender: <span className="font-bold">{o.senderNumber}</span>
+            <div className="hidden lg:block rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted bg-zenov-surface/80 border-b border-zenov-border">
+                      <th className="p-4">Order ID & Date</th>
+                      <th className="p-4">Customer</th>
+                      <th className="p-4">Game & Player UID</th>
+                      <th className="p-4">Payment & TrxID</th>
+                      <th className="p-4 text-right">Amount</th>
+                      <th className="p-4 text-center">Status</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zenov-border/40">
+                    {filteredOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-12 text-center text-zenov-text-muted">
+                          <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                          <p className="text-sm font-bold text-zenov-text">No orders found</p>
+                          <p className="text-xs text-zenov-text-secondary mt-1">
+                            {searchOrder || orderFilter !== 'All'
+                              ? 'Try adjusting your search query or filters.'
+                              : 'Orders placed by customers and guests will appear here live.'}
                           </p>
-                        )}
-                        {o.transactionId && (
-                          <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 font-mono text-[11px] font-bold">
-                            TrxID: {o.transactionId}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredOrders.map((o) => {
+                        const isGuest = o.userId === 'guest' || !o.userId || o.userId === '';
+                        return (
+                          <tr
+                            key={o.id}
+                            onClick={() => setSelectedOrderForDetails(o)}
+                            className="hover:bg-zenov-surface/40 transition-colors cursor-pointer group"
+                          >
+                            {/* 1. Order ID & Date */}
+                            <td className="p-4">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-zenov-text font-mono text-xs">
+                                  {o.orderNumber}
+                                </span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(o.orderNumber);
+                                    setCopiedKey(`ord_${o.id}`);
+                                    setTimeout(() => setCopiedKey(null), 2000);
+                                  }}
+                                  className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all"
+                                  title="Copy Order #"
+                                >
+                                  {copiedKey === `ord_${o.id}` ? (
+                                    <Check className="w-3 h-3 text-emerald-400" />
+                                  ) : (
+                                    <Copy className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+                                  )}
+                                </button>
+                              </div>
+                              <div className="text-[10px] text-zenov-text-muted mt-0.5">
+                                {new Date(o.createdAt).toLocaleString([], {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </div>
+                              <div className="mt-1.5">
+                                {isGuest ? (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                                    👤 GUEST
+                                  </span>
+                                ) : (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-blue-500/15 border border-blue-500/30 text-blue-300">
+                                    👑 MEMBER
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* 2. Customer */}
+                            <td className="p-4 max-w-[200px]">
+                              <div className="text-xs font-bold text-zenov-text truncate">
+                                {o.customerName || (isGuest ? 'Guest Gamer' : 'Customer')}
+                              </div>
+                              <div className="text-[10px] text-zenov-primary truncate mt-0.5">
+                                {o.userEmail}
+                              </div>
+                              {o.customerPhone && (
+                                <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold mt-1">
+                                  <span>📞 {o.customerPhone}</span>
+                                </div>
+                              )}
+                            </td>
+
+                            {/* 3. Product & UID */}
+                            <td className="p-4 max-w-[240px]">
+                              <div className="flex items-center gap-2.5">
+                                {o.items[0]?.productImage && (
+                                  <img
+                                    src={o.items[0]?.productImage}
+                                    alt=""
+                                    className="w-8 h-8 rounded-lg object-cover bg-zenov-surface shrink-0"
+                                  />
+                                )}
+                                <div className="min-w-0">
+                                  <p className="font-bold text-zenov-text text-xs leading-snug truncate">
+                                    {o.items[0]?.productTitle || 'Top Up Package'}
+                                  </p>
+                                  <p className="text-[10px] text-zenov-text-secondary truncate">
+                                    {o.items[0]?.denomination?.name} (Qty {o.items[0]?.quantity || 1})
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-1.5 flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded bg-zenov-surface border border-zenov-border font-mono text-[11px] font-bold text-zenov-text truncate max-w-[160px]">
+                                  🎮 {o.playerId}
+                                </span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(o.playerId);
+                                    setCopiedKey(`uid_${o.id}`);
+                                    setTimeout(() => setCopiedKey(null), 2000);
+                                  }}
+                                  className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all"
+                                  title="Copy Player UID"
+                                >
+                                  {copiedKey === `uid_${o.id}` ? (
+                                    <Check className="w-3 h-3 text-emerald-400" />
+                                  ) : (
+                                    <Copy className="w-3 h-3 opacity-60" />
+                                  )}
+                                </button>
+                              </div>
+                              {o.serverId && (
+                                <p className="text-[9px] font-mono text-zenov-text-muted mt-0.5">
+                                  Zone: {o.serverId}
+                                </p>
+                              )}
+                            </td>
+
+                            {/* 4. Payment & TrxID */}
+                            <td className="p-4 max-w-[200px]">
+                              <div className="flex items-center gap-1.5">
+                                <span className="px-2 py-0.5 rounded-md bg-zenov-surface border border-zenov-border font-bold text-xs text-zenov-text">
+                                  {o.paymentMethod}
+                                </span>
+                              </div>
+                              {o.senderNumber && (
+                                <p className="text-[10px] font-mono text-amber-400 mt-1">
+                                  Sender: <span className="font-bold">{o.senderNumber}</span>
+                                </p>
+                              )}
+                              {o.transactionId && (
+                                <div className="mt-1 flex items-center gap-1">
+                                  <span className="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 font-mono text-[10px] font-bold truncate max-w-[140px]">
+                                    TX: {o.transactionId}
+                                  </span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigator.clipboard.writeText(o.transactionId);
+                                      setCopiedKey(`tx_${o.id}`);
+                                      setTimeout(() => setCopiedKey(null), 2000);
+                                    }}
+                                    className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all"
+                                    title="Copy TrxID"
+                                  >
+                                    {copiedKey === `tx_${o.id}` ? (
+                                      <Check className="w-3 h-3 text-emerald-400" />
+                                    ) : (
+                                      <Copy className="w-3 h-3 opacity-60" />
+                                    )}
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+
+                            {/* 5. Amount */}
+                            <td className="p-4 text-right">
+                              <p className="font-black font-mono text-sm text-zenov-success">
+                                {formatCurrency(o.totalUSD, o.currency as any)}
+                              </p>
+                              <p className="text-[10px] font-mono text-zenov-text-muted mt-0.5">
+                                ৳{o.paidAmountCurrency || Math.round(o.totalUSD * 120)}
+                              </p>
+                            </td>
+
+                            {/* 6. Status */}
+                            <td className="p-4 text-center">
+                              <span
+                                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider ${
+                                  o.fulfillmentStatus === 'Delivered'
+                                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                    : o.fulfillmentStatus === 'Pending Verification'
+                                      ? 'bg-sky-500/15 text-sky-300 border-sky-500/40 animate-pulse'
+                                      : o.fulfillmentStatus === 'Processing'
+                                        ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                                        : 'bg-red-500/15 text-red-400 border-red-500/30'
+                                }`}
+                              >
+                                {o.fulfillmentStatus}
+                              </span>
+                              <div className="text-[9px] font-medium text-zenov-text-muted mt-1 uppercase">
+                                Payment: <span className="font-bold">{o.paymentStatus}</span>
+                              </div>
+                            </td>
+
+                            {/* 7. Actions */}
+                            <td className="p-4 text-right">
+                              <div
+                                className="inline-flex items-center gap-1.5"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {o.fulfillmentStatus !== 'Delivered' && (
+                                  <button
+                                    onClick={() => updateOrderStatus(o.id, 'Delivered', 'Paid')}
+                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] uppercase tracking-wider shadow-sm transition-all flex items-center gap-1 active:scale-95"
+                                    title="Approve & Deliver"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>Approve</span>
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={() => setSelectedOrderForDetails(o)}
+                                  className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border hover:border-zenov-primary text-zenov-text-muted hover:text-zenov-text transition-all"
+                                  title="View Full Details"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+
+                                {o.fulfillmentStatus !== 'Refunded' && (
+                                  <button
+                                    onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
+                                    className="p-1.5 rounded-lg bg-zenov-surface border border-red-500/30 hover:bg-red-500 hover:text-white text-red-400 transition-all"
+                                    title="Reject / Refund"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Orders Cards (Mobile / Tablet View) */}
+            <div className="grid grid-cols-1 gap-3.5 lg:hidden">
+              {filteredOrders.length === 0 ? (
+                <div className="p-8 rounded-2xl bg-zenov-card border border-zenov-border text-center text-zenov-text-muted">
+                  <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm font-bold text-zenov-text">No orders found</p>
+                </div>
+              ) : (
+                filteredOrders.map((o) => {
+                  const isGuest = o.userId === 'guest' || !o.userId || o.userId === '';
+                  return (
+                    <div
+                      key={o.id}
+                      className="p-4 rounded-2xl bg-zenov-card border border-zenov-border flex flex-col gap-3 shadow-lg"
+                    >
+                      {/* Header */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-xs font-bold text-zenov-primary">
+                              {o.orderNumber}
+                            </span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(o.orderNumber);
+                                setCopiedKey(`ord_m_${o.id}`);
+                                setTimeout(() => setCopiedKey(null), 2000);
+                              }}
+                              className="p-1 text-zenov-text-muted hover:text-zenov-text"
+                            >
+                              {copiedKey === `ord_m_${o.id}` ? (
+                                <Check className="w-3 h-3 text-emerald-400" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
+                            {isGuest ? (
+                              <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                                GUEST
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-blue-500/15 border border-blue-500/30 text-blue-300">
+                                MEMBER
+                              </span>
+                            )}
                           </div>
-                        )}
-                      </td>
-                      <td className="p-4 text-right font-black font-mono text-sm text-zenov-success">
-                        {formatCurrency(o.totalUSD, o.currency as any)}
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold border uppercase tracking-wider ${
-                          o.fulfillmentStatus === 'Delivered'
-                            ? 'bg-zenov-success-soft text-zenov-success border-zenov-success/20'
-                            : o.fulfillmentStatus === 'Pending Verification'
-                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 animate-pulse'
-                              : o.fulfillmentStatus === 'Processing'
-                                ? 'bg-zenov-warning-soft text-zenov-warning border-zenov-warning/20'
-                                : 'bg-zenov-error-soft text-zenov-error border-zenov-error/20'
-                        }`}>
+                          <p className="text-[10px] text-zenov-text-muted mt-0.5">
+                            {new Date(o.createdAt).toLocaleString([], {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[9px] font-black border uppercase tracking-wider ${
+                            o.fulfillmentStatus === 'Delivered'
+                              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                              : o.fulfillmentStatus === 'Pending Verification'
+                                ? 'bg-sky-500/15 text-sky-300 border-sky-500/40'
+                                : o.fulfillmentStatus === 'Processing'
+                                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                                  : 'bg-red-500/15 text-red-400 border-red-500/30'
+                          }`}
+                        >
                           {o.fulfillmentStatus}
                         </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="inline-flex flex-col gap-1.5 items-end">
-                          {o.fulfillmentStatus !== 'Delivered' && (
-                            <button
-                              onClick={() => updateOrderStatus(o.id, 'Delivered', 'Paid')}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] uppercase tracking-wider shadow-sm transition-all flex items-center gap-1"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Approve & Deliver
-                            </button>
-                          )}
-                          {o.fulfillmentStatus !== 'Refunded' && (
-                            <button
-                              onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
-                              className="px-2.5 py-1 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white border border-zenov-error/20 text-zenov-error font-semibold text-[10px] uppercase transition-all"
-                            >
-                              Reject / Refund
-                            </button>
-                          )}
+                      </div>
+
+                      {/* Content Box */}
+                      <div className="bg-zenov-surface/50 p-3 rounded-xl space-y-2 text-xs border border-zenov-border/40">
+                        <div className="flex justify-between items-center">
+                          <span className="text-zenov-text-muted">Customer:</span>
+                          <span className="text-zenov-text font-bold">
+                            {o.customerName || (isGuest ? 'Guest Gamer' : 'Customer')}
+                          </span>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <div className="flex justify-between items-center">
+                          <span className="text-zenov-text-muted">Email:</span>
+                          <span className="font-mono text-zenov-primary truncate max-w-[180px]">
+                            {o.userEmail}
+                          </span>
+                        </div>
+                        {o.customerPhone && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-zenov-text-muted">Phone:</span>
+                            <span className="font-mono text-emerald-400 font-bold">
+                              {o.customerPhone}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center">
+                          <span className="text-zenov-text-muted">Destination UID:</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-mono text-zenov-text font-black">{o.playerId}</span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(o.playerId);
+                                setCopiedKey(`uid_m_${o.id}`);
+                                setTimeout(() => setCopiedKey(null), 2000);
+                              }}
+                              className="p-1 text-zenov-text-muted hover:text-zenov-text"
+                            >
+                              {copiedKey === `uid_m_${o.id}` ? (
+                                <Check className="w-3 h-3 text-emerald-400" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-zenov-text-muted">Package:</span>
+                          <span className="text-zenov-text text-right font-bold truncate max-w-[180px]">
+                            {o.items[0]?.productTitle} ({o.items[0]?.denomination?.name})
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-zenov-text-muted">Gateway / TrxID:</span>
+                          <div className="text-right">
+                            <span className="text-zenov-text font-bold">{o.paymentMethod}</span>
+                            {o.transactionId && (
+                              <div className="flex items-center justify-end gap-1 text-[10px] font-mono text-sky-400 font-bold">
+                                <span>{o.transactionId}</span>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(o.transactionId);
+                                    setCopiedKey(`tx_m_${o.id}`);
+                                    setTimeout(() => setCopiedKey(null), 2000);
+                                  }}
+                                  className="p-0.5"
+                                >
+                                  {copiedKey === `tx_m_${o.id}` ? (
+                                    <Check className="w-3 h-3 text-emerald-400" />
+                                  ) : (
+                                    <Copy className="w-3 h-3 opacity-60" />
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex justify-between border-t border-zenov-border/40 pt-2 mt-2 text-zenov-text">
+                          <span className="font-bold">Total Amount:</span>
+                          <span className="font-black font-mono text-zenov-success text-sm">
+                            {formatCurrency(o.totalUSD, o.currency as any)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2 mt-0.5">
+                        {o.fulfillmentStatus !== 'Delivered' && (
+                          <button
+                            onClick={() => updateOrderStatus(o.id, 'Delivered', 'Paid')}
+                            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase shadow-sm transition-all flex-1 text-center flex items-center justify-center gap-1"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setSelectedOrderForDetails(o)}
+                          className="px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text font-bold text-xs uppercase transition-all flex items-center justify-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> Details
+                        </button>
+                        {o.fulfillmentStatus !== 'Refunded' && (
+                          <button
+                            onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
+                            className="px-3 py-2 rounded-xl bg-zenov-surface border border-red-500/40 text-red-400 font-bold text-xs uppercase transition-all"
+                          >
+                            Reject
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
-
-            {/* Orders Cards (Mobile View) */}
-            <div className="grid grid-cols-1 gap-3.5 md:hidden">
-              {filteredOrders.map((o) => (
-                <div key={o.id} className="p-4 rounded-2xl bg-zenov-card border border-zenov-border flex flex-col gap-3 shadow-lg">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="font-mono text-xs font-bold text-zenov-primary">{o.orderNumber}</span>
-                      <p className="text-[10px] text-zenov-text-muted mt-0.5">{o.createdAt}</p>
-                    </div>
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
-                      o.fulfillmentStatus === 'Delivered'
-                        ? 'bg-zenov-success-soft text-zenov-success border-zenov-success/20'
-                        : o.fulfillmentStatus === 'Pending Verification'
-                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-                          : 'bg-zenov-warning-soft text-zenov-warning border-zenov-warning/20'
-                    }`}>
-                      {o.fulfillmentStatus}
-                    </span>
-                  </div>
-
-                  <div className="bg-zenov-surface/40 p-3 rounded-xl space-y-1.5 text-xs border border-zenov-border/30">
-                    <div className="flex justify-between">
-                      <span className="text-zenov-text-muted">Client:</span>
-                      <span className="text-zenov-text font-medium">{o.customerName || 'Gamer'} ({o.userEmail})</span>
-                    </div>
-                    {o.customerPhone && (
-                      <div className="flex justify-between">
-                        <span className="text-zenov-text-muted">Phone:</span>
-                        <span className="font-mono text-emerald-400 font-bold">{o.customerPhone}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-zenov-text-muted">Destination:</span>
-                      <span className="font-mono text-zenov-text font-bold">{o.playerId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-zenov-text-muted">Product:</span>
-                      <span className="text-zenov-text text-right font-bold">{o.items[0]?.productTitle}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-zenov-text-muted">Gateway:</span>
-                      <span className="text-zenov-text font-bold">{o.paymentMethod}</span>
-                    </div>
-                    {o.senderNumber && (
-                      <div className="flex justify-between">
-                        <span className="text-zenov-text-muted">Sender Num:</span>
-                        <span className="font-mono text-amber-400 font-bold">{o.senderNumber}</span>
-                      </div>
-                    )}
-                    {o.transactionId && (
-                      <div className="flex justify-between">
-                        <span className="text-zenov-text-muted">TrxID:</span>
-                        <span className="font-mono text-sky-400 font-black">{o.transactionId}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between border-t border-zenov-border/30 pt-1.5 mt-1.5 text-zenov-text">
-                      <span>Total Amount:</span>
-                      <span className="font-black font-mono text-zenov-success">{formatCurrency(o.totalUSD, o.currency as any)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 mt-0.5">
-                    {o.fulfillmentStatus !== 'Delivered' && (
-                      <button
-                        onClick={() => updateOrderStatus(o.id, 'Delivered', 'Paid')}
-                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase shadow-sm transition-all flex-1 text-center flex items-center justify-center gap-1"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Approve & Deliver
-                      </button>
-                    )}
-                    {o.fulfillmentStatus !== 'Refunded' && (
-                      <button
-                        onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
-                        className="px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-error/40 text-zenov-error font-bold text-xs uppercase transition-all"
-                      >
-                        Reject
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
           </div>
         )}
 
@@ -2321,6 +2747,24 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Manual Order Creation Modal */}
+      <CreateOrderModal
+        isOpen={isCreateOrderOpen}
+        onClose={() => setIsCreateOrderOpen(false)}
+        products={products}
+        selectedCurrency={selectedCurrency}
+        onCreateOrder={createAdminOrder}
+      />
+
+      {/* Order Details & Inspection Modal */}
+      <OrderDetailsModal
+        order={selectedOrderForDetails}
+        isOpen={selectedOrderForDetails !== null}
+        onClose={() => setSelectedOrderForDetails(null)}
+        selectedCurrency={selectedCurrency}
+        onUpdateStatus={updateOrderStatus}
+      />
     </div>
   );
 }

@@ -4,12 +4,12 @@ import { useEffect, useRef } from 'react';
 import { useApp } from '@/lib/AppStateContext';
 import { HeroBanner } from '@/components/HeroBanner';
 import { NewArrivalMarquee } from '@/components/NewArrivalMarquee';
+import { CategoryFilter } from '@/components/CategoryFilter';
 import { ProductGrid } from '@/components/ProductGrid';
 import { WhyChooseUs } from '@/components/WhyChooseUs';
 import { PromotionsBlog } from '@/components/PromotionsBlog';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Gift } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 if (typeof window !== 'undefined') {
@@ -22,6 +22,7 @@ export default function HomePage() {
     heroBanners,
     blogArticles,
     selectedCategory,
+    setSelectedCategory,
     selectedCurrency,
     productsLoading,
   } = useApp();
@@ -75,22 +76,15 @@ export default function HomePage() {
         <NewArrivalMarquee />
       </section>
 
-      {/* SHOP SECTION HEADER */}
-      <section id="shop-products" className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-12 pb-4">
-        <div className="flex items-center gap-3 mb-2.5">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zenov-primary-soft border border-zenov-primary-border text-zenov-primary text-[10px] font-black uppercase tracking-widest">
-            <Gift className="w-3.5 h-3.5" /> OFFICIAL DIGITAL GIFT CARDS
-          </span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-zenov-text tracking-tight uppercase">
-          PREPAID GIFT CARDS CATALOG
-        </h2>
-        <p className="text-xs text-zenov-text-secondary mt-1 max-w-xl leading-relaxed">
-          Purchase and receive genuine gaming gift codes instantly via automated email dispatch. Multiple secure local payment gateways supported.
-        </p>
+      {/* CATEGORY FILTER */}
+      <section id="shop-categories">
+        <CategoryFilter
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
       </section>
 
-      {/* PRODUCT GRID */}
+      {/* PRODUCT GRID (HIGHLIGHTS FIRST) */}
       <ProductGrid
         products={products}
         selectedCategory={selectedCategory}
@@ -119,3 +113,4 @@ export default function HomePage() {
     </div>
   );
 }
+

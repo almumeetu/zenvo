@@ -14,8 +14,8 @@ export const NewArrivalMarquee: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-      <div className="bg-zenov-surface border border-zenov-border rounded-xl p-2.5 pl-3 flex items-center gap-3 overflow-hidden">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3">
+      <div className="bg-zenov-surface border border-zenov-border rounded-xl p-2 sm:p-2.5 pl-2.5 sm:pl-3 flex items-center gap-2 sm:gap-3 overflow-hidden">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zenov-accent-soft border border-zenov-accent-border text-zenov-accent text-[11px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
           <Flame className="w-3.5 h-3.5 text-zenov-accent" />
           Live Activity

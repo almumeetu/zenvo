@@ -129,7 +129,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
   const titleWords = activeBanner.title.split(' ');
 
   return (
-    <section ref={sectionRef} className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 sm:pt-6 sm:pb-10">
+    <section ref={sectionRef} className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2.5 pb-2.5 sm:pt-6 sm:pb-10">
       <div
         ref={bannerRef}
         onMouseMove={handleMouseMove}

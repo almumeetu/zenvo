@@ -64,15 +64,15 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   ];
 
   return (
-    <div ref={filterRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+    <div ref={filterRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-4">
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none">
         {displayList.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => onSelectCategory(cat.id as any)}
-              className={`category-btn shrink-0 px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-all duration-200 active:scale-[0.97] will-change-transform ${
+              className={`category-btn shrink-0 px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-[0.97] will-change-transform ${
                 isSelected
                   ? 'bg-zenov-primary text-white shadow-sm'
                   : 'bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:border-zenov-border-hover hover:bg-zenov-card'
