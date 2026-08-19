@@ -22,7 +22,9 @@ import {
 export default function BlogDetailPage() {
   const params = useParams<{ slug: string }>() ?? { slug: '' };
   const { blogArticles } = useApp();
-  const article = blogArticles.find((a) => a.id === params?.slug);
+  const article = blogArticles.find(
+    (a) => a.slug === params?.slug || a.id === params?.slug
+  );
 
   if (!article) {
     return (
@@ -198,7 +200,7 @@ export default function BlogDetailPage() {
                   related.map((r) => (
                     <Link
                       key={r.id}
-                      href={`/blog/${r.id}`}
+                      href={`/blog/${r.slug || r.id}`}
                       className="group flex gap-3 p-2 rounded-xl hover:bg-slate-900/80 transition-colors"
                     >
                       <img

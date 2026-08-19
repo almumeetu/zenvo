@@ -84,7 +84,7 @@ export const PromotionsBlog: React.FC<PromotionsBlogProps> = ({ articles }) => {
         {articles.map((article) => (
           <Link
             key={article.id}
-            href={`/blog/${article.id}`}
+            href={`/blog/${article.slug || article.id}`}
             className="blog-card group bg-slate-950/85 border border-cyan-500/20 hover:border-cyan-400/70 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 shadow-md hover:shadow-[0_0_25px_rgba(6,182,212,0.25)] hover:-translate-y-1 flex flex-col"
           >
             <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">

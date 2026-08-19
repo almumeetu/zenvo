@@ -52,7 +52,7 @@ export default function TopUpPage() {
   } = useApp();
 
   const product = useMemo(
-    () => products.find((p) => p.id === params?.productId),
+    () => products.find((p) => p.id === params?.productId || (p as any).slug === params?.productId),
     [products, params?.productId]
   );
 

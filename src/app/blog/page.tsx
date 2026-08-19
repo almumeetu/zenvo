@@ -79,7 +79,7 @@ export default function BlogPage() {
         {/* Featured Hero Article */}
         {featured && (
           <Link
-            href={`/blog/${featured.id}`}
+            href={`/blog/${featured.slug || featured.id}`}
             className="group block mb-10 rounded-2xl sm:rounded-3xl overflow-hidden border border-cyan-500/30 bg-slate-950/80 hover:border-cyan-400/80 shadow-xl shadow-cyan-950/40 hover:shadow-[0_0_35px_rgba(6,182,212,0.25)] transition-all duration-300"
           >
             <div className="grid lg:grid-cols-2 gap-0">
@@ -198,7 +198,7 @@ export default function BlogPage() {
             {filtered.map((a) => (
               <Link
                 key={a.id}
-                href={`/blog/${a.id}`}
+                href={`/blog/${a.slug || a.id}`}
                 className="group bg-slate-950/85 border border-cyan-500/20 hover:border-cyan-400/70 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_25px_rgba(6,182,212,0.25)] hover:-translate-y-1 flex flex-col"
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">

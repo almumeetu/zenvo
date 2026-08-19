@@ -399,6 +399,7 @@ export const INITIAL_PRODUCTS: Product[] = [
 export const BLOG_ARTICLES: BlogArticle[] = [
   {
     id: 'blog-1',
+    slug: 'how-to-redeem-google-play-gift-cards-safely',
     title: 'How to Redeem Google Play Gift Cards Safely',
     excerpt: 'Avoid verification loops and profile lockouts. Read our step-by-step guide to redeeming codes.',
     content: 'Google Play Gift Cards require a matching region profile. Always make sure your Play Store account location matches the gift card region (e.g. US profile for US codes) before redeeming to prevent verification delays or wallet blocks.',
@@ -411,6 +412,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     id: 'blog-2',
+    slug: 'steam-summer-sale-gift-card-hacks',
     title: 'Steam Summer Sale: Gift Card Hacks',
     excerpt: 'Maximize your budget and buy top PC titles instantly with prepaid Steam Wallet Codes.',
     content: 'During major Steam Sales, purchasing prepaid Steam Wallet Codes helps you secure titles without saving credit cards. ZENOV delivers Steam codes instantly to your email so you never miss out on limited-time discounts.',
@@ -423,6 +425,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     id: 'blog-3',
+    slug: 'how-to-buy-activate-youtube-premium-in-bangladesh',
     title: 'How to Buy & Activate YouTube Premium in Bangladesh',
     excerpt: 'Enjoy ad-free YouTube streaming, background playback, and YouTube Music with zero hassle.',
     content: 'YouTube Premium gives you seamless entertainment without annoying video ads. Learn how to subscribe using bKash or Nagad on ZENOV and get your invite link in under 60 seconds.',
@@ -435,6 +438,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     id: 'blog-4',
+    slug: 'top-computer-pc-games-2026-steam-keys',
     title: 'Top Computer & PC Games in 2026: Steam Keys & Best Deals',
     excerpt: 'From Cyberpunk 2077 and GTA V to EA FC 25 — discover top PC games with instant key delivery.',
     content: 'PC gaming has never been better! Check out our recommendations for must-play PC games on Steam, EA App, and Rockstar Games with instant key activation and discounted prices.',
@@ -447,6 +451,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     id: 'blog-5',
+    slug: 'discord-nitro-guide-boost-servers-custom-emojis',
     title: 'Discord Nitro Guide: How to Boost Servers & Custom Emojis',
     excerpt: 'Unlock HD 4K screen share, 500MB file uploads, and animated stickers across all servers.',
     content: 'Discord Nitro is the ultimate upgrade for gamers and community creators. Get full details on how to activate 1-month and 1-year Nitro subscription codes with instant delivery.',
