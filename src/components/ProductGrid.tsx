@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Product, CategoryType, CurrencyCode } from '../types';
 import { ProductCard } from './ProductCard';
-import { Flame, Gamepad2, Smartphone, Gift, Crown, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Flame, Gamepad2, Smartphone, Gift, Crown, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -19,17 +19,131 @@ interface ProductGridProps {
   loading?: boolean;
 }
 
-// Skeleton card shown while products are loading from the database
+// Perfect 3-Column Skeleton card matching the exact ProductCard layout
 const SkeletonCard = () => (
-  <div className="rounded-xl sm:rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border/60 animate-pulse">
-    <div className="aspect-square bg-zenov-surface/70" />
-    <div className="p-1.5 min-[380px]:p-2 sm:p-3 space-y-1.5">
-      <div className="h-2.5 bg-zenov-surface rounded w-2/3" />
-      <div className="h-3 bg-zenov-surface rounded w-4/5" />
-      <div className="h-6 sm:h-7 bg-zenov-surface/60 rounded-lg mt-2" />
+  <div className="rounded-2xl overflow-hidden bg-gradient-to-b from-zenov-card/90 via-zenov-card/95 to-zenov-surface border border-zenov-border/60 shadow-xs flex flex-col justify-between animate-pulse">
+    {/* Poster Skeleton */}
+    <div className="aspect-square bg-slate-800/60 relative overflow-hidden rounded-t-2xl">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+      <div className="absolute top-1.5 left-1.5 w-10 h-3 bg-slate-700/60 rounded-full" />
+      <div className="absolute top-1.5 right-1.5 w-4 h-4 bg-slate-700/60 rounded-full" />
+    </div>
+    {/* Body Skeleton */}
+    <div className="p-1.5 min-[380px]:p-2 sm:p-2.5 space-y-1.5 flex-1 flex flex-col justify-between">
+      <div className="space-y-1">
+        <div className="h-2 bg-slate-700/50 rounded w-1/3" />
+        <div className="h-3 bg-slate-700/70 rounded w-4/5" />
+      </div>
+      {/* Inline price & button skeleton */}
+      <div className="flex items-center justify-between gap-1 pt-1 border-t border-zenov-border/30">
+        <div className="h-3 bg-slate-700/70 rounded w-10" />
+        <div className="h-5 w-5 sm:w-12 bg-slate-700/80 rounded-lg shrink-0" />
+      </div>
     </div>
   </div>
 );
+
+// Infinite Auto-Playing Marquee Slider for Highlights & Trending
+const TrendingMarqueeSlider: React.FC<{
+  title: string;
+  badge?: string;
+  icon: React.ReactNode;
+  items: Product[];
+  selectedCurrency: CurrencyCode;
+  onSelectProduct: (product: Product) => void;
+}> = ({ title, badge, icon, items, selectedCurrency, onSelectProduct }) => {
+  const sliderRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: -240, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: 240, behavior: 'smooth' });
+    }
+  };
+
+  if (items.length === 0) return null;
+
+  // Duplicate items for infinite marquee loop
+  const marqueeItems = [...items, ...items, ...items];
+
+  return (
+    <section className="relative p-2.5 min-[380px]:p-3 sm:p-5 rounded-3xl bg-gradient-to-b from-amber-500/15 via-zenov-card/80 to-zenov-surface border border-amber-500/30 shadow-2xl shadow-amber-500/10 my-3 sm:my-5 overflow-hidden group/marquee">
+      {/* Radiant Glowing Ambient Cyber Lighting */}
+      <div className="absolute -top-20 -left-20 w-64 h-64 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Header */}
+      <div className="relative z-10 flex items-center justify-between gap-2 mb-3 sm:mb-4 px-1">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-7 h-7 min-[380px]:w-8 min-[380px]:h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20 animate-pulse">
+            {icon}
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <h2 className="text-xs min-[380px]:text-sm sm:text-lg font-black tracking-tight uppercase text-amber-300 drop-shadow-xs flex items-center gap-1">
+                <span>{title}</span>
+                <span className="text-[9.5px] min-[380px]:text-[11px] sm:text-xs font-semibold text-zenov-text-muted normal-case tracking-normal">
+                  ({items.length})
+                </span>
+              </h2>
+              {badge && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-xs">
+                  {badge}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Manual Interactive Navigation Controls */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={scrollLeft}
+            aria-label="Scroll left"
+            className="p-1 sm:p-1.5 rounded-full bg-slate-950/70 border border-white/10 hover:border-amber-400/60 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all active:scale-90 shadow-sm cursor-pointer"
+          >
+            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
+          <button
+            onClick={scrollRight}
+            aria-label="Scroll right"
+            className="p-1 sm:p-1.5 rounded-full bg-slate-950/70 border border-white/10 hover:border-amber-400/60 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all active:scale-90 shadow-sm cursor-pointer"
+          >
+            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Infinite Continuous Auto-Play Marquee Stream */}
+      <div
+        ref={sliderRef}
+        className="relative overflow-x-auto scrollbar-none py-1 flex gap-2 sm:gap-3"
+      >
+        <div className="animate-marquee-smooth flex gap-2 sm:gap-3 hover:[animation-play-state:paused]">
+          {marqueeItems.map((product, idx) => (
+            <div
+              key={`${product.id}-${idx}`}
+              className="w-[110px] min-[380px]:w-[124px] sm:w-[155px] md:w-[175px] shrink-0"
+            >
+              <ProductCard
+                product={product}
+                selectedCurrency={selectedCurrency}
+                onSelectProduct={onSelectProduct}
+                index={idx}
+                isHotSection={true}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 interface ProductSectionProps {
   title: string;
@@ -58,7 +172,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const defaultCount = highlight ? 9 : 6;
+  const defaultCount = 6;
   const visibleItems = isExpanded ? items : items.slice(0, defaultCount);
 
   useEffect(() => {
@@ -90,49 +204,24 @@ const ProductSection: React.FC<ProductSectionProps> = ({
   return (
     <section
       ref={sectionRef}
-      className={`py-3 sm:py-7 first:pt-1 sm:first:pt-2 border-b border-zenov-border/50 last:border-0 ${
-        highlight
-          ? 'relative p-2 min-[380px]:p-3 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-500/10 via-zenov-card/50 to-transparent border border-amber-500/25 shadow-xl shadow-amber-500/5 my-2 sm:my-4'
-          : ''
-      }`}
+      className="py-3 sm:py-7 first:pt-1 sm:first:pt-2 border-b border-zenov-border/50 last:border-0"
     >
-      {/* Ambient background glow for Highlight section */}
-      {highlight && (
-        <div className="absolute top-0 right-10 w-48 h-24 bg-amber-500/10 blur-3xl pointer-events-none rounded-full" />
-      )}
-
       {/* Section Header */}
       <div ref={headerRef} className="flex items-center justify-between gap-2 mb-2.5 sm:mb-5">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div
-            className={`w-7 h-7 min-[380px]:w-8 min-[380px]:h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 border ${
-              highlight
-                ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-md shadow-amber-500/20 animate-pulse'
-                : 'bg-zenov-primary-soft border-zenov-primary-border text-zenov-primary'
-            }`}
-          >
+          <div className="w-7 h-7 min-[380px]:w-8 min-[380px]:h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 border bg-zenov-primary-soft border-zenov-primary-border text-zenov-primary">
             {icon}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <h2
-                className={`text-xs min-[380px]:text-sm sm:text-lg font-black tracking-tight uppercase flex items-center gap-1 sm:gap-2 ${
-                  highlight ? 'text-amber-300 drop-shadow-xs' : 'text-zenov-text'
-                }`}
-              >
+              <h2 className="text-xs min-[380px]:text-sm sm:text-lg font-black tracking-tight uppercase text-zenov-text flex items-center gap-1 sm:gap-2">
                 <span className="truncate">{title}</span>
                 <span className="text-[9.5px] min-[380px]:text-[11px] sm:text-xs font-semibold text-zenov-text-muted normal-case tracking-normal">
                   ({items.length})
                 </span>
               </h2>
               {badge && (
-                <span
-                  className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[7.5px] min-[380px]:text-[8.5px] sm:text-[10px] font-black uppercase tracking-wider ${
-                    highlight
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
-                      : 'bg-zenov-accent-soft text-zenov-accent border border-zenov-accent-border'
-                  }`}
-                >
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[7.5px] min-[380px]:text-[8.5px] sm:text-[10px] font-black uppercase tracking-wider bg-zenov-accent-soft text-zenov-accent border border-zenov-accent-border">
                   {badge}
                 </span>
               )}
@@ -272,17 +361,13 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-2 min-[380px]:px-3 sm:px-6 lg:px-8 py-1 sm:py-2">
-      <ProductSection
+      <TrendingMarqueeSlider
         title="Highlights & Trending"
-        badge="🔥 Hot Picks"
+        badge="🔥 Live Hot Stream"
         icon={<Flame className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />}
         items={displayHot}
-        sectionKey="hot"
-        isExpanded={expandedSections.hot}
-        onToggle={toggleSection}
         selectedCurrency={selectedCurrency}
         onSelectProduct={onSelectProduct}
-        highlight
       />
       <ProductSection
         title="Game Top Up"

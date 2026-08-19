@@ -156,10 +156,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         {/* Content */}
         <div
           ref={contentRef}
-          className="relative z-20 max-w-2xl px-5 py-4 sm:px-10 sm:py-10 flex flex-col justify-center gap-1.5 sm:gap-4 h-full bg-zenov-bg/35 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none"
+          className="relative z-20 max-w-xl px-4 py-3.5 sm:px-8 sm:py-8 flex flex-col justify-center gap-1.5 sm:gap-3 h-full bg-zenov-bg/35 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none"
         >
           {/* Badge */}
-          <div className="hero-badge inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full bg-zenov-primary-soft/75 backdrop-blur-md border border-zenov-primary-border text-zenov-primary text-[9px] sm:text-[11px] font-bold uppercase tracking-widest w-fit shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+          <div className="hero-badge inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-zenov-primary-soft/85 backdrop-blur-md border border-zenov-primary-border text-zenov-primary text-[8px] sm:text-[10px] font-bold uppercase tracking-widest w-fit shadow-[0_0_12px_rgba(59,130,246,0.15)]">
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-live-pulse absolute inline-flex h-full w-full rounded-full bg-zenov-primary opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-zenov-primary" />
@@ -168,11 +168,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
           </div>
 
           {/* Title — word-by-word animation */}
-          <h1 className="text-base sm:text-3xl lg:text-4xl xl:text-[40px] font-black tracking-tight text-zenov-text leading-tight sm:leading-[1.1]">
+          <h1 className="text-sm sm:text-2xl lg:text-3xl font-black tracking-tight text-zenov-text leading-tight sm:leading-snug">
             {titleWords.map((word, wi) => (
               <span
                 key={wi}
-                className={`hero-word inline-block mr-[0.25em] ${wi === 1 || wi === 2 ? 'text-transparent bg-clip-text bg-gradient-to-r from-zenov-primary to-zenov-accent' : ''}`}
+                className={`hero-word inline-block mr-[0.25em] ${wi === 1 || wi === 2 ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-zenov-primary to-zenov-accent' : ''}`}
                 style={{ perspective: '800px' }}
               >
                 {word}
@@ -181,71 +181,63 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
           </h1>
 
           {/* Subtitle */}
-          <p className="hero-subtitle hidden sm:block text-sm sm:text-base text-zenov-text-secondary max-w-lg leading-relaxed pl-4 border-l-[3px] border-zenov-primary/70">
+          <p className="hero-subtitle hidden sm:block text-xs sm:text-sm text-zenov-text-secondary max-w-md leading-relaxed pl-3 border-l-2 border-cyan-400/80">
             {activeBanner.subtitle}
           </p>
 
           {/* Perks */}
-          <div className="hero-perks hidden sm:flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zenov-text-secondary">
-            <span className="flex items-center gap-1.5 font-semibold text-zenov-success">
-              <ShieldCheck className="w-4 h-4" /> 100% Authorized
+          <div className="hero-perks hidden sm:flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] text-zenov-text-secondary">
+            <span className="flex items-center gap-1 font-semibold text-zenov-success">
+              <ShieldCheck className="w-3.5 h-3.5" /> 100% Authorized
             </span>
-            <span className="flex items-center gap-1.5 font-semibold">
-              <Zap className="w-4 h-4 text-zenov-primary" /> Direct UID Top-Up
+            <span className="flex items-center gap-1 font-semibold">
+              <Zap className="w-3.5 h-3.5 text-cyan-400" /> Direct UID Top-Up
             </span>
-            <span className="flex items-center gap-1.5 font-semibold">
-              <Clock className="w-4 h-4 text-zenov-accent" /> Instant Delivery
+            <span className="flex items-center gap-1 font-semibold">
+              <Clock className="w-3.5 h-3.5 text-zenov-accent" /> Instant Delivery
             </span>
           </div>
 
           {/* CTA */}
-          <div className="hero-cta flex items-center gap-2 sm:gap-4 mt-2.5 sm:mt-0">
+          <div className="hero-cta flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-0">
             <button
               onClick={() => onSelectGame(activeBanner.gameId)}
-              className="magnetic-btn px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-accent hover:shadow-glow-amber transition-all duration-300 flex items-center gap-1.5 sm:gap-2 group/btn will-change-transform active:scale-[0.97] border border-zenov-accent/40 hover:border-zenov-accent/80"
+              className="magnetic-btn px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg font-extrabold text-[9.5px] sm:text-xs uppercase tracking-wider shadow-accent hover:shadow-glow-amber transition-all duration-300 flex items-center gap-1.5 group/btn will-change-transform active:scale-[0.97] border border-zenov-accent/40 hover:border-zenov-accent/80"
             >
               <span>{activeBanner.ctaText}</span>
               <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-200 group-hover/btn:translate-x-1" />
             </button>
-            <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-zenov-text-muted">
-              <div className="flex -space-x-1.5">
-                {[0, 1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="w-6 h-6 rounded-full border-2 border-zenov-surface bg-gradient-to-br from-zenov-primary to-zenov-accent opacity-80"
-                  />
-                ))}
-              </div>
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono text-zenov-text-muted">
               <span>Trusted by 1M+ gamers</span>
             </div>
           </div>
         </div>
 
-        {/* Arrow navigation */}
+        {/* Compact Arrow navigation */}
         <button
           onClick={prevSlide}
-          className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-xl bg-zenov-bg/70 backdrop-blur-md border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:bg-zenov-card hover:border-zenov-primary-border transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:block"
+          className="absolute left-2.5 sm:left-3.5 top-1/2 -translate-y-1/2 z-30 p-1.5 sm:p-2 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white hover:bg-zenov-primary/20 hover:border-cyan-400/50 transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:flex items-center justify-center cursor-pointer"
           aria-label="Previous"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-xl bg-zenov-bg/70 backdrop-blur-md border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:bg-zenov-card hover:border-zenov-primary-border transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:block"
+          className="absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 z-30 p-1.5 sm:p-2 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white hover:bg-zenov-primary/20 hover:border-cyan-400/50 transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:flex items-center justify-center cursor-pointer"
           aria-label="Next"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
         </button>
 
         {/* Slide indicators */}
-        <div className="absolute bottom-3.5 left-5 sm:bottom-5 sm:left-10 z-30 flex items-center gap-1.5 sm:gap-2">
+        <div className="absolute bottom-3 left-4 sm:bottom-4 sm:left-8 z-30 flex items-center gap-1 sm:gap-1.5">
           {banners.map((_, idx) => (
             <button
               key={idx}
               onClick={() => goToSlide(idx)}
               className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
                 currentIndex === idx
-                  ? 'w-7 sm:w-10 bg-gradient-to-r from-zenov-primary to-zenov-accent shadow-primary'
+                  ? 'w-5 sm:w-7 bg-gradient-to-r from-zenov-primary to-zenov-accent shadow-primary'
                   : 'w-1.5 sm:w-2 bg-zenov-text-muted/40 hover:bg-zenov-text-muted/70'
               }`}
               aria-label={`Slide ${idx + 1}`}

@@ -4,6 +4,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import { AppStateProvider } from '@/lib/AppStateContext';
 import { HeaderWrapper } from '@/components/HeaderWrapper';
 import { Footer } from '@/components/Footer';
+import { BackToTop } from '@/components/BackToTop';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -72,6 +73,7 @@ export default function RootLayout({
           <HeaderWrapper />
           <main className="flex-1">{children}</main>
           <Footer />
+          <BackToTop />
         </AppStateProvider>
       </body>
     </html>

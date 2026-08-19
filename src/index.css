@@ -128,6 +128,16 @@ body {
   100% { transform: translateX(-50%); }
 }
 
+.animate-marquee-smooth {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee-smooth:hover {
+  animation-play-state: paused;
+}
+
 /* Logo Conic Laser Spin */
 @keyframes spin-slow {
   0% { transform: rotate(0deg); }
