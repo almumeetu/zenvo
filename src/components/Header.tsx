@@ -18,6 +18,9 @@ import {
   Sparkles,
   Zap,
   ChevronRight,
+  Home,
+  BookOpen,
+  HelpCircle,
 } from 'lucide-react';
 import { Product, CurrencyCode, UserProfile, CartItem } from '../types';
 import { CURRENCIES } from '../data/initialData';
@@ -45,6 +48,13 @@ const NAV_ITEMS = [
   { label: 'Blog', href: '/blog' },
   { label: 'FAQs', href: '/faqs' },
 ];
+
+const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  'Home': Home,
+  'Shop': ShoppingBag,
+  'Blog': BookOpen,
+  'FAQs': HelpCircle,
+};
 
 export const Header: React.FC<HeaderProps> = ({
   products,
@@ -498,7 +508,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Search */}
         <div className="md:hidden px-4 pb-3">
-          <div className="relative rounded-xl bg-zenov-surface/60 border border-zenov-border focus-within:border-zenov-primary-border transition-colors">
+          <div className="relative rounded-xl bg-zenov-surface/60 border border-zenov-border focus-within:border-zenov-primary-border focus-within:ring-2 focus-within:ring-zenov-primary/20 focus-within:bg-zenov-surface transition-all shadow-md">
             <Search className="w-4 h-4 text-zenov-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -523,43 +533,62 @@ export const Header: React.FC<HeaderProps> = ({
             isMobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <nav className="max-w-7xl mx-auto px-4 pt-3 pb-4 flex flex-col gap-0.5">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.label + item.href}
-                href={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center justify-between ${
-                  isActive(item.href)
-                    ? 'text-zenov-primary bg-zenov-primary-soft'
-                    : 'text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-surface'
-                }`}
-              >
-                {item.label}
-                {isActive(item.href) && <ChevronRight className="w-4 h-4 text-zenov-primary" />}
-              </Link>
-            ))}
+          <nav className="max-w-7xl mx-auto px-4 pt-3.5 pb-5 flex flex-col gap-1.5">
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(item.href);
+              const Icon = navIcons[item.label] || Sparkles;
+              return (
+                <Link
+                  key={item.label + item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center justify-between border ${
+                    active
+                      ? 'text-zenov-primary bg-zenov-primary-soft/80 border-zenov-primary-border/30'
+                      : 'text-zenov-text-secondary border-transparent hover:text-zenov-text hover:bg-zenov-surface/70'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-[18px] h-[18px] ${active ? 'text-zenov-primary' : 'text-zenov-text-muted'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {active ? (
+                    <span className="w-1.5 h-1.5 rounded-full bg-zenov-primary shadow-primary" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-zenov-text-muted/65" />
+                  )}
+                </Link>
+              );
+            })}
             {/* Mobile Auth and Cart */}
-            <div className="border-t border-zenov-border mt-3 pt-3 space-y-2">
+            <div className="border-t border-zenov-border/60 mt-3 pt-3.5 space-y-3">
               {user.email ? (
                 <>
-                  <div className="flex items-center gap-3 px-4 py-2 bg-zenov-surface/40 rounded-xl border border-zenov-border/50">
-                    <img 
-                      src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id || 'guest'}`} 
-                      alt={user.name} 
-                      className="w-9 h-9 rounded-lg object-cover border border-zenov-border" 
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-zenov-text truncate">{user.name}</p>
-                      <p className="text-[10px] text-zenov-text-secondary truncate">VIP {user.vipTier}</p>
+                  <div className="flex items-center justify-between p-3.5 bg-gradient-to-r from-zenov-surface to-zenov-surface/30 rounded-2xl border border-zenov-border/70 shadow-sm">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative shrink-0">
+                        <img 
+                          src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id || 'guest'}`} 
+                          alt={user.name} 
+                          className="w-10 h-10 rounded-xl object-cover border border-zenov-border" 
+                        />
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-zenov-success rounded-full border-2 border-zenov-surface" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-zenov-text truncate">{user.name}</p>
+                        <p className="text-xs text-zenov-text-secondary truncate">{user.email}</p>
+                      </div>
                     </div>
+                    <span className="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 uppercase tracking-widest">
+                      VIP {user.vipTier}
+                    </span>
                   </div>
                   
                   {user.role === 'admin' && (
                     <Link
                       href="/admin"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-zenov-primary-border/20 bg-zenov-primary-soft/30 text-xs font-semibold text-zenov-primary hover:bg-zenov-primary hover:text-white transition-all"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-zenov-primary-border/20 bg-zenov-primary-soft/30 text-xs font-bold text-zenov-primary hover:bg-zenov-primary hover:text-white transition-all"
                     >
                       <ShieldCheck className="w-4 h-4 shrink-0" />
                       <span>Admin Dashboard</span>
@@ -572,24 +601,27 @@ export const Header: React.FC<HeaderProps> = ({
                       if (logout) await logout();
                       router.push('/');
                     }}
-                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-zenov-error/20 bg-zenov-error-soft/10 text-xs font-semibold text-zenov-error hover:bg-zenov-error hover:text-white transition-all"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-zenov-error/20 bg-zenov-error-soft/10 text-xs font-bold text-zenov-error hover:bg-zenov-error hover:text-white transition-all"
                   >
+                    <svg className="w-4 h-4 shrink-0 text-zenov-error" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                     <span>Log Out</span>
                   </button>
                 </>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <Link
                     href="/auth/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center py-2.5 rounded-xl border border-zenov-border hover:border-zenov-primary-border/60 hover:bg-zenov-surface text-xs font-bold text-zenov-text-secondary transition-all"
+                    className="flex items-center justify-center py-2.5 rounded-xl border border-zenov-border hover:border-zenov-border-hover bg-zenov-surface/40 hover:bg-zenov-surface text-xs font-bold text-zenov-text-secondary transition-all"
                   >
                     Login
                   </Link>
                   <Link
                     href="/auth/register"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center py-2.5 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-xs font-bold text-white transition-all shadow-sm"
+                    className="flex items-center justify-center py-2.5 rounded-xl bg-gradient-to-r from-zenov-primary to-blue-600 hover:from-zenov-primary-hover hover:to-blue-500 text-xs font-bold text-white transition-all shadow-primary"
                   >
                     Sign Up
                   </Link>
@@ -599,9 +631,10 @@ export const Header: React.FC<HeaderProps> = ({
               <Link
                 href="/cart"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full block px-4 py-3 rounded-xl text-sm font-bold bg-zenov-accent-soft text-zenov-accent text-center hover:bg-zenov-accent hover:text-zenov-bg transition-all"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg shadow-accent transition-all duration-300 transform active:scale-[0.98]"
               >
-                🛒 Cart {totalCartCount > 0 ? `(${totalCartCount})` : ''}
+                <ShoppingBag className="w-4 h-4" />
+                <span>Cart {totalCartCount > 0 ? `(${totalCartCount})` : ''}</span>
               </Link>
             </div>
           </nav>

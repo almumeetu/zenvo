@@ -99,6 +99,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   "serverIdLabel" TEXT DEFAULT '',
   "denominations" JSONB DEFAULT '[]'::jsonb,
   "tags" JSONB DEFAULT '[]'::jsonb,
+  "unitId" TEXT DEFAULT '',
+  "unitName" TEXT DEFAULT '',
   "createdAt" TIMESTAMPTZ DEFAULT now(),
   "updatedAt" TIMESTAMPTZ DEFAULT now()
 );

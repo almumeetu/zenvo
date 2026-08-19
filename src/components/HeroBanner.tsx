@@ -129,12 +129,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
   const titleWords = activeBanner.title.split(' ');
 
   return (
-    <section ref={sectionRef} className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
+    <section ref={sectionRef} className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 sm:pt-6 sm:pb-10">
       <div
         ref={bannerRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative min-h-[260px] sm:min-h-[320px] lg:min-h-[400px] rounded-2xl overflow-hidden bg-zenov-surface border border-zenov-border group"
+        className="relative h-[180px] sm:h-auto sm:min-h-[320px] lg:min-h-[400px] rounded-2xl overflow-hidden bg-zenov-surface border border-zenov-border hover:border-zenov-primary/20 transition-all duration-500 group shadow-lg shadow-black/40 hover:shadow-primary/5"
       >
         {/* Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden">
@@ -145,7 +145,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
             className="w-full h-full object-cover object-center will-change-transform"
           />
           {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-r from-zenov-bg via-zenov-bg/90 to-zenov-bg/25 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-zenov-bg via-zenov-bg/95 sm:via-zenov-bg/90 to-zenov-bg/40 sm:to-zenov-bg/25 z-10" />
           <div className="absolute inset-0 bg-gradient-to-t from-zenov-bg via-zenov-bg/30 to-transparent z-10" />
           {/* Subtle grid pattern */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:44px_44px] z-10 pointer-events-none" />
@@ -156,16 +156,19 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         {/* Content */}
         <div
           ref={contentRef}
-          className="relative z-20 max-w-2xl px-5 sm:px-10 lg:px-14 py-8 sm:py-10 flex flex-col justify-center gap-4"
+          className="relative z-20 max-w-2xl px-5 py-4 sm:px-10 sm:py-10 flex flex-col justify-center gap-1.5 sm:gap-4 h-full bg-zenov-bg/35 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none"
         >
           {/* Badge */}
-          <div className="hero-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zenov-primary-soft border border-zenov-primary-border text-zenov-primary text-[11px] font-bold uppercase tracking-widest w-fit">
-            <Zap className="w-3.5 h-3.5 fill-zenov-primary/50" />
+          <div className="hero-badge inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full bg-zenov-primary-soft/75 backdrop-blur-md border border-zenov-primary-border text-zenov-primary text-[9px] sm:text-[11px] font-bold uppercase tracking-widest w-fit shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-live-pulse absolute inline-flex h-full w-full rounded-full bg-zenov-primary opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-zenov-primary" />
+            </span>
             <span>{activeBanner.badge}</span>
           </div>
 
           {/* Title — word-by-word animation */}
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[40px] font-black tracking-tight text-zenov-text leading-[1.1]">
+          <h1 className="text-base sm:text-3xl lg:text-4xl xl:text-[40px] font-black tracking-tight text-zenov-text leading-tight sm:leading-[1.1]">
             {titleWords.map((word, wi) => (
               <span
                 key={wi}
@@ -178,12 +181,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
           </h1>
 
           {/* Subtitle */}
-          <p className="hero-subtitle text-sm sm:text-base text-zenov-text-secondary max-w-lg leading-relaxed pl-4 border-l-[3px] border-zenov-primary/70">
+          <p className="hero-subtitle hidden sm:block text-sm sm:text-base text-zenov-text-secondary max-w-lg leading-relaxed pl-4 border-l-[3px] border-zenov-primary/70">
             {activeBanner.subtitle}
           </p>
 
           {/* Perks */}
-          <div className="hero-perks flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zenov-text-secondary">
+          <div className="hero-perks hidden sm:flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zenov-text-secondary">
             <span className="flex items-center gap-1.5 font-semibold text-zenov-success">
               <ShieldCheck className="w-4 h-4" /> 100% Authorized
             </span>
@@ -196,13 +199,13 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
           </div>
 
           {/* CTA */}
-          <div className="hero-cta flex items-center gap-4">
+          <div className="hero-cta flex items-center gap-2 sm:gap-4 mt-2.5 sm:mt-0">
             <button
               onClick={() => onSelectGame(activeBanner.gameId)}
-              className="magnetic-btn px-5 py-2.5 rounded-lg bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg font-bold text-xs uppercase tracking-wider shadow-accent hover:shadow-glow-amber transition-all duration-300 flex items-center gap-2 group/btn will-change-transform active:scale-[0.97] border border-zenov-accent/40 hover:border-zenov-accent/80"
+              className="magnetic-btn px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-accent hover:shadow-glow-amber transition-all duration-300 flex items-center gap-1.5 sm:gap-2 group/btn will-change-transform active:scale-[0.97] border border-zenov-accent/40 hover:border-zenov-accent/80"
             >
               <span>{activeBanner.ctaText}</span>
-              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-1" />
+              <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-200 group-hover/btn:translate-x-1" />
             </button>
             <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-zenov-text-muted">
               <div className="flex -space-x-1.5">
@@ -221,29 +224,29 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         {/* Arrow navigation */}
         <button
           onClick={prevSlide}
-          className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-xl bg-zenov-bg/70 backdrop-blur-md border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:bg-zenov-card hover:border-zenov-primary-border transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300"
+          className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-xl bg-zenov-bg/70 backdrop-blur-md border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:bg-zenov-card hover:border-zenov-primary-border transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:block"
           aria-label="Previous"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-xl bg-zenov-bg/70 backdrop-blur-md border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:bg-zenov-card hover:border-zenov-primary-border transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300"
+          className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-xl bg-zenov-bg/70 backdrop-blur-md border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:bg-zenov-card hover:border-zenov-primary-border transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:block"
           aria-label="Next"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
 
         {/* Slide indicators */}
-        <div className="absolute bottom-5 left-6 sm:left-10 z-30 flex items-center gap-2">
+        <div className="absolute bottom-3.5 left-5 sm:bottom-5 sm:left-10 z-30 flex items-center gap-1.5 sm:gap-2">
           {banners.map((_, idx) => (
             <button
               key={idx}
               onClick={() => goToSlide(idx)}
-              className={`h-1.5 rounded-full transition-all duration-400 ${
+              className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
                 currentIndex === idx
-                  ? 'w-10 bg-zenov-primary shadow-primary'
-                  : 'w-2 bg-zenov-text-muted/40 hover:bg-zenov-text-muted/70'
+                  ? 'w-7 sm:w-10 bg-gradient-to-r from-zenov-primary to-zenov-accent shadow-primary'
+                  : 'w-1.5 sm:w-2 bg-zenov-text-muted/40 hover:bg-zenov-text-muted/70'
               }`}
               aria-label={`Slide ${idx + 1}`}
             />
@@ -251,7 +254,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         </div>
 
         {/* Slide counter */}
-        <div className="absolute bottom-5 right-6 z-30 text-[11px] font-mono text-zenov-text-muted">
+        <div className="absolute bottom-3.5 right-5 sm:bottom-5 sm:right-6 z-30 text-[9px] sm:text-[11px] font-mono text-zenov-text-muted">
           <span className="text-zenov-primary font-bold">{String(currentIndex + 1).padStart(2, '0')}</span>
           {' / '}
           {String(banners.length).padStart(2, '0')}

@@ -28,9 +28,12 @@ import {
   MessageCircle,
   User,
   Mail,
+  List,
+  LayoutGrid,
 } from 'lucide-react';
 import { PaymentLogo } from '@/components/payment/PaymentLogos';
 import ManualPaymentBox from '@/components/payment/ManualPaymentBox';
+import { PAYMENT_ACCOUNTS } from '@/data/paymentSettings';
 
 export default function TopUpPage() {
   const params = useParams<{ productId: string }>() ?? { productId: '' };
@@ -60,6 +63,7 @@ export default function TopUpPage() {
   const [coupon, setCoupon] = useState('');
   const [couponState, setCouponState] = useState<{ applied: boolean; code?: string; discountPct?: number; message?: string }>({ applied: false });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bKash');
+  const [paymentTab, setPaymentTab] = useState<'trxid' | 'whatsapp'>('trxid');
   const [submitting, setSubmitting] = useState(false);
   const [successResult, setSuccessResult] = useState<{ orderNumber: string; message?: string; txid: string } | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -68,6 +72,7 @@ export default function TopUpPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [senderNumber, setSenderNumber] = useState('');
   const [trxId, setTrxId] = useState('');
+  const [packageViewMode, setPackageViewMode] = useState<'list' | 'grid'>('list');
 
   // Sync with user profile
   useEffect(() => {
@@ -195,6 +200,15 @@ export default function TopUpPage() {
     router.push('/cart');
   };
 
+  const getWhatsAppLink = () => {
+    const packageLabel = denom ? (denom.label || denom.name) : '';
+    const formattedPrice = formatCurrency(total, selectedCurrency);
+    const msg = `Hi ZENOV, I want to make a manual payment for:\n\n🎮 *Product:* ${product.title}\n💎 *Package:* ${packageLabel}\n💰 *Price:* ${formattedPrice}\n👤 *Player ID/UID:* ${playerId || 'Not provided'}\n${serverId ? `🌐 *Server/Region:* ${serverId}\n` : ''}\nPlease guide me on how to pay.`;
+    const acc = PAYMENT_ACCOUNTS[paymentMethod] || PAYMENT_ACCOUNTS['bKash'];
+    const waNumber = acc?.whatsapp || '8801300529836';
+    return `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+  };
+
   return (
     <div className="max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-10">
       {/* Breadcrumb */}
@@ -303,45 +317,141 @@ export default function TopUpPage() {
 
             {/* 2. Denominations / Packages */}
             <div className="rounded-2xl bg-zenov-card border border-zenov-border p-3.5 sm:p-5">
-              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenov-text mb-3">
-                Select Package
-              </h3>
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                {product.denominations.map((d) => {
-                  const active = d.id === selectedDenom;
-                  const save = d.originalAmount && d.originalAmount > d.amount
-                    ? Math.round((1 - d.amount / d.originalAmount) * 100)
-                    : 0;
-                  return (
-                    <button
-                      key={d.id}
-                      onClick={() => setSelectedDenom(d.id)}
-                      className={`relative text-left p-2 sm:p-2.5 rounded-lg sm:rounded-xl border transition-all active:scale-[0.97] ${
-                        active
-                          ? 'bg-zenov-primary-soft/60 border-zenov-primary-border ring-1 ring-zenov-primary-border/40 shadow-sm'
-                          : 'bg-zenov-surface/60 border-zenov-border hover:border-zenov-border-hover'
-                      }`}
-                    >
-                      {save > 0 && (
-                        <span className="absolute -top-1 -right-1 px-1 py-px rounded bg-zenov-error text-white text-[8px] font-bold leading-tight">
-                          -{save}%
-                        </span>
-                      )}
-                      <p className={`text-[10px] sm:text-xs font-black font-mono leading-snug truncate ${active ? 'text-zenov-primary' : 'text-zenov-text'}`}>
-                        {d.label || d.name}
-                      </p>
-                      <p className="text-[10px] sm:text-[11px] mt-0.5 text-zenov-text-secondary font-bold leading-tight">
-                        {formatCurrency(d.amount, selectedCurrency)}
-                      </p>
-                      {(d.bonusAmount || d.bonus || d.bonusLabel) && (
-                        <p className="text-[8px] sm:text-[9px] mt-0.5 text-zenov-accent font-semibold leading-tight truncate">
-                          {d.bonusLabel || d.bonus}
-                        </p>
-                      )}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center justify-between mb-4.5">
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenov-text">
+                  Select Package
+                </h3>
+                {/* View Switcher Toggle */}
+                <div className="flex items-center gap-1 p-0.5 rounded-lg bg-zenov-surface border border-zenov-border">
+                  <button
+                    type="button"
+                    onClick={() => setPackageViewMode('list')}
+                    className={`p-1.5 rounded-md transition-all cursor-pointer ${
+                      packageViewMode === 'list'
+                        ? 'bg-zenov-primary text-white shadow-sm'
+                        : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-card'
+                    }`}
+                    title="List View"
+                  >
+                    <List className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPackageViewMode('grid')}
+                    className={`p-1.5 rounded-md transition-all cursor-pointer ${
+                      packageViewMode === 'grid'
+                        ? 'bg-zenov-primary text-white shadow-sm'
+                        : 'text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-card'
+                    }`}
+                    title="Grid View"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
+
+              {packageViewMode === 'list' ? (
+                /* List Layout (Clean, full widths, details visible, no truncation) */
+                <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
+                  {product.denominations.map((d) => {
+                    const active = d.id === selectedDenom;
+                    const save = d.originalAmount && d.originalAmount > d.amount
+                      ? Math.round((1 - d.amount / d.originalAmount) * 100)
+                      : 0;
+                    return (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setSelectedDenom(d.id)}
+                        className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all active:scale-[0.99] group cursor-pointer ${
+                          active
+                            ? 'bg-zenov-primary-soft/40 border-zenov-primary ring-1 ring-zenov-primary-border/50 shadow-md shadow-zenov-primary/5'
+                            : 'bg-zenov-surface/60 border-zenov-border hover:border-zenov-border-hover hover:bg-zenov-surface/90'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Custom Radio check element */}
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                            active
+                              ? 'border-zenov-primary bg-zenov-primary shadow-sm shadow-zenov-primary/20'
+                              : 'border-zenov-border hover:border-zenov-text-muted bg-transparent'
+                          }`}>
+                            {active && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          </div>
+                          <div className="min-w-0">
+                            <span className={`text-xs sm:text-sm font-bold block transition-colors leading-tight ${active ? 'text-zenov-primary' : 'text-zenov-text'}`}>
+                              {d.label || d.name}
+                            </span>
+                            {/* Bonus or Extra Info Badge */}
+                            {(d.bonusAmount || d.bonus || d.bonusLabel) && (
+                              <span className="inline-block text-[9px] font-bold text-zenov-accent mt-1 bg-zenov-accent-soft/30 px-2 py-0.5 rounded border border-zenov-accent-border/20">
+                                {d.bonusLabel || d.bonus}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 shrink-0 pl-2">
+                          <div className="text-right">
+                            <span className="text-xs sm:text-sm font-black text-zenov-text font-mono leading-none">
+                              {formatCurrency(d.amount, selectedCurrency)}
+                            </span>
+                            {d.originalAmount && d.originalAmount > d.amount && (
+                              <p className="text-[10px] text-zenov-text-muted line-through font-mono leading-tight mt-0.5">
+                                {formatCurrency(d.originalAmount, selectedCurrency)}
+                              </p>
+                            )}
+                          </div>
+                          {save > 0 && (
+                            <span className="px-2 py-0.5 rounded-md bg-zenov-error/15 border border-zenov-error/25 text-zenov-error text-[10px] font-black tracking-wider uppercase">
+                              Save {save}%
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Grid Layout (Clean 3-column, optimized badges) */
+                <div className="grid grid-cols-3 gap-2">
+                  {product.denominations.map((d) => {
+                    const active = d.id === selectedDenom;
+                    const save = d.originalAmount && d.originalAmount > d.amount
+                      ? Math.round((1 - d.amount / d.originalAmount) * 100)
+                      : 0;
+                    return (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setSelectedDenom(d.id)}
+                        className={`relative text-left p-2.5 rounded-xl border transition-all active:scale-[0.96] group cursor-pointer ${
+                          active
+                            ? 'bg-zenov-primary-soft/40 border-zenov-primary ring-1 ring-zenov-primary-border/40 shadow-md shadow-zenov-primary/5'
+                            : 'bg-zenov-surface/60 border-zenov-border hover:border-zenov-border-hover'
+                        }`}
+                      >
+                        {save > 0 && (
+                          <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded bg-zenov-error text-white text-[8px] font-extrabold leading-none tracking-tight shadow-sm">
+                            -{save}%
+                          </span>
+                        )}
+                        <p className={`text-[10px] sm:text-xs font-black leading-snug truncate ${active ? 'text-zenov-primary' : 'text-zenov-text'}`}>
+                          {d.label || d.name}
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] mt-0.5 text-zenov-text-secondary font-bold leading-tight">
+                          {formatCurrency(d.amount, selectedCurrency)}
+                        </p>
+                        {(d.bonusAmount || d.bonus || d.bonusLabel) && (
+                          <p className="text-[8px] sm:text-[9px] mt-0.5 text-zenov-accent font-semibold leading-tight truncate">
+                            {d.bonusLabel || d.bonus}
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Quantity */}
               <div className="mt-3.5 flex items-center justify-between">
@@ -415,63 +525,117 @@ export default function TopUpPage() {
 
             {/* 4. Payment + Summary */}
             <div className="rounded-2xl bg-zenov-card border border-zenov-border overflow-hidden space-y-4">
-              <div className="px-3.5 sm:px-5 pt-3.5 sm:pt-5">
-                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenov-text mb-2.5 flex items-center gap-2">
-                  <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenov-primary" /> Select Payment Method
-                </h3>
-                 <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-                  {[
-                    { id: 'bKash', tag: 'Personal', accent: 'border-pink-500 bg-pink-500/15 shadow-pink-500/20' },
-                    { id: 'Nagad', tag: 'Personal', accent: 'border-orange-500 bg-orange-500/15 shadow-orange-500/20' },
-                    { id: 'Rocket', tag: 'Personal', accent: 'border-purple-500 bg-purple-500/15 shadow-purple-500/20' },
-                    { id: 'Bank Transfer', tag: 'Local Bank', accent: 'border-blue-500 bg-blue-500/15 shadow-blue-500/20' },
-                    { id: 'Crypto/USDT', tag: 'TRC20', accent: 'border-emerald-500 bg-emerald-500/15 shadow-emerald-500/20' },
-                  ].map(({ id, tag, accent }) => {
-                    const active = paymentMethod === (id as PaymentMethod);
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => setPaymentMethod(id as PaymentMethod)}
-                        className={`relative p-2.5 sm:p-3 rounded-xl border-2 transition-all flex items-center gap-2.5 text-left ${
-                          active
-                            ? `${accent} shadow-md scale-[1.02]`
-                            : 'bg-zenov-surface/70 border-zenov-border hover:border-zenov-border-hover hover:bg-zenov-surface'
-                        }`}
-                      >
-                        <PaymentLogo method={id} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-[11px] sm:text-xs font-black truncate leading-tight ${active ? 'text-white' : 'text-zenov-text'}`}>
-                            {id}
-                          </p>
-                          {tag && <p className="text-[9px] text-zenov-text-muted font-medium leading-none mt-0.5">{tag}</p>}
-                        </div>
-                        {/* Active checkmark */}
-                        {active && (
-                          <div className="w-4 h-4 rounded-full bg-white/90 flex items-center justify-center shrink-0">
-                            <svg className="w-2.5 h-2.5 text-zenov-bg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+              {/* Tab Selector */}
+              <div className="px-3.5 sm:px-5 pt-3.5 sm:pt-5 border-b border-zenov-border pb-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentTab('trxid')}
+                  className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all border ${
+                    paymentTab === 'trxid'
+                      ? 'bg-zenov-primary text-white border-zenov-primary-border shadow-sm shadow-zenov-primary/10'
+                      : 'text-zenov-text-secondary border-transparent hover:text-zenov-text hover:bg-zenov-surface/40'
+                  }`}
+                >
+                  Pay &amp; Submit TrxID
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentTab('whatsapp')}
+                  className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-all border flex items-center justify-center gap-1.5 ${
+                    paymentTab === 'whatsapp'
+                      ? 'bg-emerald-600 text-white border-emerald-500/20 shadow-sm shadow-emerald-500/10'
+                      : 'text-zenov-text-secondary border-transparent hover:text-zenov-text hover:bg-zenov-surface/40'
+                  }`}
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-current fill-current/25" />
+                  Order via WhatsApp
+                </button>
               </div>
 
-              {/* Manual Payment Details & TrxID Input Box */}
-              <div className="px-3.5 sm:px-5">
-                <ManualPaymentBox
-                  paymentMethod={paymentMethod}
-                  totalAmountUSD={total}
-                  selectedCurrency={selectedCurrency}
-                  senderNumber={senderNumber}
-                  setSenderNumber={setSenderNumber}
-                  trxId={trxId}
-                  setTrxId={setTrxId}
-                />
-              </div>
+              {paymentTab === 'trxid' ? (
+                <>
+                  <div className="px-3.5 sm:px-5 pt-1">
+                    <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenov-text mb-2.5 flex items-center gap-2">
+                      <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenov-primary" /> Select Payment Method
+                    </h3>
+                     <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                      {[
+                        { id: 'bKash', tag: 'Personal', accent: 'border-pink-500 bg-pink-500/15 shadow-pink-500/20' },
+                        { id: 'Nagad', tag: 'Personal', accent: 'border-orange-500 bg-orange-500/15 shadow-orange-500/20' },
+                        { id: 'Rocket', tag: 'Personal', accent: 'border-purple-500 bg-purple-500/15 shadow-purple-500/20' },
+                        { id: 'Bank Transfer', tag: 'Local Bank', accent: 'border-blue-500 bg-blue-500/15 shadow-blue-500/20' },
+                        { id: 'Crypto/USDT', tag: 'TRC20', accent: 'border-emerald-500 bg-emerald-500/15 shadow-emerald-500/20' },
+                      ].map(({ id, tag, accent }) => {
+                        const active = paymentMethod === (id as PaymentMethod);
+                        return (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => setPaymentMethod(id as PaymentMethod)}
+                            className={`relative p-2.5 sm:p-3 rounded-xl border-2 transition-all flex items-center gap-2.5 text-left ${
+                              active
+                                ? `${accent} shadow-md scale-[1.02]`
+                                : 'bg-zenov-surface/70 border-zenov-border hover:border-zenov-border-hover hover:bg-zenov-surface'
+                            }`}
+                          >
+                            <PaymentLogo method={id} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-[11px] sm:text-xs font-black truncate leading-tight ${active ? 'text-white' : 'text-zenov-text'}`}>
+                                {id}
+                              </p>
+                              {tag && <p className="text-[9px] text-zenov-text-muted font-medium leading-none mt-0.5">{tag}</p>}
+                            </div>
+                            {/* Active checkmark */}
+                            {active && (
+                              <div className="w-4 h-4 rounded-full bg-white/90 flex items-center justify-center shrink-0">
+                                <svg className="w-2.5 h-2.5 text-zenov-bg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Manual Payment Details & TrxID Input Box */}
+                  <div className="px-3.5 sm:px-5">
+                    <ManualPaymentBox
+                      paymentMethod={paymentMethod}
+                      totalAmountUSD={total}
+                      selectedCurrency={selectedCurrency}
+                      senderNumber={senderNumber}
+                      setSenderNumber={setSenderNumber}
+                      trxId={trxId}
+                      setTrxId={setTrxId}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="px-3.5 sm:px-5 pt-1 space-y-4">
+                  {/* WhatsApp Support Box */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-b from-emerald-500/10 via-zenov-card to-zenov-bg border border-emerald-500/20 space-y-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0 shadow-md">
+                        <MessageCircle className="w-6 h-6 text-emerald-400 fill-emerald-400/20" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-black text-zenov-text tracking-wide">
+                          Manual Payment via WhatsApp
+                        </h4>
+                        <p className="text-[10px] text-zenov-text-muted">Chat with our admin for quick top-up</p>
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-zenov-surface/90 border border-zenov-border text-[11px] sm:text-xs text-zenov-text-secondary leading-relaxed space-y-2">
+                      <p className="text-white font-bold">অর্ডার করার সহজ নিয়ম:</p>
+                      <p>১. উপরে আপনার <span className="text-zenov-primary font-bold">Player ID/UID</span> এবং <span className="text-zenov-primary font-bold">Package</span> সিলেক্ট করুন।</p>
+                      <p>২. নিচে <span className="text-emerald-400 font-bold">Order on WhatsApp</span> বাটনে ক্লিক করুন। এটি আপনার অর্ডার ডিটেইলস সহ আমাদের চ্যাট উইন্ডো খুলে দেবে।</p>
+                      <p>৩. চ্যাটে আমাদের সাথে কথা বলে যেকোনো নাম্বারে পেমেন্ট সম্পন্ন করে সেন্ডার নাম্বার দিলেই অর্ডার কমপ্লিট হয়ে যাবে!</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Summary */}
               <div className="px-3.5 sm:px-5 pt-1 space-y-1.5 text-xs sm:text-sm">
@@ -492,47 +656,85 @@ export default function TopUpPage() {
                 </div>
               </div>
 
-              <div className="p-3.5 sm:p-5 pt-1 space-y-2">
-                {/* PRIMARY ACTION: Submit with TrxID */}
-                <div className="relative">
-                  <div className="absolute -top-2.5 left-3 px-1.5 bg-zenov-card z-10">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-zenov-primary">Step 1 — Pay &amp; Submit TrxID</span>
+              <div className="p-3.5 sm:p-5 pt-1 space-y-4">
+                {paymentTab === 'trxid' ? (
+                  /* PRIMARY ACTION: Submit with TrxID */
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center px-1">
+                      <span className="text-[9px] font-extrabold uppercase tracking-widest text-zenov-primary flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-zenov-primary animate-pulse" />
+                        Step 1 &mdash; Pay &amp; Submit TrxID
+                      </span>
+                      <span className="text-[9px] text-zenov-text-muted font-bold">Fast Auto Delivery</span>
+                    </div>
+                    <button
+                      onClick={onPay}
+                      disabled={!denom || (requiresPlayerId && !playerId.trim()) || !trxId.trim() || submitting || total <= 0}
+                      className="relative w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-extrabold uppercase tracking-wider disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 overflow-hidden group cursor-pointer"
+                    >
+                      {/* Shine reflection */}
+                      <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                      
+                      {submitting ? (
+                        <>
+                          <span>Submitting Order...</span>
+                          <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-3.5 h-3.5 fill-white text-white shrink-0" />
+                          <span>Submit Order with TrxID ({formatCurrency(total, selectedCurrency)})</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                  <button
-                    onClick={onPay}
-                    disabled={!denom || (requiresPlayerId && !playerId.trim()) || !trxId.trim() || submitting || total <= 0}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenov-primary via-blue-600 to-indigo-600 hover:shadow-primary text-white text-xs sm:text-sm font-black uppercase tracking-wider disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-md"
-                  >
-                    {submitting ? (
-                      <>Submitting Order <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
-                    ) : (
-                      <>
-                        <Zap className="w-3.5 h-3.5 fill-white" />
-                        Submit Order with TrxID ({formatCurrency(total, selectedCurrency)})
-                      </>
-                    )}
-                  </button>
-                </div>
+                ) : (
+                  /* WHATSAPP ACTION */
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center px-1">
+                      <span className="text-[9px] font-extrabold uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Step 1 &mdash; Order on WhatsApp
+                      </span>
+                      <span className="text-[9px] text-zenov-text-muted font-bold">Manual Admin Support</span>
+                    </div>
+                    <a
+                      href={getWhatsAppLink()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white text-xs sm:text-sm font-extrabold uppercase tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-2.5 shadow-md shadow-emerald-500/10 hover:shadow-lg hover:shadow-emerald-500/20 text-center overflow-hidden group cursor-pointer"
+                    >
+                      {/* Shine reflection */}
+                      <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                      
+                      <MessageCircle className="w-4 h-4 fill-white text-white shrink-0" />
+                      <span>Order on WhatsApp ({formatCurrency(total, selectedCurrency)})</span>
+                    </a>
+                  </div>
+                )}
 
                 {/* DIVIDER */}
-                <div className="relative flex items-center gap-2 py-1">
+                <div className="relative flex items-center gap-3 py-1">
                   <div className="flex-1 h-px bg-zenov-border" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-zenov-text-muted px-1">or</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-zenov-text-muted px-1.5">or</span>
                   <div className="flex-1 h-px bg-zenov-border" />
                 </div>
 
                 {/* SECONDARY ACTION: Add to Cart */}
-                <div className="relative">
-                  <div className="absolute -top-2.5 left-3 px-1.5 bg-zenov-card z-10">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-zenov-text-muted">Step 1 alt — Add to Cart</span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-zenov-text-muted">
+                      Option B &mdash; Add to Shopping Cart
+                    </span>
+                    <span className="text-[9px] text-zenov-text-muted font-bold">Pay Together Later</span>
                   </div>
                   <button
                     onClick={onAddToCart}
                     disabled={!denom || total <= 0}
-                    className="w-full py-2.5 rounded-xl bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/40 disabled:opacity-50 text-xs sm:text-sm font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all flex items-center justify-center gap-1.5"
+                    className="w-full py-3 rounded-xl bg-zenov-surface/60 border border-zenov-border hover:border-zenov-primary/40 hover:bg-zenov-primary-soft/10 disabled:opacity-50 text-xs sm:text-sm font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer group"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    Add to Cart &amp; Pay Later
+                    <Plus className="w-4 h-4 text-zenov-text-secondary group-hover:text-zenov-primary transition-colors shrink-0" />
+                    <span>Add to Cart &amp; Pay Later</span>
                   </button>
                 </div>
                 <div className="flex items-center justify-center gap-2 sm:gap-3 pt-0.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-zenov-text-muted flex-wrap">
