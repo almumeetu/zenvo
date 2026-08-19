@@ -19,6 +19,7 @@ import {
   Crown,
   Zap,
 } from 'lucide-react';
+import { ZenovLogo } from './ZenovLogo';
 import {
   FaFacebookF,
   FaYoutube,
@@ -180,23 +181,7 @@ export const Footer: React.FC = () => {
             {/* Brand */}
             <div className="col-span-2 sm:col-span-2 lg:col-span-1 space-y-4">
               {/* Logo */}
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenov-primary to-blue-700 p-[1.5px] shadow-primary shrink-0">
-                  <div className="w-full h-full rounded-[9px] bg-zenov-bg flex items-center justify-center">
-                    <span className="font-black text-base text-transparent bg-clip-text bg-gradient-to-br from-zenov-primary to-zenov-accent font-mono">
-                      Z
-                    </span>
-                  </div>
-                </div>
-                <div className="leading-tight">
-                  <div className="text-base font-black tracking-tight text-zenov-text uppercase">
-                    ZENOV <span className="text-zenov-primary">GAMES</span>
-                  </div>
-                  <div className="text-[10px] font-bold tracking-[0.16em] text-zenov-text-muted uppercase">
-                    Gaming Store · BD
-                  </div>
-                </div>
-              </div>
+              <ZenovLogo size="lg" isLink href="/" />
 
               <p className="text-xs text-zenov-text-secondary leading-relaxed">
                 Your trusted digital gaming store in Bangladesh. PSN, Steam, Xbox Gift Cards, PS Plus & instant game top-ups — delivered in seconds.

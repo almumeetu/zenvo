@@ -12,6 +12,7 @@ import { UnitManager } from '@/components/admin/UnitManager';
 import { AdminToast } from '@/components/admin/AdminToast';
 import { CreateOrderModal } from '@/components/admin/CreateOrderModal';
 import { OrderDetailsModal } from '@/components/admin/OrderDetailsModal';
+import { ZenovLogo } from '@/components/ZenovLogo';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -829,15 +830,7 @@ export default function AdminDashboardPage() {
       
       {/* 1. Mobile Header Bar */}
       <header className="lg:hidden w-full bg-zenov-card border-b border-zenov-border px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-zenov-primary to-blue-700 p-[1.5px] shadow-primary">
-            <div className="w-full h-full rounded-[7px] bg-zenov-bg flex items-center justify-center font-bold text-sm text-zenov-primary">Z</div>
-          </div>
-          <div>
-            <h2 className="text-xs font-black text-zenov-text tracking-wider uppercase leading-none">ZENOV CONTROL</h2>
-            <p className="text-[8px] text-zenov-accent font-mono uppercase tracking-[0.12em] mt-0.5 leading-none">ROOT LEVEL</p>
-          </div>
-        </div>
+        <ZenovLogo size="sm" isLink href="/" />
         <button
           onClick={() => setIsSidebarOpen(true)}
           className="p-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary transition-all active:scale-95"
@@ -857,18 +850,7 @@ export default function AdminDashboardPage() {
           <aside className="relative w-64 bg-zenov-card border-r border-zenov-border h-full flex flex-col z-10 overflow-hidden">
             {/* Drawer Header */}
             <div className="px-5 pt-5 pb-4 border-b border-zenov-border/60 bg-gradient-to-b from-zenov-primary/5 to-transparent shrink-0 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-zenov-primary to-blue-700 flex items-center justify-center font-mono font-black text-sm text-white shrink-0">
-                  Z
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-zenov-text tracking-tight leading-none">ZENOV</h2>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-zenov-success animate-pulse shrink-0" />
-                    <p className="text-[9px] text-zenov-text-muted font-mono uppercase tracking-widest leading-none">Admin</p>
-                  </div>
-                </div>
-              </div>
+              <ZenovLogo size="sm" isLink href="/" />
               <button
                 onClick={() => setIsSidebarOpen(false)}
                 className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-white hover:bg-zenov-error/20 transition-colors"
@@ -904,18 +886,7 @@ export default function AdminDashboardPage() {
       <aside className="hidden lg:flex flex-col w-64 bg-zenov-card border-r border-zenov-border sticky top-0 h-screen shrink-0 z-20">
         {/* Sidebar Header */}
         <div className="px-5 pt-5 pb-4 border-b border-zenov-border/60 bg-gradient-to-b from-zenov-primary/5 to-transparent shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-zenov-primary to-blue-700 flex items-center justify-center font-mono font-black text-sm text-white shadow-lg shadow-zenov-primary/25 shrink-0">
-              Z
-            </div>
-            <div>
-              <h2 className="text-sm font-black text-zenov-text tracking-tight leading-none">ZENOV</h2>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-zenov-success animate-pulse shrink-0" />
-                <p className="text-[9px] text-zenov-text-muted font-mono uppercase tracking-widest leading-none">Admin Control</p>
-              </div>
-            </div>
-          </div>
+          <ZenovLogo size="md" isLink href="/" />
         </div>
 
         {/* Scrollable Nav */}

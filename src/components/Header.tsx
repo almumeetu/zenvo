@@ -25,6 +25,7 @@ import {
 import { Product, CurrencyCode, UserProfile, CartItem } from '../types';
 import { CURRENCIES } from '../data/initialData';
 import { formatCurrency } from '../lib/currency';
+import { ZenovLogo } from './ZenovLogo';
 
 interface HeaderProps {
   products: Product[];
@@ -225,24 +226,10 @@ export const Header: React.FC<HeaderProps> = ({
           <Link
             ref={logoRef}
             href="/"
-            className="flex items-center gap-2.5 group focus:outline-none shrink-0"
+            className="focus:outline-none shrink-0"
+            aria-label="ZENOV Gaming Store Home"
           >
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-zenov-primary to-blue-700 p-[1.5px] shadow-primary group-hover:shadow-glow-blue transition-all duration-300">
-              <div className="w-full h-full rounded-[9px] bg-zenov-bg flex items-center justify-center overflow-hidden">
-                <span className="font-black text-lg text-transparent bg-clip-text bg-gradient-to-br from-zenov-primary to-zenov-accent font-mono">
-                  Z
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-br from-zenov-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[9px]" />
-              </div>
-            </div>
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-[17px] font-black tracking-tight text-zenov-text uppercase group-hover:text-zenov-primary transition-colors duration-200">
-                ZENOV
-              </span>
-              <span className="text-[9px] font-bold tracking-[0.2em] text-zenov-text-muted uppercase">
-                Gaming Store
-              </span>
-            </div>
+            <ZenovLogo size="md" />
           </Link>
 
           {/* Desktop Navigation */}

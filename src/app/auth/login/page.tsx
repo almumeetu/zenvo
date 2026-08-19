@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Sparkles,
 } from 'lucide-react';
+import { ZenovLogo } from '@/components/ZenovLogo';
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -58,16 +59,8 @@ function LoginContent() {
         <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-zenov-primary-soft via-indigo-950/40 to-zenov-accent-soft relative overflow-hidden">
           <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-zenov-primary/30 blur-3xl" />
           <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-zenov-accent/20 blur-3xl" />
-          <div className="relative flex items-center gap-2.5">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-zenov-primary to-zenov-accent p-[1.5px] shadow-md">
-              <div className="w-full h-full rounded-[10px] bg-zenov-bg flex items-center justify-center">
-                <span className="font-black text-lg text-transparent bg-clip-text bg-gradient-to-br from-zenov-primary to-zenov-accent font-mono">Z</span>
-              </div>
-            </div>
-            <div className="leading-tight">
-              <p className="text-xl font-black text-zenov-text uppercase tracking-tight">ZENOV</p>
-              <p className="text-[10px] font-bold tracking-[0.18em] text-zenov-text-muted uppercase">Gaming Store</p>
-            </div>
+          <div className="relative">
+            <ZenovLogo size="lg" isLink href="/" />
           </div>
           <div className="relative space-y-6">
             <div className="space-y-3">
