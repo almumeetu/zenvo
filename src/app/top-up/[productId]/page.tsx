@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useApp, PaymentMethod } from '@/lib/AppStateContext';
 import { formatCurrency } from '@/lib/currency';
+import { ProductCard } from '@/components/ProductCard';
 import confetti from 'canvas-confetti';
 import {
   ArrowLeft,
@@ -23,6 +24,8 @@ import {
   Wallet,
   Copy,
   ChevronRight,
+  ChevronLeft,
+  Sparkles,
   Gamepad2,
   Download,
   MessageCircle,
@@ -73,6 +76,24 @@ export default function TopUpPage() {
   const [senderNumber, setSenderNumber] = useState('');
   const [trxId, setTrxId] = useState('');
   const [packageViewMode, setPackageViewMode] = useState<'list' | 'grid'>('list');
+
+  // Related & Recent Products Slider Ref & Data
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    const sameCat = products.filter((p) => p.category === product.category && p.id !== product.id);
+    const others = products.filter((p) => p.category !== product.category && p.id !== product.id);
+    return [...sameCat, ...others];
+  }, [products, product]);
+
+  const handleScrollSlider = (direction: 'left' | 'right') => {
+    if (!sliderRef.current) return;
+    const scrollAmount = 300;
+    sliderRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  };
 
   // Sync with user profile
   useEffect(() => {
@@ -870,6 +891,70 @@ export default function TopUpPage() {
           </div>
         </div>
       </div>
+
+      {/* RELATED & RECENT PRODUCTS SLIDER */}
+      {relatedProducts.length > 0 && (
+        <section className="mt-8 sm:mt-12 pt-6 sm:pt-10 border-t border-zenov-border/60">
+          <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zenov-primary-soft border border-zenov-primary-border text-zenov-primary flex items-center justify-center shrink-0">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-zenov-primary" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-lg font-black uppercase text-zenov-text tracking-tight flex items-center gap-2">
+                  <span className="truncate">Related & Trending Games</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-zenov-text-muted normal-case">
+                    ({relatedProducts.length})
+                  </span>
+                </h2>
+                <p className="text-[10px] sm:text-xs text-zenov-text-secondary truncate">
+                  Popular games and top-up cards you might also like
+                </p>
+              </div>
+            </div>
+
+            {/* Slider Navigation Arrows */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => handleScrollSlider('left')}
+                className="p-1.5 sm:p-2 rounded-lg bg-zenov-card hover:bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border text-zenov-text-secondary hover:text-zenov-primary transition-all active:scale-95 cursor-pointer shadow-xs"
+                title="Previous"
+                aria-label="Previous"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleScrollSlider('right')}
+                className="p-1.5 sm:p-2 rounded-lg bg-zenov-card hover:bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border text-zenov-text-secondary hover:text-zenov-primary transition-all active:scale-95 cursor-pointer shadow-xs"
+                title="Next"
+                aria-label="Next"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Horizontal Slider Track */}
+          <div
+            ref={sliderRef}
+            className="flex gap-2 sm:gap-3.5 overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth pb-3 pt-1 -mx-1 px-1"
+          >
+            {relatedProducts.map((p, i) => (
+              <div
+                key={p.id}
+                className="w-[125px] min-[380px]:w-[145px] sm:w-[190px] md:w-[210px] shrink-0 snap-start"
+              >
+                <ProductCard
+                  product={p}
+                  selectedCurrency={selectedCurrency}
+                  index={i}
+                  onAddToCart={addToCart}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

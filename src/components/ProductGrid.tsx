@@ -58,7 +58,8 @@ const ProductSection: React.FC<ProductSectionProps> = ({
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const visibleItems = isExpanded ? items : items.slice(0, 6);
+  const defaultCount = highlight ? 9 : 6;
+  const visibleItems = isExpanded ? items : items.slice(0, defaultCount);
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -139,12 +140,12 @@ const ProductSection: React.FC<ProductSectionProps> = ({
           </div>
         </div>
 
-        {items.length > 6 && (
+        {items.length > defaultCount && (
           <button
             onClick={() => onToggle(sectionKey)}
             className="shrink-0 text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs font-bold text-zenov-text-secondary hover:text-zenov-primary inline-flex items-center gap-0.5 sm:gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/40 transition-all active:scale-95 cursor-pointer"
           >
-            <span>{isExpanded ? 'Show Less' : 'View More'}</span>
+            <span>{isExpanded ? 'Show Less' : `View All (${items.length})`}</span>
             {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
         )}
@@ -164,13 +165,13 @@ const ProductSection: React.FC<ProductSectionProps> = ({
         ))}
       </div>
 
-      {items.length > 6 && !isExpanded && (
+      {items.length > defaultCount && !isExpanded && (
         <div className="mt-3.5 sm:mt-6 text-center">
           <button
             onClick={() => onToggle(sectionKey)}
             className="px-3.5 py-1.5 sm:px-6 sm:py-2 rounded-lg bg-zenov-card hover:bg-zenov-card-hover border border-zenov-border hover:border-zenov-primary-border text-zenov-text-secondary hover:text-zenov-primary text-[9px] min-[380px]:text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center gap-1 active:scale-95 shadow-xs cursor-pointer"
           >
-            <span>Load More ({items.length - 6} more)</span>
+            <span>Show All {title} ({items.length - defaultCount} more)</span>
             <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           </button>
         </div>
@@ -197,8 +198,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   const toggleSection = (section: string) =>
     setExpandedSections((p) => ({ ...p, [section]: !p[section] }));
 
-  const hotProducts = products.filter((p) => p.isHot);
-  const displayHot = hotProducts.length > 0 ? hotProducts : products.slice(0, 6);
+  // Highlight and trending shows all products (hot products prioritized first)
+  const displayHot = [...products].sort((a, b) => (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0));
   const gameTopupProducts = products.filter((p) => p.category === 'game-topup');
   const socialTopupProducts = products.filter((p) => p.category === 'social-topup');
   const giftCardProducts = products.filter((p) => p.category === 'gift-card');

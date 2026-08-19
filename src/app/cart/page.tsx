@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Minus,
   Plus,
-  X,
   Trash2,
   Gift,
   ShieldCheck,
@@ -23,6 +22,10 @@ import {
   Phone,
   CheckCircle2,
   Zap,
+  Lock,
+  RotateCcw,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import ManualPaymentBox from '@/components/payment/ManualPaymentBox';
@@ -55,6 +58,7 @@ export default function CartPage() {
     if (user?.phone && !customerPhone) setCustomerPhone(user.phone);
   }, [user]);
 
+  const totalItemsCount = cartItems.reduce((s, it) => s + it.quantity, 0);
   const subtotal = cartItems.reduce(
     (s, it) => s + it.denomination.amount * it.quantity,
     0
@@ -98,28 +102,44 @@ export default function CartPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-      <div className="flex items-center gap-2 text-xs text-zenov-text-muted mb-6 flex-wrap">
+    <div className="max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+      {/* Breadcrumbs */}
+      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-zenov-text-muted mb-4 sm:mb-6 flex-wrap">
         <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-zenov-text font-semibold">Shopping Cart ({cartItems.length})</span>
+        <Link href="/shop" className="hover:text-zenov-primary transition-colors">Shop</Link>
+        <ChevronRight className="w-3 h-3" />
+        <span className="text-zenov-text font-semibold">Shopping Cart ({totalItemsCount})</span>
       </div>
 
-      <div className="flex items-center justify-between mb-7">
-        <h1 className="text-2xl sm:text-3xl font-black text-zenov-text tracking-tight flex items-center gap-3">
-          <span className="p-2.5 rounded-xl bg-zenov-primary-soft border border-zenov-primary-border">
-            <ShoppingBag className="w-6 h-6 text-zenov-primary" />
-          </span>
-          Your Cart
-        </h1>
+      {/* Cart Header */}
+      <div className="flex items-center justify-between gap-3 mb-5 sm:mb-8 pb-4 border-b border-zenov-border/60">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-zenov-primary-soft border border-zenov-primary-border flex items-center justify-center text-zenov-primary shadow-xs">
+            <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-3xl font-black text-zenov-text uppercase tracking-tight flex items-center gap-2">
+              <span>Shopping Cart</span>
+              <span className="text-xs sm:text-sm font-bold text-zenov-primary bg-zenov-primary-soft px-2.5 py-0.5 rounded-full border border-zenov-primary-border/40">
+                {totalItemsCount} {totalItemsCount === 1 ? 'Item' : 'Items'}
+              </span>
+            </h1>
+            <p className="text-[11px] sm:text-xs text-zenov-text-secondary mt-0.5">
+              Review your selected digital packages and complete checkout
+            </p>
+          </div>
+        </div>
+
         <Link
           href="/shop"
-          className="inline-flex items-center gap-1.5 text-sm text-zenov-text-secondary hover:text-zenov-primary transition-colors"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zenov-surface hover:bg-zenov-card border border-zenov-border hover:border-zenov-primary-border text-xs font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all shadow-xs"
         >
-          <ArrowLeft className="w-4 h-4" /> Continue Shopping
+          <ArrowLeft className="w-3.5 h-3.5" /> Continue Shopping
         </Link>
       </div>
 
+      {/* SUCCESS CONFIRMATION STATE */}
       {successOrder ? (
         <div className="max-w-xl mx-auto py-12 px-6 rounded-3xl bg-zenov-card border border-zenov-border text-center space-y-5 shadow-2xl">
           <div className="w-20 h-20 rounded-full bg-zenov-success/15 border border-zenov-success/40 text-zenov-success flex items-center justify-center mx-auto shadow-lg">
@@ -153,154 +173,227 @@ export default function CartPage() {
           </div>
         </div>
       ) : cartItems.length === 0 ? (
-        <div className="py-20 text-center rounded-3xl bg-zenov-card border border-zenov-border">
-          <div className="w-20 h-20 rounded-2xl bg-zenov-surface border border-zenov-border flex items-center justify-center mx-auto mb-5">
-            <CartIcon className="w-9 h-9 text-zenov-text-muted" />
+        /* EMPTY CART STATE */
+        <div className="py-16 sm:py-24 text-center rounded-3xl bg-zenov-card/70 border border-zenov-border shadow-md">
+          <div className="w-20 h-20 rounded-2xl bg-zenov-surface border border-zenov-border flex items-center justify-center mx-auto mb-4 text-zenov-text-muted">
+            <CartIcon className="w-10 h-10" />
           </div>
-          <h2 className="text-xl font-black text-zenov-text mb-2">Your cart is empty</h2>
-          <p className="text-zenov-text-secondary mb-7 max-w-md mx-auto text-sm">
-            Browse our gaming catalog to add top-ups, gift cards, and subscriptions.
+          <h2 className="text-xl sm:text-2xl font-black text-zenov-text uppercase tracking-tight mb-2">
+            Your Cart is Empty
+          </h2>
+          <p className="text-xs sm:text-sm text-zenov-text-secondary mb-7 max-w-sm mx-auto">
+            Looks like you haven't added any game top-ups or gift cards yet.
           </p>
           <Link
             href="/shop"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-zenov-primary to-indigo-600 text-white text-sm font-black uppercase tracking-wider shadow-primary"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-white text-xs sm:text-sm font-black uppercase tracking-wider shadow-primary transition-all active:scale-95"
           >
-            Start Shopping
+            Browse All Games & Top-Ups <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item) => (
-              <div
-                key={`${item.productId}-${item.denomination.id}`}
-                className="p-4 sm:p-5 rounded-2xl bg-zenov-card border border-zenov-border flex flex-col sm:flex-row gap-4"
-              >
-                <Link
-                  href={`/top-up/${item.productId}`}
-                  className="relative w-full sm:w-28 h-28 rounded-xl overflow-hidden bg-zenov-surface border border-zenov-border shrink-0"
-                >
-                  <img src={item.productImage} alt={item.productTitle} className="w-full h-full object-cover" />
-                </Link>
-                <div className="flex-1 min-w-0 flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1 min-w-0">
-                    <Link href={`/top-up/${item.productId}`}>
-                      <h3 className="text-base font-bold text-zenov-text hover:text-zenov-primary transition-colors line-clamp-1">
-                        {item.productTitle}
-                      </h3>
-                    </Link>
-                    <p className="text-xs text-zenov-text-secondary mt-1 flex items-center gap-1.5">
-                      <Tag className="w-3 h-3 text-zenov-primary" /> Package:{' '}
-                      <span className="font-semibold text-zenov-text">{item.denomination.label || item.denomination.name}</span>
-                    </p>
-                    {item.playerId && (
-                      <p className="text-xs text-zenov-text-muted mt-0.5 font-mono">
-                        Player ID: {item.playerId}{item.serverId ? ` • ${item.serverId}` : ''}
-                      </p>
-                    )}
-                    <p className="text-[10px] uppercase tracking-wider text-zenov-text-muted mt-3 font-semibold">
-                      Unit Price
-                    </p>
-                    <p className="font-mono font-black text-lg text-zenov-text">
-                      {formatCurrency(item.denomination.amount, selectedCurrency)}
-                    </p>
-                  </div>
-
-                  <div className="sm:min-w-[170px] flex sm:flex-col justify-between sm:items-end gap-3">
-                    <div className="flex sm:flex-col sm:items-end items-center gap-3">
-                      <div className="flex items-center gap-1.5 p-1 rounded-lg bg-zenov-surface border border-zenov-border">
-                        <button
-                          onClick={() => updateCartQuantity(item.productId, item.denomination.id, item.quantity - 1)}
-                          className="p-2 rounded-md text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-card transition-colors"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="min-w-[32px] text-center font-mono font-black text-sm">{item.quantity}</span>
-                        <button
-                          onClick={() => updateCartQuantity(item.productId, item.denomination.id, item.quantity + 1)}
-                          className="p-2 rounded-md text-zenov-text-secondary hover:text-zenov-text hover:bg-zenov-card transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => removeCartItem(item.productId, item.denomination.id)}
-                        className="p-2 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-zenov-error hover:border-zenov-error/40 transition-colors"
-                        aria-label="Remove"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="text-right sm:mt-auto">
-                      <p className="text-[10px] uppercase font-bold tracking-wider text-zenov-text-muted">Line total</p>
-                      <p className="font-mono font-black text-xl text-zenov-primary">
-                        {formatCurrency(item.denomination.amount * item.quantity, selectedCurrency)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+        /* MAIN LIST SYSTEM & CHECKOUT LAYOUT */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+          
+          {/* LEFT 2 COLUMNS: LIST SYSTEM */}
+          <div className="lg:col-span-2 space-y-5">
+            
+            {/* 1. Item List Container */}
+            <div className="rounded-2xl sm:rounded-3xl bg-zenov-card border border-zenov-border overflow-hidden shadow-sm">
+              {/* List Header Bar */}
+              <div className="hidden sm:grid grid-cols-12 gap-3 px-5 py-3.5 bg-zenov-surface/80 border-b border-zenov-border text-[10.5px] font-black uppercase tracking-wider text-zenov-text-muted">
+                <div className="col-span-6">Item / Game Package</div>
+                <div className="col-span-2 text-center">Unit Price</div>
+                <div className="col-span-2 text-center">Quantity</div>
+                <div className="col-span-2 text-right">Subtotal</div>
               </div>
-            ))}
 
-            <button
-              onClick={() => clearCart()}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-zenov-text-secondary border border-zenov-border hover:border-zenov-error/40 hover:text-zenov-error transition-colors"
-            >
-              <X className="w-3.5 h-3.5" /> Clear cart
-            </button>
+              {/* Items List Rows */}
+              <div className="divide-y divide-zenov-border/60">
+                {cartItems.map((item) => (
+                  <div
+                    key={`${item.productId}-${item.denomination.id}`}
+                    className="p-3.5 sm:p-5 hover:bg-zenov-surface/30 transition-colors"
+                  >
+                    <div className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-3 items-start sm:items-center">
+                      
+                      {/* Product Poster + Title + Package info (Col 1-6) */}
+                      <div className="sm:col-span-6 flex items-center gap-3 min-w-0 w-full">
+                        <Link
+                          href={`/top-up/${item.productId}`}
+                          className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-zenov-surface border border-zenov-border shrink-0 group/img"
+                        >
+                          <img
+                            src={item.productImage}
+                            alt={item.productTitle}
+                            className="w-full h-full object-cover group-hover/img:scale-105 transition-transform"
+                          />
+                        </Link>
 
-            {/* Customer Details Form */}
-            <div className="p-5 rounded-2xl bg-zenov-card border border-zenov-border space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text flex items-center gap-2">
-                <User className="w-4 h-4 text-zenov-primary" /> Customer Contact Information
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="min-w-0 flex-1">
+                          <Link href={`/top-up/${item.productId}`}>
+                            <h3 className="text-xs sm:text-sm font-black text-zenov-text hover:text-zenov-primary transition-colors line-clamp-1">
+                              {item.productTitle}
+                            </h3>
+                          </Link>
+                          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zenov-primary-soft text-zenov-primary text-[9px] sm:text-[10px] font-bold">
+                              <Tag className="w-2.5 h-2.5" />
+                              {item.denomination.label || item.denomination.name}
+                            </span>
+                            {item.playerId && (
+                              <span className="text-[9.5px] sm:text-[10px] font-mono text-zenov-text-muted truncate">
+                                ID: {item.playerId}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Unit Price (Col 7-8) */}
+                      <div className="sm:col-span-2 sm:text-center w-full flex justify-between sm:block">
+                        <span className="sm:hidden text-[10px] text-zenov-text-muted font-semibold">Unit Price:</span>
+                        <span className="font-mono font-bold text-xs sm:text-sm text-zenov-text">
+                          {formatCurrency(item.denomination.amount, selectedCurrency)}
+                        </span>
+                      </div>
+
+                      {/* Quantity Controller (Col 9-10) */}
+                      <div className="sm:col-span-2 sm:flex sm:justify-center w-full flex justify-between items-center">
+                        <span className="sm:hidden text-[10px] text-zenov-text-muted font-semibold">Quantity:</span>
+                        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-zenov-surface border border-zenov-border">
+                          <button
+                            onClick={() => updateCartQuantity(item.productId, item.denomination.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                            className="p-1 rounded-md text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-card transition-colors disabled:opacity-30 cursor-pointer"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="min-w-[24px] text-center font-mono font-black text-xs">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateCartQuantity(item.productId, item.denomination.id, item.quantity + 1)}
+                            className="p-1 rounded-md text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-card transition-colors cursor-pointer"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Line Subtotal & Delete Action (Col 11-12) */}
+                      <div className="sm:col-span-2 flex items-center justify-between sm:justify-end gap-2 w-full pt-1 sm:pt-0 border-t sm:border-0 border-zenov-border/40">
+                        <span className="sm:hidden text-[10px] text-zenov-text-muted font-semibold">Total:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-xs sm:text-sm text-zenov-primary">
+                            {formatCurrency(item.denomination.amount * item.quantity, selectedCurrency)}
+                          </span>
+                          <button
+                            onClick={() => removeCartItem(item.productId, item.denomination.id)}
+                            className="p-1.5 rounded-lg text-zenov-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Remove item"
+                            aria-label="Remove item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* List Footer Bar */}
+              <div className="px-4 py-3 bg-zenov-surface/50 border-t border-zenov-border flex items-center justify-between text-xs">
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center gap-1 font-bold text-zenov-text-secondary hover:text-zenov-primary transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Continue Shopping
+                </Link>
+                <button
+                  onClick={() => clearCart()}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-zenov-text-muted hover:text-rose-400 transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3 h-3" /> Clear Cart
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Customer Contact Info Card */}
+            <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-zenov-card border border-zenov-border space-y-3.5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenov-text flex items-center gap-2">
+                  <User className="w-4 h-4 text-zenov-primary" /> Delivery & Customer Information
+                </h3>
+                <span className="text-[9.5px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  Instant Automated Delivery
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3.5">
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
+                  <label className="text-[9.5px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
                     Your Name
                   </label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="John Doe"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-2 focus:ring-zenov-primary-border/40 outline-none text-xs sm:text-sm"
-                  />
+                  <div className="relative">
+                    <User className="w-3.5 h-3.5 text-zenov-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="e.g. Shakib Ahmed"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-1 focus:ring-zenov-primary-border text-xs sm:text-sm text-zenov-text outline-none"
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
-                    Email Address *
+                  <label className="text-[9.5px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
+                    Email Address * (For Receipt)
                   </label>
-                  <input
-                    type="email"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    required
-                    placeholder="john@example.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-2 focus:ring-zenov-primary-border/40 outline-none text-xs sm:text-sm"
-                  />
+                  <div className="relative">
+                    <Mail className="w-3.5 h-3.5 text-zenov-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      required
+                      placeholder="e.g. name@gmail.com"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-1 focus:ring-zenov-primary-border text-xs sm:text-sm text-zenov-text outline-none"
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
-                    Phone / WhatsApp
+                  <label className="text-[9.5px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
+                    WhatsApp / Phone
                   </label>
-                  <input
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="017XXXXXXXX"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-2 focus:ring-zenov-primary-border/40 outline-none text-xs sm:text-sm"
-                  />
+                  <div className="relative">
+                    <Phone className="w-3.5 h-3.5 text-zenov-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="017XXXXXXXX"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-1 focus:ring-zenov-primary-border text-xs sm:text-sm text-zenov-text outline-none"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Payment Method Selector */}
-            <div className="p-5 rounded-2xl bg-zenov-card border border-zenov-border space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-zenov-primary" /> Select Payment Method
+            {/* 3. Payment Method & TrxID Verification */}
+            <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-zenov-card border border-zenov-border space-y-4 shadow-sm">
+              <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenov-text flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-zenov-primary" /> Select Payment Gateway
               </h3>
-               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+
+              {/* Payment Methods Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {['bKash', 'Nagad', 'Rocket', 'Bank Transfer', 'Crypto/USDT'].map((method) => {
                   const active = paymentMethod === method;
                   return (
@@ -308,22 +401,20 @@ export default function CartPage() {
                       key={method}
                       type="button"
                       onClick={() => setPaymentMethod(method as PaymentMethod)}
-                      className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                      className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                         active
-                          ? 'bg-zenov-primary-soft/50 border-zenov-primary-border ring-2 ring-zenov-primary-border/40 shadow-sm'
-                          : 'bg-zenov-surface border-zenov-border text-zenov-text hover:border-zenov-border-hover'
+                          ? 'bg-zenov-primary-soft/60 border-zenov-primary text-white shadow-xs ring-1 ring-zenov-primary'
+                          : 'bg-zenov-surface border-zenov-border text-zenov-text-secondary hover:border-zenov-border-hover hover:text-zenov-text'
                       }`}
                     >
                       <PaymentLogo method={method} className="w-7 h-7 rounded-lg shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-bold truncate ${active ? 'text-white' : 'text-zenov-text'}`}>{method}</p>
-                      </div>
+                      <span className="text-[10px] sm:text-xs font-bold truncate max-w-full">{method}</span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Manual Payment Details & TrxID Input Box */}
+              {/* Payment Instructions & TrxID Box */}
               <ManualPaymentBox
                 paymentMethod={paymentMethod}
                 totalAmountUSD={total}
@@ -335,76 +426,102 @@ export default function CartPage() {
               />
             </div>
 
-            {/* Trust */}
-            <div className="p-5 rounded-2xl bg-zenov-surface/50 border border-zenov-border grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-center">
-              {[
-                { I: ShieldCheck, t: 'Secure SSL', s: 'Payments' },
-                { I: CreditCard, t: 'All Methods', s: 'Supported' },
-                { I: Gift, t: 'Auto Bonuses', s: 'Instantly' },
-                { I: CartIcon, t: '24/7 Live', s: 'Chat support' },
-              ].map(({ I, t, s }) => (
-                <div key={t}>
-                  <div className="w-9 h-9 rounded-lg bg-zenov-primary-soft text-zenov-primary mx-auto mb-2 flex items-center justify-center">
-                    <I className="w-4 h-4" />
-                  </div>
-                  <p className="font-bold text-zenov-text">{t}</p>
-                  <p className="text-zenov-text-muted">{s}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* Summary */}
+          {/* RIGHT 1 COLUMN: STICKY ORDER SUMMARY */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-5">
-              <div className="rounded-3xl bg-zenov-card border border-zenov-border overflow-hidden">
-                <div className="px-5 py-4 border-b border-zenov-border flex items-center justify-between">
-                  <h3 className="text-sm font-black uppercase tracking-wider text-zenov-text">Order Summary</h3>
-                  <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-zenov-primary-soft text-zenov-primary">
-                    {cartItems.reduce((s, it) => s + it.quantity, 0)} items
+            <div className="sticky top-20 space-y-4">
+              <div className="rounded-2xl sm:rounded-3xl bg-zenov-card border border-zenov-border overflow-hidden shadow-xl">
+                
+                {/* Summary Header */}
+                <div className="px-5 py-4 bg-zenov-surface/80 border-b border-zenov-border flex items-center justify-between">
+                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenov-text flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400" /> Order Summary
+                  </h3>
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-zenov-primary-soft text-zenov-primary">
+                    {totalItemsCount} items
                   </span>
                 </div>
-                <div className="p-5 space-y-2.5 text-sm">
+
+                {/* Price Breakdown */}
+                <div className="p-5 space-y-3 text-xs sm:text-sm">
                   <div className="flex justify-between text-zenov-text-secondary">
-                    <span>Subtotal</span>
-                    <span className="font-mono">{formatCurrency(subtotal, selectedCurrency)}</span>
+                    <span>Items Subtotal</span>
+                    <span className="font-mono font-bold text-zenov-text">
+                      {formatCurrency(subtotal, selectedCurrency)}
+                    </span>
                   </div>
+
                   <div className="flex justify-between text-zenov-text-secondary">
-                    <span>Service fee (1.5%)</span>
-                    <span className="font-mono">{formatCurrency(serviceFee, selectedCurrency)}</span>
+                    <span className="flex items-center gap-1">
+                      <span>Delivery Fee</span>
+                      <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold uppercase">FREE</span>
+                    </span>
+                    <span className="font-mono font-bold text-emerald-400">$0.00</span>
                   </div>
-                  <div className="h-px bg-zenov-border my-3" />
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-sm font-bold uppercase tracking-wider text-zenov-text-muted">Total</span>
-                    <span className="text-3xl font-black font-mono text-zenov-text">
+
+                  <div className="flex justify-between text-zenov-text-secondary">
+                    <span>Service & Gateway Fee (1.5%)</span>
+                    <span className="font-mono font-bold text-zenov-text">
+                      {formatCurrency(serviceFee, selectedCurrency)}
+                    </span>
+                  </div>
+
+                  <div className="h-px bg-zenov-border/80 my-2" />
+
+                  <div className="flex items-baseline justify-between pt-1">
+                    <div>
+                      <span className="text-xs font-black uppercase tracking-wider text-zenov-text block">Grand Total</span>
+                      <span className="text-[10px] text-zenov-text-muted">Includes all taxes & delivery</span>
+                    </div>
+                    <span className="text-2xl sm:text-3xl font-black font-mono text-zenov-text tracking-tight">
                       {formatCurrency(total, selectedCurrency)}
                     </span>
                   </div>
                 </div>
+
+                {/* Checkout Button & Actions */}
                 <div className="p-5 pt-0 space-y-2.5">
                   <button
                     onClick={onCheckout}
                     disabled={submitting || !trxId.trim() || total <= 0}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-zenov-accent via-orange-500 to-zenov-accent-hover text-zenov-bg text-sm font-black uppercase tracking-wider shadow-md active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full py-3.5 px-4 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-white text-xs sm:text-sm font-black uppercase tracking-wider shadow-lg shadow-zenov-primary/25 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {submitting ? (
-                      <>Processing <div className="w-4 h-4 border-2 border-zenov-bg/30 border-t-zenov-bg rounded-full animate-spin" /></>
+                      <>Processing <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
                     ) : (
                       <>
-                        <Zap className="w-4 h-4" /> Submit Order with TrxID
+                        <Lock className="w-4 h-4" /> Confirm & Place Order
                       </>
                     )}
                   </button>
+
                   <button
                     onClick={() => router.push('/wallet')}
-                    className="w-full py-3 rounded-xl bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/40 text-sm font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all"
+                    className="w-full py-2.5 rounded-xl bg-zenov-surface hover:bg-zenov-primary-soft/40 border border-zenov-border hover:border-zenov-primary-border text-xs font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all cursor-pointer"
                   >
-                    Use Wallet Balance (${user?.walletBalanceUSD?.toFixed(2) || '0.00'})
+                    Pay with Wallet (${user?.walletBalanceUSD?.toFixed(2) || '0.00'})
                   </button>
                 </div>
               </div>
+
+              {/* Trust Badge Grid */}
+              <div className="p-4 rounded-2xl bg-zenov-card/60 border border-zenov-border/80 grid grid-cols-2 gap-3 text-center text-[10px]">
+                <div className="flex flex-col items-center">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 mb-1" />
+                  <span className="font-bold text-zenov-text">100% Genuine</span>
+                  <span className="text-zenov-text-muted">Official Partner</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <Zap className="w-4 h-4 text-amber-400 mb-1" />
+                  <span className="font-bold text-zenov-text">≤30s Delivery</span>
+                  <span className="text-zenov-text-muted">Instant Processing</span>
+                </div>
+              </div>
+
             </div>
           </div>
+
         </div>
       )}
     </div>
