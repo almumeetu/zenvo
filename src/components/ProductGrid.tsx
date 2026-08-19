@@ -68,8 +68,8 @@ const TrendingMarqueeSlider: React.FC<{
 
   if (items.length === 0) return null;
 
-  // Duplicate items for infinite marquee loop
-  const marqueeItems = [...items, ...items, ...items];
+  // Duplicate items for infinite marquee loop (2x is optimal for smooth loop without memory bloat)
+  const marqueeItems = items.length > 0 ? [...items, ...items] : [];
 
   return (
     <section className="relative p-2.5 min-[380px]:p-3 sm:p-5 rounded-3xl bg-gradient-to-b from-amber-500/15 via-zenov-card/80 to-zenov-surface border border-amber-500/30 shadow-2xl shadow-amber-500/10 my-3 sm:my-5 overflow-hidden group/marquee">
@@ -191,8 +191,8 @@ const ProductSection: React.FC<ProductSectionProps> = ({
             ease: 'power3.out',
             scrollTrigger: {
               trigger: sectionRef.current,
-              start: 'top 92%',
-              toggleActions: 'play none none reverse',
+              start: 'top 95%',
+              once: true,
             },
           }
         );

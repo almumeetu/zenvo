@@ -1,19 +1,37 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { ArrowUp, Rocket } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowUp } from 'lucide-react';
 
 export const BackToTop: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const circleRef = useRef<SVGCircleElement>(null);
+  const isVisibleRef = useRef(false);
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      if (totalHeight > 0) {
-        setScrollProgress(Math.min(100, Math.max(0, (window.scrollY / totalHeight) * 100)));
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const visible = scrollY > 280;
+
+          if (isVisibleRef.current !== visible) {
+            isVisibleRef.current = visible;
+            setIsVisible(visible);
+          }
+
+          if (circleRef.current && visible) {
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = totalHeight > 0 ? Math.min(1, Math.max(0, scrollY / totalHeight)) : 0;
+            circleRef.current.style.strokeDashoffset = `${113.097 * (1 - progress)}`;
+          }
+
+          ticking = false;
+        });
+        ticking = true;
       }
-      setIsVisible(window.scrollY > 280);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -34,7 +52,7 @@ export const BackToTop: React.FC = () => {
       onClick={scrollToTop}
       aria-label="Scroll back to top"
       title="Back to Top"
-      className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-50 p-2.5 sm:p-3 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-cyan-400/50 text-cyan-400 hover:text-white hover:border-cyan-300 shadow-xl shadow-cyan-950/50 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all duration-300 active:scale-90 group cursor-pointer animate-fade-up"
+      className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-50 p-2.5 sm:p-3 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-cyan-400/50 text-cyan-400 hover:text-white hover:border-cyan-300 shadow-xl shadow-cyan-950/50 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all duration-300 active:scale-90 group cursor-pointer"
     >
       {/* Animated glowing conic border */}
       <span className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-400 to-amber-500 opacity-40 group-hover:opacity-100 blur-[2px] transition-opacity duration-300 pointer-events-none" />
@@ -50,6 +68,7 @@ export const BackToTop: React.FC = () => {
           strokeWidth="2"
         />
         <circle
+          ref={circleRef}
           cx="22"
           cy="22"
           r="18"
@@ -57,9 +76,8 @@ export const BackToTop: React.FC = () => {
           stroke="url(#btt-gradient)"
           strokeWidth="2.5"
           strokeDasharray="113.097"
-          strokeDashoffset={113.097 - (113.097 * scrollProgress) / 100}
+          strokeDashoffset="113.097"
           strokeLinecap="round"
-          className="transition-all duration-150"
         />
         <defs>
           <linearGradient id="btt-gradient" x1="0%" y1="0%" x2="100%" y2="100%">

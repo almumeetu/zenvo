@@ -1,17 +1,11 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Product, CurrencyCode, CartItem } from '../types';
 import { formatCurrency } from '../lib/currency';
 import { useApp } from '../lib/AppStateContext';
-import { Zap, Star, Heart, ShoppingCart, Check, ArrowUpRight } from 'lucide-react';
-
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { Zap, Star, Heart, ShoppingCart, Check } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -25,7 +19,6 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   selectedCurrency,
-  index = 0,
   onAddToCart,
   isHotSection = false,
 }) => {
@@ -46,52 +39,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const originalMin = product.denominations[0]?.originalAmount || minPrice;
   const hasDiscount = originalMin > minPrice;
 
-  /* ScrollTrigger entrance */
-  useEffect(() => {
+  /* Subtle 3D Tilt - strictly on desktop fine pointer */
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        cardRef.current,
-        { opacity: 0, y: 16, scale: 0.97 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.45,
-          ease: 'power2.out',
-          clearProps: 'all',
-          scrollTrigger: { trigger: cardRef.current, start: 'top 96%', once: true },
-          delay: Math.min(index * 0.025, 0.2),
-        }
-      );
-    }, cardRef);
-    return () => ctx.revert();
-  }, [index]);
-
-  /* 3D Tilt on Desktop */
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current || window.innerWidth < 768) return;
+    if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
-    const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
-    gsap.to(cardRef.current, {
-      rotateY: x * 4,
-      rotateX: -y * 4,
-      transformPerspective: 800,
-      duration: 0.3,
-      ease: 'power2.out',
-    });
-  };
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 6;
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * -6;
+    cardRef.current.style.transform = `perspective(800px) rotateY(${x}deg) rotateX(${y}deg) translateY(-3px)`;
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (!cardRef.current) return;
-    gsap.to(cardRef.current, { rotateY: 0, rotateX: 0, duration: 0.4, ease: 'power2.out' });
-    if (imageRef.current) gsap.to(imageRef.current, { scale: 1, duration: 0.35 });
-  };
-
-  const handleMouseEnter = () => {
-    if (imageRef.current) gsap.to(imageRef.current, { scale: 1.06, duration: 0.35, ease: 'power2.out' });
-  };
+    cardRef.current.style.transform = '';
+  }, []);
 
   /* Add to Cart Handler */
   const handleAddToCartClick = (e: React.MouseEvent) => {
@@ -131,13 +92,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onMouseEnter={handleMouseEnter}
-      className={`group relative bg-gradient-to-b from-slate-900/90 via-slate-950/95 to-slate-950 border rounded-2xl overflow-hidden transition-all duration-300 ease-out shadow-md hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between will-change-transform ${
+      className={`group relative bg-gradient-to-b from-slate-900/90 via-slate-950/95 to-slate-950 border rounded-2xl overflow-hidden transition-all duration-300 ease-out shadow-md hover:shadow-2xl flex flex-col justify-between ${
         isHotSection || product.isHot
           ? 'border-amber-500/40 hover:border-amber-400 hover:shadow-[0_0_22px_rgba(245,158,11,0.3)]'
           : 'border-cyan-500/25 hover:border-cyan-400/80 hover:shadow-[0_0_22px_rgba(6,182,212,0.25)]'
       }`}
-      style={{ transformStyle: 'preserve-3d' }}
     >
       {/* Ambient Cyber Top Lighting Reflection (Logo Glow Spectrum) */}
       <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-14 bg-gradient-to-r from-blue-500/30 via-cyan-400/30 to-amber-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -151,8 +110,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           ref={imageRef}
           src={product.image}
           alt={product.title}
-          className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105 will-change-transform"
+          className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
+          decoding="async"
         />
 
         {/* Bottom image gradient shadow */}

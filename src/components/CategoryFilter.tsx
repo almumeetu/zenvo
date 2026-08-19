@@ -39,12 +39,12 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
           opacity: 1,
           y: 0,
           duration: 0.45,
-          stagger: 0.06,
+          stagger: 0.04,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: filterRef.current,
-            start: 'top 92%',
-            toggleActions: 'play none none reverse',
+            start: 'top 95%',
+            once: true,
           },
         }
       );
@@ -72,7 +72,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             <button
               key={cat.id}
               onClick={() => onSelectCategory(cat.id as any)}
-              className={`category-btn shrink-0 px-3.5 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-95 will-change-transform cursor-pointer ${
+              className={`category-btn shrink-0 px-3.5 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-95 cursor-pointer ${
                 isSelected
                   ? 'bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/25 border border-cyan-400/40'
                   : 'bg-slate-900/80 backdrop-blur-md border border-slate-800/90 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-850'

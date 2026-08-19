@@ -86,15 +86,28 @@ export const Header: React.FC<HeaderProps> = ({
     setIsCurrencyMenuOpen(false);
   }, [pathname]);
 
-  // Scroll: update header style + progress bar
+  // Scroll: update header style + progress bar with requestAnimationFrame & state diffing
   useEffect(() => {
+    let ticking = false;
+    let lastScrolled = false;
+
     const onScroll = () => {
-      const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 12);
-      if (progressBarRef.current) {
-        const docH = document.documentElement.scrollHeight - window.innerHeight;
-        const pct = docH > 0 ? scrollY / docH : 0;
-        progressBarRef.current.style.transform = `scaleX(${pct})`;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const scrolled = scrollY > 12;
+          if (lastScrolled !== scrolled) {
+            lastScrolled = scrolled;
+            setIsScrolled(scrolled);
+          }
+          if (progressBarRef.current) {
+            const docH = document.documentElement.scrollHeight - window.innerHeight;
+            const pct = docH > 0 ? scrollY / docH : 0;
+            progressBarRef.current.style.transform = `scaleX(${pct})`;
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
     window.addEventListener('scroll', onScroll, { passive: true });

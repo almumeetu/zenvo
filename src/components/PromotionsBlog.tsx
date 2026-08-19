@@ -31,6 +31,7 @@ export const PromotionsBlog: React.FC<PromotionsBlogProps> = ({ articles }) => {
             scrollTrigger: {
               trigger: sectionRef.current,
               start: 'top 88%',
+              once: true,
             },
           }
         );
@@ -43,11 +44,12 @@ export const PromotionsBlog: React.FC<PromotionsBlogProps> = ({ articles }) => {
             opacity: 1,
             y: 0,
             duration: 0.55,
-            stagger: 0.1,
+            stagger: 0.08,
             ease: 'power2.out',
             scrollTrigger: {
               trigger: sectionRef.current,
               start: 'top 85%',
+              once: true,
             },
           }
         );

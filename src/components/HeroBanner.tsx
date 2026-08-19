@@ -62,32 +62,37 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
 
   // Scroll-triggered entrance for banner container
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (!sectionRef.current || !bannerRef.current) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         bannerRef.current,
-        { opacity: 0, y: 32 },
+        { opacity: 0.8, y: 16 },
         {
-          opacity: 1, y: 0, duration: 0.9, ease: 'power3.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 88%' },
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 95%', once: true },
         }
       );
     }, sectionRef);
     return () => ctx.revert();
   }, []);
 
-  // Parallax mouse effect
+  // Parallax mouse effect - strictly on fine pointer desktop
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!bannerRef.current || !imageRef.current) return;
+    if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     const { left, top, width, height } = bannerRef.current.getBoundingClientRect();
     const x = (e.clientX - left) / width - 0.5;
     const y = (e.clientY - top) / height - 0.5;
-    gsap.to(imageRef.current, { x: x * 20, y: y * 12, duration: 0.8, ease: 'power2.out' });
+    gsap.to(imageRef.current, { x: x * 16, y: y * 10, duration: 0.6, ease: 'power2.out' });
   };
 
   const handleMouseLeave = () => {
     if (!imageRef.current) return;
-    gsap.to(imageRef.current, { x: 0, y: 0, duration: 1.2, ease: 'elastic.out(1, 0.5)' });
+    if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    gsap.to(imageRef.current, { x: 0, y: 0, duration: 0.8, ease: 'power2.out' });
   };
 
   // Auto-slide with progress bar (8s duration for relaxed viewing)
@@ -150,7 +155,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
             ref={imageRef}
             src={activeBanner.image}
             alt={activeBanner.title}
-            className="w-full h-full object-cover object-center will-change-transform scale-100 group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover object-center scale-100 group-hover:scale-105 transition-transform duration-700"
+            decoding="async"
           />
           {/* Left-to-Right & Bottom-to-Top High-Tech Gradient Overlays */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 sm:via-slate-950/70 to-transparent z-10" />

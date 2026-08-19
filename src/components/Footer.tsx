@@ -63,21 +63,12 @@ const FooterLink: React.FC<{ href: string; children: React.ReactNode; external?:
 
 export const Footer: React.FC = () => {
   const pathname = usePathname();
-  const [showBackToTop, setShowBackToTop] = useState(false);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setShowBackToTop(window.scrollY > 300);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   if (pathname?.startsWith('/admin')) {
     return null;
   }
-
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,15 +149,6 @@ export const Footer: React.FC = () => {
 
   return (
     <>
-      {/* Back to Top */}
-      <button
-        onClick={scrollToTop}
-        className={`back-to-top ${showBackToTop ? '' : 'hidden'}`}
-        aria-label="Back to top"
-      >
-        <ChevronUp className="w-5 h-5" />
-      </button>
-
       <footer className="relative bg-gradient-to-b from-slate-950 via-slate-950 to-[#04060a] border-t border-cyan-500/30 text-slate-400 font-sans overflow-hidden">
         {/* Top Multi-Color Neon Glowing Laser Line */}
         <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-blue-600 via-cyan-400 to-amber-500 shadow-[0_0_15px_rgba(6,182,212,0.6)]" />

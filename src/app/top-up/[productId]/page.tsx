@@ -79,8 +79,11 @@ export default function TopUpPage() {
   const [trxId, setTrxId] = useState('');
   const [packageViewMode, setPackageViewMode] = useState<'list' | 'grid'>('list');
 
-  // Related & Recent Products Slider Ref & Data
+  // Related & Recent Products Slider Ref & Data + Autoplay
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [isSliderPaused, setIsSliderPaused] = useState(false);
+  const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const relatedProducts = useMemo(() => {
     if (!product) return [];
     const sameCat = products.filter((p) => p.category === product.category && p.id !== product.id);
@@ -90,12 +93,41 @@ export default function TopUpPage() {
 
   const handleScrollSlider = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return;
-    const scrollAmount = 300;
+    const scrollAmount = sliderRef.current.clientWidth > 640 ? 320 : 200;
     sliderRef.current.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
       behavior: 'smooth',
     });
   };
+
+  // Smooth autoplay for Related Games
+  useEffect(() => {
+    if (relatedProducts.length <= 1) return;
+
+    const startAutoPlay = () => {
+      if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
+      autoPlayTimerRef.current = setInterval(() => {
+        if (!sliderRef.current || isSliderPaused) return;
+        const el = sliderRef.current;
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        const step = el.clientWidth > 640 ? 280 : 160;
+
+        if (el.scrollLeft >= maxScroll - 15) {
+          el.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          el.scrollBy({ left: step, behavior: 'smooth' });
+        }
+      }, 3200);
+    };
+
+    if (!isSliderPaused) {
+      startAutoPlay();
+    }
+
+    return () => {
+      if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
+    };
+  }, [relatedProducts.length, isSliderPaused]);
 
   // Sync with user profile
   useEffect(() => {
@@ -933,9 +965,13 @@ export default function TopUpPage() {
             </div>
           </div>
 
-          {/* Horizontal Slider Track */}
+          {/* Horizontal Slider Track with Autoplay & Touch-Pause */}
           <div
             ref={sliderRef}
+            onMouseEnter={() => setIsSliderPaused(true)}
+            onMouseLeave={() => setIsSliderPaused(false)}
+            onTouchStart={() => setIsSliderPaused(true)}
+            onTouchEnd={() => setTimeout(() => setIsSliderPaused(false), 2500)}
             className="flex gap-2 sm:gap-3.5 overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth pb-3 pt-1 -mx-1 px-1"
           >
             {relatedProducts.map((p, i) => (
