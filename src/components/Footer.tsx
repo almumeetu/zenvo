@@ -345,17 +345,17 @@ export const Footer: React.FC = () => {
               )}
               <p className="text-[10px] text-zenov-text-muted mt-2">No spam. Unsubscribe anytime.</p>
 
-              {/* Stats grid */}
-              <div className="mt-4 grid grid-cols-4 gap-2">
+              {/* Trust Badges grid */}
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { value: '1M+', label: 'Gamers' },
-                  { value: '5K+', label: 'Orders/day' },
-                  { value: '<30s', label: 'Delivery' },
-                  { value: '99.9%', label: 'Uptime' },
+                  { value: '100%', label: 'Genuine Codes' },
+                  { value: 'Instant', label: 'Auto Delivery' },
+                  { value: 'Secure', label: 'bKash / Nagad' },
+                  { value: '24/7', label: 'Live Support' },
                 ].map(({ value, label }) => (
-                  <div key={label} className="p-2 rounded-xl bg-zenov-card border border-zenov-border text-center">
-                    <p className="text-sm font-black text-zenov-primary font-mono leading-tight">{value}</p>
-                    <p className="text-[9px] text-zenov-text-muted uppercase tracking-wide font-semibold leading-tight mt-0.5">{label}</p>
+                  <div key={label} className="p-2 bg-zenov-card border border-zenov-border text-center">
+                    <p className="text-xs sm:text-sm font-black text-zenov-primary font-mono leading-tight">{value}</p>
+                    <p className="text-[8.5px] sm:text-[9px] text-zenov-text-muted uppercase tracking-wide font-bold leading-tight mt-0.5">{label}</p>
                   </div>
                 ))}
               </div>

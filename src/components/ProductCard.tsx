@@ -156,52 +156,44 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         />
 
         {/* Bottom image gradient shadow */}
-        <div className="absolute inset-0 bg-gradient-to-t from-zenov-card via-transparent to-black/30 opacity-75 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zenov-card via-transparent to-transparent opacity-60 pointer-events-none" />
 
         {/* Out of Stock Overlay */}
         {!product.inStock && (
           <div className="absolute inset-0 bg-zenov-bg/85 backdrop-blur-xs flex items-center justify-center z-20">
-            <span className="px-1.5 py-0.5 rounded bg-zenov-error/25 border border-zenov-error/50 text-zenov-error text-[8px] sm:text-[9px] font-black uppercase tracking-wider">
+            <span className="px-1.5 py-0.5 bg-zenov-error/25 border border-zenov-error/50 text-zenov-error text-[8px] sm:text-[9px] font-black uppercase tracking-wider">
               Out of Stock
             </span>
           </div>
         )}
 
-        {/* Top Badges Left */}
-        <div className="absolute top-1 left-1 min-[380px]:top-1.5 min-[380px]:left-1.5 flex flex-col gap-0.5 sm:gap-1 z-10">
-          {product.deliveryType === 'Instant' && (
-            <span className="inline-flex items-center gap-0.5 px-1 min-[380px]:px-1.5 py-0.5 rounded-sm sm:rounded bg-emerald-500 text-zenov-bg text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black uppercase shadow-xs leading-none">
+        {/* Minimal Clean Top Badges */}
+        <div className="absolute top-1 left-1 min-[380px]:top-1.5 min-[380px]:left-1.5 flex items-center gap-1 z-10">
+          {(product.discountPercent || hasDiscount) ? (
+            <span className="px-1 min-[380px]:px-1.5 py-0.5 bg-rose-500 text-white text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black leading-none shadow-xs">
+              -{product.discountPercent || Math.round((1 - minPrice / originalMin) * 100)}%
+            </span>
+          ) : product.deliveryType === 'Instant' ? (
+            <span className="inline-flex items-center gap-0.5 px-1 min-[380px]:px-1.5 py-0.5 bg-emerald-500 text-zenov-bg text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black uppercase shadow-xs leading-none">
               <Zap className="w-2 h-2 fill-zenov-bg shrink-0" />
               <span className="hidden sm:inline">Instant</span>
             </span>
-          )}
-          {product.isHot && (
-            <span className="inline-flex items-center gap-0.5 px-1 min-[380px]:px-1.5 py-0.5 rounded-sm sm:rounded bg-amber-500 text-black text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black uppercase shadow-xs leading-none">
-              <span>🔥</span>
-              <span className="hidden md:inline">Hot</span>
+          ) : product.isHot ? (
+            <span className="px-1 min-[380px]:px-1.5 py-0.5 bg-amber-500 text-black text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black uppercase shadow-xs leading-none">
+              🔥 Hot
             </span>
-          )}
-          {product.isNew && !product.isHot && (
-            <span className="inline-flex items-center px-1 min-[380px]:px-1.5 py-0.5 rounded-sm sm:rounded bg-blue-500 text-white text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black uppercase shadow-xs leading-none">
-              NEW
-            </span>
-          )}
+          ) : null}
         </div>
 
-        {/* Top Badges Right (Discount & Wishlist) */}
-        <div className="absolute top-1 right-1 min-[380px]:top-1.5 min-[380px]:right-1.5 flex items-center gap-1 z-10">
-          {(product.discountPercent || hasDiscount) && (
-            <span className="px-1 min-[380px]:px-1.5 py-0.5 rounded-sm sm:rounded bg-rose-500 text-white text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black leading-none shadow-xs">
-              -{product.discountPercent || Math.round((1 - minPrice / originalMin) * 100)}%
-            </span>
-          )}
+        {/* Wishlist Button (Top Right) */}
+        <div className="absolute top-1 right-1 min-[380px]:top-1.5 min-[380px]:right-1.5 z-10">
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setIsWishlisted((w) => !w);
             }}
-            className={`p-1 rounded-sm sm:rounded backdrop-blur-md border transition-all duration-200 ${
+            className={`p-1 backdrop-blur-md border transition-all duration-200 ${
               isWishlisted
                 ? 'bg-rose-500/20 border-rose-500/60 text-rose-500'
                 : 'bg-black/40 border-white/10 text-slate-400 hover:text-rose-400 hover:border-rose-400/50'
@@ -215,74 +207,52 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             />
           </button>
         </div>
-
-        {/* Rating Pill (Bottom Left of Image) */}
-        <div className="absolute bottom-1 left-1 min-[380px]:bottom-1.5 min-[380px]:left-1.5 z-10 flex items-center gap-0.5 bg-black/60 backdrop-blur-md px-1 min-[380px]:px-1.5 py-0.5 rounded-sm sm:rounded border border-white/10">
-          <Star className="w-2 h-2 min-[380px]:w-2.5 min-[380px]:h-2.5 text-amber-400 fill-amber-400" />
-          <span className="text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9.5px] font-bold text-slate-200 font-mono">
-            {product.rating}
-          </span>
-        </div>
       </Link>
 
-      {/* ── CARD BODY (Sleek & User Friendly) ── */}
-      <div className="p-1.5 min-[380px]:p-2 sm:p-3 flex-1 flex flex-col justify-between gap-1.5 sm:gap-2.5">
-        <div className="space-y-0.5 min-w-0">
-          <p className="text-[7px] min-[380px]:text-[8px] sm:text-[9px] uppercase tracking-wider text-zenov-text-muted font-bold truncate">
+      {/* ── CARD BODY (Minimal, Clean & Uncluttered) ── */}
+      <div className="p-1.5 min-[380px]:p-2 sm:p-2.5 flex-1 flex flex-col justify-between gap-1.5">
+        <div className="min-w-0">
+          <p className="text-[7.5px] sm:text-[8.5px] uppercase tracking-wider text-zenov-text-muted font-bold truncate">
             {product.publisher || product.category.replace(/-/g, ' ')}
           </p>
-          <Link href={`/top-up/${product.id}`} className="block group/title">
-            <h3 className="text-[10px] min-[380px]:text-[11.5px] sm:text-[13px] font-bold text-zenov-text group-hover/title:text-zenov-primary transition-colors line-clamp-1 leading-snug">
+          <Link href={`/top-up/${product.id}`} className="block group/title mt-0.5">
+            <h3 className="text-[10.5px] min-[380px]:text-[11.5px] sm:text-[13px] font-bold text-zenov-text group-hover/title:text-zenov-primary transition-colors line-clamp-1 leading-snug">
               {product.title}
             </h3>
           </Link>
         </div>
 
-        {/* Price Row & Action */}
-        <div className="space-y-1.5">
+        {/* Price & Clean Add to Cart CTA */}
+        <div className="space-y-1 pt-0.5">
           <div className="flex items-baseline justify-between gap-1">
-            <div className="min-w-0">
-              <span className="text-[6.5px] min-[380px]:text-[7.5px] sm:text-[8.5px] text-zenov-text-muted block uppercase font-medium leading-none mb-0.5">
-                Starts at
+            <span className="text-[11px] min-[380px]:text-xs sm:text-sm font-black text-zenov-text font-mono tracking-tight leading-tight">
+              {formatCurrency(minPrice, selectedCurrency)}
+            </span>
+            {hasDiscount && (
+              <span className="text-[8px] sm:text-[9.5px] text-zenov-text-muted line-through font-mono">
+                {formatCurrency(originalMin, selectedCurrency)}
               </span>
-              <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-[10px] min-[380px]:text-xs sm:text-sm font-black text-zenov-text font-mono tracking-tight leading-tight">
-                  {formatCurrency(minPrice, selectedCurrency)}
-                </span>
-                {hasDiscount && (
-                  <span className="hidden min-[400px]:inline text-[7.5px] sm:text-[9px] text-zenov-text-muted line-through font-mono">
-                    {formatCurrency(originalMin, selectedCurrency)}
-                  </span>
-                )}
-              </div>
-            </div>
-            <Link
-              href={`/top-up/${product.id}`}
-              className="p-1 rounded-md text-zenov-text-muted hover:text-zenov-primary hover:bg-zenov-primary-soft/50 transition-colors"
-              title="View Package Details"
-            >
-              <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </Link>
+            )}
           </div>
 
-          {/* Dedicated "Add to Cart" Button with Interactive Animation */}
+          {/* Clean, Full-Width Action Button */}
           <button
             onClick={handleAddToCartClick}
             disabled={!product.inStock}
-            className={`w-full py-1 min-[380px]:py-1.5 px-1 sm:px-2.5 rounded-lg text-[8px] min-[380px]:text-[9px] sm:text-[11px] font-extrabold uppercase tracking-wide inline-flex items-center justify-center gap-1 transition-all duration-200 active:scale-95 cursor-pointer shadow-xs ${
+            className={`w-full py-1.5 px-2 text-[8.5px] min-[380px]:text-[9.5px] sm:text-[10.5px] font-black uppercase tracking-wider inline-flex items-center justify-center gap-1 transition-all duration-200 active:scale-95 cursor-pointer shadow-xs ${
               isAdded
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-emerald-500/10'
-                : 'bg-zenov-primary hover:bg-zenov-primary-hover text-white shadow-zenov-primary/20 hover:shadow-md'
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                : 'bg-zenov-primary hover:bg-zenov-primary-hover text-white shadow-xs'
             }`}
           >
             {isAdded ? (
               <>
-                <Check className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-emerald-400 stroke-[3]" />
+                <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400 stroke-[3]" />
                 <span>Added ✓</span>
               </>
             ) : (
               <>
-                <ShoppingCart className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
+                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 <span>Add To Cart</span>
               </>
             )}

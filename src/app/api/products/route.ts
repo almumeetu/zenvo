@@ -23,17 +23,23 @@ export async function GET() {
       return NextResponse.json({ success: true, products: [] });
     }
 
-    const { data: products, error } = await supabaseAdmin
+    let { data: products, error } = await supabaseAdmin
       .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
 
     if (error) {
-      console.error('[API /products] Supabase query error:', error.message, error.details);
+      console.warn('[API /products] Supabase select error:', error.message);
       return NextResponse.json({ success: false, products: [], message: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, products: products ?? [] });
+    // Sort in JS if created_at or createdAt exists
+    const sortedProducts = (products ?? []).sort((a: any, b: any) => {
+      const timeA = new Date(a.createdAt || a.created_at || 0).getTime();
+      const timeB = new Date(b.createdAt || b.created_at || 0).getTime();
+      return timeB - timeA;
+    });
+
+    return NextResponse.json({ success: true, products: sortedProducts });
   } catch (error: any) {
     console.error('[API /products] Unexpected error:', error);
     return NextResponse.json({ success: false, products: [], message: error.message }, { status: 500 });

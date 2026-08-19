@@ -44,12 +44,15 @@
   --color-zenov-error-soft: rgba(239, 68, 68, 0.12);
   --color-zenov-error-border: rgba(239, 68, 68, 0.3);
 
-  /* Custom radii */
-  --radius-sm: 0.375rem; /* 6px */
-  --radius-md: 0.5rem;   /* 8px */
-  --radius-lg: 0.625rem; /* 10px */
-  --radius-xl: 0.875rem; /* 14px */
-  --radius-2xl: 1rem;    /* 16px */
+  /* Custom radii — 3px Refined Edges */
+  --radius-xs: 3px;
+  --radius-sm: 3px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 3px;
+  --radius-3xl: 3px;
+  --radius-full: 3px;
 
   /* Custom shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
@@ -62,9 +65,10 @@
   --shadow-glow-amber: 0 0 30px rgba(245, 158, 11, 0.2);
 }
 
-* {
+*, *::before, *::after {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  border-radius: 3px !important;
 }
 
 html {
@@ -95,7 +99,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-zenov-border-hover);
-  border-radius: 9999px;
+  border-radius: 3px !important;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-zenov-primary);

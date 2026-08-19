@@ -768,8 +768,8 @@ export default function TopUpPage() {
           </div>
         </div>
 
-        {/* LEFT: Product detail — below checkout on mobile */}
-        <div className="lg:col-span-3 lg:order-1 space-y-4 sm:space-y-6">
+        {/* LEFT: Product detail — hidden on mobile to keep checkout clean & focused */}
+        <div className="hidden lg:block lg:col-span-3 lg:order-1 space-y-4 sm:space-y-6">
           <Link
             href="/shop"
             className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-zenov-text-secondary hover:text-zenov-primary transition-colors"
