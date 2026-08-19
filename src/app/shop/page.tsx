@@ -200,14 +200,14 @@ function ShopContent() {
 
       {/* Results */}
       {productsLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="rounded-xl overflow-hidden bg-zenov-card border border-zenov-border animate-pulse">
-              <div className="aspect-square bg-zenov-surface/60" />
-              <div className="p-2 sm:p-3 space-y-2">
-                <div className="h-3 bg-zenov-surface rounded-md w-3/4" />
-                <div className="h-2.5 bg-zenov-surface/60 rounded-md w-1/2" />
-                <div className="h-7 bg-zenov-surface/40 rounded-lg mt-1" />
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 min-[380px]:gap-2 sm:gap-4">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="rounded-xl sm:rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border/60 animate-pulse">
+              <div className="aspect-square bg-zenov-surface/70" />
+              <div className="p-1.5 min-[380px]:p-2 sm:p-3 space-y-1.5">
+                <div className="h-2.5 bg-zenov-surface rounded w-2/3" />
+                <div className="h-3 bg-zenov-surface rounded w-4/5" />
+                <div className="h-6 sm:h-7 bg-zenov-surface/60 rounded-lg mt-2" />
               </div>
             </div>
           ))}
@@ -238,7 +238,7 @@ function ShopContent() {
         <div
           className={
             viewMode === 'grid'
-              ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4'
+              ? 'grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 min-[380px]:gap-2 sm:gap-4'
               : 'flex flex-col gap-3'
           }
         >
