@@ -67,7 +67,14 @@ export default function WalletPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+    <div className="relative flex flex-col overflow-hidden bg-zenov-bg">
+      {/* ── CRISP HIGH-DPI DEEP GAMING BACKGROUND (ZERO BANDING, CRYSTAL CLEAR) ── */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(6,182,212,0.08),transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[600px] -right-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(245,158,11,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[1400px] -left-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(139,92,246,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-60" />
+
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
       <div className="flex items-center gap-2 text-xs text-zenov-text-muted mb-6 flex-wrap">
         <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
         <ChevronRight className="w-3 h-3" />
@@ -359,6 +366,7 @@ export default function WalletPage() {
             </Link>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

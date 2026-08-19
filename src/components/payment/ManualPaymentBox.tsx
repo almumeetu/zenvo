@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { PAYMENT_ACCOUNTS } from '@/data/paymentSettings';
-import { Copy, Check, Info, ShieldCheck, MessageCircle, Phone } from 'lucide-react';
+import { Copy, Check, Info, ShieldCheck, MessageCircle, ChevronDown } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
 import { CurrencyCode } from '@/types';
 import { PaymentLogo } from './PaymentLogos';
@@ -20,33 +20,33 @@ interface ManualPaymentBoxProps {
 const BRAND_ACCENTS: Record<string, { border: string; bg: string; text: string; ring: string }> = {
   bKash: {
     border: 'border-pink-500/40',
-    bg: 'from-pink-500/10 via-zenov-card to-zenov-bg',
+    bg: 'from-pink-500/10 via-slate-900 to-slate-950',
     text: 'text-pink-400',
-    ring: 'focus:ring-pink-500/40 focus:border-pink-500',
+    ring: 'focus:ring-pink-500/30 focus:border-pink-500',
   },
   Nagad: {
     border: 'border-orange-500/40',
-    bg: 'from-orange-500/10 via-zenov-card to-zenov-bg',
+    bg: 'from-orange-500/10 via-slate-900 to-slate-950',
     text: 'text-orange-400',
-    ring: 'focus:ring-orange-500/40 focus:border-orange-500',
+    ring: 'focus:ring-orange-500/30 focus:border-orange-500',
   },
   Rocket: {
     border: 'border-purple-500/40',
-    bg: 'from-purple-500/10 via-zenov-card to-zenov-bg',
+    bg: 'from-purple-500/10 via-slate-900 to-slate-950',
     text: 'text-purple-400',
-    ring: 'focus:ring-purple-500/40 focus:border-purple-500',
+    ring: 'focus:ring-purple-500/30 focus:border-purple-500',
   },
   'Bank Transfer': {
     border: 'border-blue-500/40',
-    bg: 'from-blue-500/10 via-zenov-card to-zenov-bg',
+    bg: 'from-blue-500/10 via-slate-900 to-slate-950',
     text: 'text-blue-400',
-    ring: 'focus:ring-blue-500/40 focus:border-blue-500',
+    ring: 'focus:ring-blue-500/30 focus:border-blue-500',
   },
   'Crypto/USDT': {
     border: 'border-emerald-500/40',
-    bg: 'from-emerald-500/10 via-zenov-card to-zenov-bg',
+    bg: 'from-emerald-500/10 via-slate-900 to-slate-950',
     text: 'text-emerald-400',
-    ring: 'focus:ring-emerald-500/40 focus:border-emerald-500',
+    ring: 'focus:ring-emerald-500/30 focus:border-emerald-500',
   },
 };
 
@@ -60,6 +60,7 @@ export default function ManualPaymentBox({
   setTrxId,
 }: ManualPaymentBoxProps) {
   const [copied, setCopied] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const account = PAYMENT_ACCOUNTS[paymentMethod] || PAYMENT_ACCOUNTS['bKash'];
   const brand = BRAND_ACCENTS[paymentMethod] || BRAND_ACCENTS['bKash'];
 
@@ -74,50 +75,53 @@ export default function ManualPaymentBox({
     : null;
 
   return (
-    <div className={`rounded-2xl bg-gradient-to-b ${brand.bg} border ${brand.border} p-4 sm:p-5 space-y-4 shadow-xl transition-all`}>
-      {/* Account Info Header */}
-      <div className="flex items-center justify-between border-b border-zenov-border/60 pb-3.5">
-        <div className="flex items-center gap-3">
-          <PaymentLogo method={paymentMethod} className="w-10 h-10 rounded-xl shadow-md shrink-0" />
-          <div>
-            <h4 className="text-xs sm:text-sm font-black text-zenov-text tracking-wide flex items-center gap-2">
-              {account.name} <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${brand.text} bg-zenov-surface border border-zenov-border`}>{account.type}</span>
+    <div className={`rounded-xl sm:rounded-2xl bg-gradient-to-b ${brand.bg} border ${brand.border} p-3 sm:p-4 space-y-3 shadow-lg transition-all`}>
+      {/* Account Info Header (Compact) */}
+      <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <PaymentLogo method={paymentMethod} className="w-8 h-8 rounded-lg shadow-sm shrink-0" />
+          <div className="min-w-0">
+            <h4 className="text-xs sm:text-sm font-black text-white truncate flex items-center gap-1.5">
+              <span>{account.name}</span>
+              <span className={`text-[9px] px-1.5 py-0.2 rounded font-extrabold uppercase ${brand.text} bg-slate-900/80 border border-white/10`}>
+                {account.type}
+              </span>
             </h4>
-            <p className="text-[10px] text-zenov-text-muted">Manual payment & transaction verification</p>
+            <p className="text-[9.5px] text-slate-400 truncate">Manual Send Money</p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-[10px] uppercase font-bold text-zenov-text-muted">Total Payable</p>
-          <p className="text-base sm:text-lg font-black font-mono text-zenov-accent">
+        <div className="text-right shrink-0">
+          <p className="text-[9px] uppercase font-bold text-slate-400">Total Payable</p>
+          <p className="text-sm sm:text-base font-black font-mono text-amber-400 leading-tight">
             {formatCurrency(totalAmountUSD, selectedCurrency)}
           </p>
         </div>
       </div>
 
-      {/* Copyable Number Card */}
-      <div className="p-3.5 sm:p-4 rounded-xl bg-zenov-surface/90 border border-zenov-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-inner">
+      {/* Copyable Number Card (Compact) */}
+      <div className="p-2.5 sm:p-3 rounded-xl bg-slate-950/80 border border-white/10 flex items-center justify-between gap-2 shadow-inner">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted">
-            Send Payment to this Number / Account:
+          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+            Send Payment to:
           </p>
-          <p className="text-sm sm:text-base font-mono font-black text-zenov-text tracking-wider mt-0.5 select-all">
+          <p className="text-xs sm:text-sm font-mono font-black text-white tracking-wider truncate select-all">
             {account.number}
           </p>
         </div>
-        <div className="flex gap-2 shrink-0 w-full sm:w-auto">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={() => copyToClipboard(account.number)}
-            className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md"
+            className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-white" />
-                <span>Copied!</span>
+                <Check className="w-3.5 h-3.5 text-white" />
+                <span>Copied</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4" />
+                <Copy className="w-3.5 h-3.5" />
                 <span>Copy</span>
               </>
             )}
@@ -127,27 +131,45 @@ export default function ManualPaymentBox({
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-green-500 hover:bg-green-600 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md"
+              className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 shadow-xs"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-3.5 h-3.5" />
               <span>Help</span>
             </a>
           )}
         </div>
       </div>
 
-      {/* Instruction Note */}
-      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-300 leading-relaxed flex items-start gap-2.5">
-        <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-        <p className="text-[11px] sm:text-xs">
-          {account.instruction}
-        </p>
+      {/* Collapsible Instruction Accordion (Silky Smooth CSS Grid) */}
+      <div className="rounded-lg border border-white/5 bg-slate-950/50 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowInstructions(!showInstructions)}
+          className="w-full px-3 py-2 flex items-center justify-between text-[10.5px] font-bold text-amber-300/90 hover:text-amber-300 transition-colors cursor-pointer"
+        >
+          <span className="flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5 text-amber-400" />
+            <span>পেমেন্ট নির্দেশিকা (Payment Steps)</span>
+          </span>
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${showInstructions ? 'rotate-180 text-amber-400' : ''}`} />
+        </button>
+        <div
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+            showInstructions ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="p-2.5 pt-1 text-[10.5px] sm:text-xs text-amber-200/80 leading-relaxed border-t border-white/5">
+              {account.instruction}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Inputs: Sender Number + TrxID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+      {/* Inputs: Sender Number + TrxID (Compact side-by-side) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
+          <label className="text-[9.5px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
             Sender Number / Account *
           </label>
           <input
@@ -156,11 +178,11 @@ export default function ManualPaymentBox({
             onChange={(e) => setSenderNumber(e.target.value)}
             required
             placeholder="e.g. 017XXXXXXXX"
-            className={`w-full px-3.5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border ${brand.ring} outline-none text-xs sm:text-sm font-mono transition-all`}
+            className={`w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 ${brand.ring} outline-none text-xs font-mono text-white transition-all`}
           />
         </div>
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
+          <label className="text-[9.5px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
             Transaction ID (TrxID) *
           </label>
           <input
@@ -169,14 +191,14 @@ export default function ManualPaymentBox({
             onChange={(e) => setTrxId(e.target.value.toUpperCase())}
             required
             placeholder="e.g. 9K7J4L8N2P"
-            className={`w-full px-3.5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border ${brand.ring} outline-none text-xs sm:text-sm font-mono uppercase tracking-wider transition-all`}
+            className={`w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 ${brand.ring} outline-none text-xs font-mono uppercase tracking-wider text-white transition-all`}
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[10px] text-zenov-text-muted pt-1">
-        <ShieldCheck className="w-3.5 h-3.5 text-zenov-success" />
-        <span>After submitting TrxID, our admin team will instantly verify and process your order.</span>
+      <div className="flex items-center gap-1 text-[9.5px] text-slate-400 pt-0.5">
+        <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" />
+        <span>TrxID সাবমিট করার পর স্বয়ংক্রিয়ভাবে ভেরিফাই হয়ে ডেলিভারি সম্পন্ন হবে।</span>
       </div>
     </div>
   );

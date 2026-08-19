@@ -62,26 +62,12 @@ export default function HomePage() {
 
   return (
     <div className="relative flex flex-col overflow-hidden bg-zenov-bg">
-      {/* ── VIBRANT MULTI-COLOR GAMING LIGHTING BACKGROUND SYSTEM (LOGO-STYLE SPECTRUM) ── */}
-      {/* Aurora 1: Electric Cyan & Sky Blue (Hero Top-Left Aura) */}
-      <div className="absolute -top-10 left-1/4 -translate-x-1/2 w-[700px] h-[480px] bg-gradient-to-tr from-cyan-500/25 via-blue-600/20 to-transparent blur-[120px] pointer-events-none rounded-full animate-aurora-slow" />
-
-      {/* Aurora 2: Warm Amber & Gold Neon Glow (Highlights & Trending Mid-Right) */}
-      <div className="absolute top-[480px] -right-20 w-[600px] h-[520px] bg-gradient-to-bl from-amber-500/20 via-orange-500/15 to-transparent blur-[130px] pointer-events-none rounded-full animate-pulse" />
-
-      {/* Aurora 3: Cyber Violet & Magenta Pulse (Middle Sections Mid-Left) */}
-      <div className="absolute top-[1100px] -left-28 w-[650px] h-[550px] bg-gradient-to-tr from-purple-600/20 via-pink-600/15 to-transparent blur-[140px] pointer-events-none rounded-full" />
-
-      {/* Aurora 4: Electric Cyan & Emerald Radiance (Why Choose Us & Blog Bottom Area) */}
-      <div className="absolute top-[1800px] right-1/4 w-[700px] h-[500px] bg-gradient-to-tl from-cyan-400/20 via-emerald-500/15 to-transparent blur-[140px] pointer-events-none rounded-full" />
-
-      {/* Aurora 5: Deep Electric Blue Gaming Floor */}
-      <div className="absolute bottom-10 left-1/3 w-[600px] h-[400px] bg-gradient-to-t from-blue-600/15 via-indigo-600/10 to-transparent blur-[130px] pointer-events-none rounded-full" />
-
-      {/* High-Tech Cyber Tech Grid Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:44px_44px] pointer-events-none" />
-      {/* Subtle Micro Hex Mesh */}
-      <div className="absolute inset-0 cyber-grid-mesh opacity-40 pointer-events-none" />
+      {/* ── CRISP HIGH-DPI DEEP GAMING BACKGROUND (ZERO BANDING, CRYSTAL CLEAR) ── */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(6,182,212,0.08),transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[600px] -right-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(245,158,11,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[1400px] -left-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(139,92,246,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute bottom-20 right-1/4 w-[700px] h-[600px] bg-[radial-gradient(circle,rgba(16,185,129,0.04)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-60" />
 
       {/* HERO */}
       <section className="relative z-10">
@@ -92,7 +78,7 @@ export default function HomePage() {
         />
       </section>
 
-      {/* LIVE MARQUEE WITH NEON GRADIENT ACCENT */}
+      {/* LIVE MARQUEE WITH NEON ACCENT */}
       <section className="relative z-10 border-y border-cyan-500/20 bg-gradient-to-r from-blue-950/40 via-zenov-surface/70 to-amber-950/30 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.08)]">
         <NewArrivalMarquee />
       </section>
@@ -121,20 +107,8 @@ export default function HomePage() {
         <WhyChooseUs />
       </section>
 
-      {/* PROMOTIONS BLOG */}
-      <section id="promotions-blog" className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-        <div ref={blogHeaderRef} className="flex flex-col mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[11px] font-black uppercase tracking-[0.18em] w-fit mb-3 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            Official Guides
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-zenov-text tracking-tight uppercase">
-            Gaming Guides & Reviews
-          </h2>
-          <p className="text-sm text-zenov-text-secondary mt-2">
-            Read expert redeem guides, game reviews, and wallet balance tips
-          </p>
-        </div>
+      {/* PROMOTIONS & GUIDES */}
+      <section id="promotions-blog" className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-14">
         <PromotionsBlog articles={blogArticles.slice(0, 3)} />
       </section>
     </div>

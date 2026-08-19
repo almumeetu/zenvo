@@ -333,21 +333,6 @@ export const Footer: React.FC = () => {
                 </form>
               )}
               <p className="text-[10px] text-slate-500">No spam. Unsubscribe anytime.</p>
-
-              {/* Trust Badges grid */}
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { value: '100%', label: 'Genuine Codes' },
-                  { value: 'Instant', label: 'Auto Delivery' },
-                  { value: 'Secure', label: 'bKash / Nagad' },
-                  { value: '24/7', label: 'Live Support' },
-                ].map(({ value, label }) => (
-                  <div key={label} className="p-2.5 rounded-xl bg-slate-900/80 border border-cyan-500/20 text-center shadow-xs">
-                    <p className="text-xs sm:text-sm font-black text-cyan-400 font-mono leading-tight">{value}</p>
-                    <p className="text-[8.5px] sm:text-[9px] text-slate-400 uppercase tracking-wide font-bold leading-tight mt-0.5">{label}</p>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
 

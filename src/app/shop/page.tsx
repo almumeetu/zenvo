@@ -8,7 +8,7 @@ import { CategoryFilter } from '@/components/CategoryFilter';
 import { ProductCard } from '@/components/ProductCard';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Search, SlidersHorizontal, X, LayoutGrid, List, SortAsc } from 'lucide-react';
+import { Search, SlidersHorizontal, X, LayoutGrid, List, SortAsc, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 import { CategoryType } from '@/types';
 
@@ -70,239 +70,255 @@ function ShopContent() {
   const cat = currentCat === 'all' ? 'All Products' : currentCat.charAt(0).toUpperCase() + currentCat.slice(1).replace('-', ' ');
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-zenov-text-muted mb-5 flex-wrap">
-        <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
-        <span>/</span>
-        <Link href="/shop" className="hover:text-zenov-primary transition-colors">Shop</Link>
-        {catParam !== 'all' && (
-          <>
-            <span>/</span>
-            <span className="text-zenov-text font-semibold">{cat}</span>
-          </>
-        )}
-      </div>
+    <div className="relative flex flex-col overflow-hidden bg-zenov-bg">
+      {/* ── CRISP HIGH-DPI DEEP GAMING BACKGROUND (ZERO BANDING, CRYSTAL CLEAR) ── */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(6,182,212,0.08),transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[600px] -right-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(245,158,11,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[1400px] -left-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(139,92,246,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-60" />
 
-      {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-black text-zenov-text tracking-tight">
-            {cat}
-          </h1>
-          <p className="text-zenov-text-secondary mt-2 text-sm">
-            {filtered.length} result{filtered.length !== 1 ? 's' : ''} • Sub-30s instant delivery on eligible products
-          </p>
-        </div>
-      </div>
-
-      {/* Toolbar: search, sort, view */}
-      <div className="mt-6 mb-4 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-        <div className="relative lg:max-w-sm w-full">
-          <Search className="w-4 h-4 text-zenov-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products in results..."
-            className="w-full pl-10 pr-9 py-2.5 rounded-lg bg-zenov-card border border-zenov-border focus:border-zenov-primary-border focus:ring-2 focus:ring-zenov-primary-border/40 outline-none transition-all text-sm text-zenov-text placeholder:text-zenov-text-muted"
-          />
-          {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zenov-text-muted hover:text-zenov-text"
-              aria-label="Clear"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-xs text-zenov-text-muted mb-5 flex-wrap">
+          <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
+          <span>/</span>
+          <Link href="/shop" className="hover:text-zenov-primary transition-colors">Shop</Link>
+          {catParam !== 'all' && (
+            <>
+              <span>/</span>
+              <span className="text-zenov-text font-semibold">{cat}</span>
+            </>
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-zenov-surface border border-zenov-border">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-zenov-primary-soft text-zenov-primary' : 'text-zenov-text-secondary hover:text-zenov-text'}`}
-              aria-label="Grid view"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-zenov-primary-soft text-zenov-primary' : 'text-zenov-text-secondary hover:text-zenov-text'}`}
-              aria-label="List view"
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-zenov-surface border border-zenov-border">
-            <SortAsc className="w-4 h-4 text-zenov-text-muted" />
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-              className="bg-transparent text-sm text-zenov-text outline-none cursor-pointer"
-            >
-              <option value="featured">Featured</option>
-              <option value="price-asc">Price: Low → High</option>
-              <option value="price-desc">Price: High → Low</option>
-              <option value="rating">Top Rated</option>
-              <option value="newest">Newest First</option>
-            </select>
+        {/* Page Title */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-black text-zenov-text tracking-tight">
+              {cat}
+            </h1>
+            <p className="text-zenov-text-secondary mt-2 text-sm">
+              {filtered.length} result{filtered.length !== 1 ? 's' : ''} • Sub-30s instant delivery on eligible products
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Filters bar */}
-      <div className="mb-8 flex flex-col sm:flex-row gap-4 sm:items-center p-4 rounded-2xl bg-zenov-surface/50 border border-zenov-border">
-        <div className="flex items-center gap-2 text-sm font-semibold text-zenov-text">
-          <SlidersHorizontal className="w-4 h-4 text-zenov-primary" />
-          <span>Filters</span>
-        </div>
-        <div className="flex-1 flex flex-col sm:flex-row gap-4 sm:items-center">
-          <div className="flex-1 min-w-[200px]">
-            <label className="text-[11px] uppercase tracking-wider font-bold text-zenov-text-muted mb-1.5 block">
-              Max Price: ${maxPrice}
-            </label>
+        {/* Toolbar: search, sort, view */}
+        <div className="mt-6 mb-4 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+          <div className="relative lg:max-w-sm w-full">
+            <Search className="w-4 h-4 text-zenov-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
-              type="range"
-              min={1}
-              max={500}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full accent-zenov-primary"
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search products in results..."
+              className="w-full pl-10 pr-9 py-2.5 rounded-lg bg-zenov-card border border-zenov-border focus:border-zenov-primary-border focus:ring-2 focus:ring-zenov-primary-border/40 outline-none transition-all text-sm text-zenov-text placeholder:text-zenov-text-muted"
             />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zenov-text-muted hover:text-zenov-text"
+                aria-label="Clear"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
-          <label className="inline-flex items-center gap-2 text-sm text-zenov-text-secondary cursor-pointer select-none sm:ml-4">
-            <input
-              type="checkbox"
-              checked={instantOnly}
-              onChange={(e) => setInstantOnly(e.target.checked)}
-              className="accent-zenov-primary w-4 h-4"
-            />
-            <span>Instant Delivery Only</span>
-          </label>
-          {(query || catParam !== 'all' || maxPrice !== 200 || instantOnly) && (
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-zenov-card border border-zenov-border text-xs text-zenov-text-secondary">
+              <SortAsc className="w-3.5 h-3.5 text-zenov-primary" />
+              <span>Sort:</span>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                aria-label="Sort products by"
+                className="bg-transparent text-zenov-text font-semibold outline-none cursor-pointer"
+              >
+                <option value="featured" className="bg-zenov-card text-zenov-text">Featured</option>
+                <option value="price-asc" className="bg-zenov-card text-zenov-text">Price: Low to High</option>
+                <option value="price-desc" className="bg-zenov-card text-zenov-text">Price: High to Low</option>
+                <option value="rating" className="bg-zenov-card text-zenov-text">Top Rated</option>
+                <option value="newest" className="bg-zenov-card text-zenov-text">New Arrivals</option>
+              </select>
+            </div>
+
+            <div className="flex items-center rounded-lg bg-zenov-card border border-zenov-border p-0.5">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md text-xs font-bold transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-zenov-primary text-white shadow-xs'
+                    : 'text-zenov-text-muted hover:text-zenov-text'
+                }`}
+                title="Grid view"
+                aria-label="Grid view"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md text-xs font-bold transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-zenov-primary text-white shadow-xs'
+                    : 'text-zenov-text-muted hover:text-zenov-text'
+                }`}
+                title="List view"
+                aria-label="List view"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Pills Bar */}
+        <div className="mb-6">
+          <CategoryFilter
+            selectedCategory={currentCat}
+            onSelectCategory={(id) => setSelectedCategory(id)}
+          />
+        </div>
+
+        {/* Active Filters Row */}
+        {(query || instantOnly || maxPrice < 200 || currentCat !== 'all') && (
+          <div className="mb-6 flex items-center gap-2 flex-wrap text-xs">
+            <span className="text-zenov-text-muted font-mono uppercase text-[10px]">Active Filters:</span>
+            {currentCat !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zenov-primary-soft text-zenov-primary border border-zenov-primary-border font-bold">
+                {cat}
+                <button onClick={() => setSelectedCategory('all')} className="hover:opacity-75"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {query && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zenov-surface text-zenov-text border border-zenov-border font-mono">
+                &ldquo;{query}&rdquo;
+                <button onClick={() => setQuery('')} className="hover:opacity-75"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {instantOnly && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zenov-success-soft text-zenov-success border border-zenov-success/30 font-bold">
+                Instant Only
+                <button onClick={() => setInstantOnly(false)} className="hover:opacity-75"><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {maxPrice < 200 && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zenov-accent-soft text-zenov-accent border border-zenov-accent-border font-mono">
+                &le; ${maxPrice}
+                <button onClick={() => setMaxPrice(200)} className="hover:opacity-75"><X className="w-3 h-3" /></button>
+              </span>
+            )}
             <button
               onClick={() => {
                 setQuery('');
-                setMaxPrice(200);
-                setInstantOnly(false);
                 setSelectedCategory('all');
+                setInstantOnly(false);
+                setMaxPrice(200);
               }}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-zenov-card border border-zenov-border text-zenov-text-secondary hover:text-zenov-error hover:border-zenov-error/40 transition-colors"
+              className="text-zenov-accent hover:underline font-bold text-xs ml-2"
             >
-              <X className="w-3 h-3" /> Reset Filters
+              Reset All
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* Results */}
-      {productsLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 min-[380px]:gap-2 sm:gap-4">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="rounded-xl sm:rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border/60 animate-pulse">
-              <div className="aspect-square bg-zenov-surface/70" />
-              <div className="p-1.5 min-[380px]:p-2 sm:p-3 space-y-1.5">
-                <div className="h-2.5 bg-zenov-surface rounded w-2/3" />
-                <div className="h-3 bg-zenov-surface rounded w-4/5" />
-                <div className="h-6 sm:h-7 bg-zenov-surface/60 rounded-lg mt-2" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="py-24 text-center">
-          <div className="w-20 h-20 rounded-2xl bg-zenov-surface border border-zenov-border flex items-center justify-center mx-auto mb-5">
-            <Search className="w-8 h-8 text-zenov-text-muted" />
           </div>
-          <h3 className="text-xl font-bold text-zenov-text mb-2">No products found</h3>
-          <p className="text-zenov-text-secondary mb-6 text-sm max-w-md mx-auto">
-            Try adjusting your filters or search for a different product category.
-          </p>
-          <Link
-            href="/shop"
-            onClick={() => {
-              setQuery('');
-              setMaxPrice(200);
-              setInstantOnly(false);
-              setSelectedCategory('all');
-            }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-zenov-primary hover:bg-zenov-primary-hover text-white font-semibold text-sm transition-colors shadow-primary"
-          >
-            Reset & Browse All
-          </Link>
-        </div>
-      ) : (
-        <div
-          className={
-            viewMode === 'grid'
-              ? 'grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 min-[380px]:gap-2 sm:gap-4'
-              : 'flex flex-col gap-3'
-          }
-        >
-          {filtered.map((p, i) => (
-            viewMode === 'grid' ? (
+        )}
+
+        {/* RESULTS GRID / LIST */}
+        {productsLoading ? (
+          <div className="grid grid-cols-2 min-[540px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="aspect-[3/4] rounded-2xl bg-zenov-card animate-pulse border border-zenov-border/60" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-20 text-center rounded-3xl bg-zenov-card border border-zenov-border p-8 max-w-lg mx-auto">
+            <div className="w-16 h-16 rounded-2xl bg-zenov-surface border border-zenov-border flex items-center justify-center mx-auto mb-4 text-zenov-text-muted">
+              <Search className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-black text-zenov-text mb-2">No matching products found</h3>
+            <p className="text-sm text-zenov-text-secondary mb-6">
+              We couldn&apos;t find anything matching your filters. Try adjusting your query or resetting all filters.
+            </p>
+            <button
+              onClick={() => {
+                setQuery('');
+                setSelectedCategory('all');
+                setInstantOnly(false);
+                setMaxPrice(200);
+              }}
+              className="px-5 py-2.5 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-primary cursor-pointer"
+            >
+              Reset All Filters
+            </button>
+          </div>
+        ) : viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 min-[540px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-4">
+            {filtered.map((product, idx) => (
               <ProductCard
-                key={p.id}
-                product={p}
+                key={product.id}
+                product={product}
                 selectedCurrency={selectedCurrency}
-                index={i}
+                index={idx}
               />
-            ) : (
-              <Link
-                key={p.id}
-                href={`/top-up/${p.id}`}
-                className="group p-3 sm:p-4 rounded-2xl bg-zenov-card border border-zenov-border hover:border-zenov-primary-border flex flex-col sm:flex-row gap-4 transition-all active:scale-[0.995]"
-              >
-                <div className="relative w-full sm:w-32 h-40 sm:h-32 aspect-square sm:aspect-auto rounded-xl overflow-hidden bg-zenov-surface shrink-0">
-                  <img
-                    src={p.image}
-                    alt={p.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-4">
+            ))}
+          </div>
+        ) : (
+          /* List Mode */
+          <div className="flex flex-col gap-3">
+            {filtered.map((p) => (
+              (
+                <Link
+                  key={p.id}
+                  href={`/top-up/${p.id}`}
+                  className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-zenov-card border border-zenov-border hover:border-zenov-primary-border transition-all duration-300 hover:shadow-lg hover:shadow-zenov-primary/5"
+                >
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-900 shrink-0 relative">
+                    <img
+                      src={p.image}
+                      alt={p.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] uppercase tracking-wider text-zenov-text-muted font-semibold">
-                      {p.publisher || p.category.replace('-', ' ')}
-                    </p>
-                    <h3 className="text-base font-bold text-zenov-text group-hover:text-zenov-primary transition-colors line-clamp-1 mt-0.5">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="text-[10px] font-mono font-bold uppercase text-zenov-accent">
+                        {p.publisher || p.category}
+                      </span>
+                      {p.isHot && (
+                        <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-zenov-danger-soft text-zenov-danger border border-zenov-danger/30">
+                          HOT
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-base font-black text-zenov-text group-hover:text-zenov-primary transition-colors">
                       {p.title}
                     </h3>
-                    <p className="text-sm text-zenov-text-secondary line-clamp-2 mt-1.5">
+                    <p className="text-xs text-zenov-text-secondary line-clamp-2 mt-1">
                       {p.description}
                     </p>
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {p.tags.slice(0, 4).map((t) => (
-                        <span key={t} className="px-2 py-0.5 rounded-md bg-zenov-surface text-[10px] font-semibold text-zenov-text-secondary border border-zenov-border">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
                   </div>
-                  <div className="text-right sm:min-w-[160px]">
-                    <div className="flex items-baseline justify-end gap-1.5">
-                      <span className="text-xl font-black font-mono text-zenov-text">
-                        ${p.denominations[0]?.amount || 0}
+                  <div className="sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-zenov-border/60 flex sm:flex-col justify-between sm:justify-end items-center sm:items-end gap-1">
+                    <div>
+                      <span className="text-[10px] text-zenov-text-muted block">Starting from</span>
+                      <span className="text-base font-black font-mono text-zenov-text">
+                        ${p.denominations[0]?.amount.toFixed(2)}
                       </span>
                     </div>
                     <div className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-zenov-success-soft/60 text-zenov-success text-[10px] font-bold border border-zenov-success/20">
                       {p.deliveryType}
                     </div>
                     <div className="mt-3">
-                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-zenov-primary hover:bg-zenov-primary-hover text-white text-xs font-bold uppercase shadow-sm">
+                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs font-bold uppercase shadow-sm">
+                        <ShoppingBag className="w-3.5 h-3.5" />
                         Top Up Now
                       </span>
                     </div>
                   </div>
-                </div>
-              </Link>
-            )
-          ))}
-        </div>
-      )}
+                </Link>
+              )
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

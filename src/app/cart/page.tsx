@@ -102,15 +102,22 @@ export default function CartPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-zenov-text-muted mb-4 sm:mb-6 flex-wrap">
-        <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
-        <ChevronRight className="w-3 h-3" />
-        <Link href="/shop" className="hover:text-zenov-primary transition-colors">Shop</Link>
-        <ChevronRight className="w-3 h-3" />
-        <span className="text-zenov-text font-semibold">Shopping Cart ({totalItemsCount})</span>
-      </div>
+    <div className="relative flex flex-col overflow-hidden bg-zenov-bg">
+      {/* ── CRISP HIGH-DPI DEEP GAMING BACKGROUND (ZERO BANDING, CRYSTAL CLEAR) ── */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(6,182,212,0.08),transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[600px] -right-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(245,158,11,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[1400px] -left-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(139,92,246,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-60" />
+
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-zenov-text-muted mb-4 sm:mb-6 flex-wrap">
+          <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
+          <ChevronRight className="w-3 h-3" />
+          <Link href="/shop" className="hover:text-zenov-primary transition-colors">Shop</Link>
+          <ChevronRight className="w-3 h-3" />
+          <span className="text-zenov-text font-semibold">Shopping Cart ({totalItemsCount})</span>
+        </div>
 
       {/* Cart Header */}
       <div className="flex items-center justify-between gap-3 mb-5 sm:mb-8 pb-4 border-b border-zenov-border/60">
@@ -135,7 +142,7 @@ export default function CartPage() {
           href="/shop"
           className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zenov-surface hover:bg-zenov-card border border-zenov-border hover:border-zenov-primary-border text-xs font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all shadow-xs"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Continue Shopping
+          <ShoppingBag className="w-3.5 h-3.5 text-cyan-400" /> Continue Shopping
         </Link>
       </div>
 
@@ -310,9 +317,9 @@ export default function CartPage() {
               <div className="px-4 py-3 bg-zenov-surface/50 border-t border-zenov-border flex items-center justify-between text-xs">
                 <Link
                   href="/shop"
-                  className="inline-flex items-center gap-1 font-bold text-zenov-text-secondary hover:text-zenov-primary transition-colors"
+                  className="inline-flex items-center gap-1.5 font-bold text-zenov-text-secondary hover:text-zenov-primary transition-colors"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Continue Shopping
+                  <ShoppingBag className="w-3.5 h-3.5 text-cyan-400" /> Continue Shopping
                 </Link>
                 <button
                   onClick={() => clearCart()}
@@ -491,7 +498,7 @@ export default function CartPage() {
                       <>Processing <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /></>
                     ) : (
                       <>
-                        <Lock className="w-4 h-4" /> Confirm & Place Order
+                        <ShoppingBag className="w-4 h-4" /> Confirm &amp; Place Order
                       </>
                     )}
                   </button>
@@ -524,6 +531,7 @@ export default function CartPage() {
 
         </div>
       )}
+      </div>
     </div>
   );
 }

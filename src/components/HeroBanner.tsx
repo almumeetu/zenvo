@@ -90,19 +90,19 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
     gsap.to(imageRef.current, { x: 0, y: 0, duration: 1.2, ease: 'elastic.out(1, 0.5)' });
   };
 
-  // Auto-slide with progress bar
+  // Auto-slide with progress bar (8s duration for relaxed viewing)
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (progressRef.current) {
       gsap.fromTo(
         progressRef.current,
         { scaleX: 0 },
-        { scaleX: 1, duration: 7, ease: 'none', overwrite: true }
+        { scaleX: 1, duration: 8, ease: 'none', overwrite: true }
       );
     }
     timerRef.current = setInterval(() => {
       setCurrentIndex((p) => (p + 1) % banners.length);
-    }, 7000);
+    }, 8000);
   }, [banners.length]);
 
   useEffect(() => {
@@ -137,14 +137,14 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         ref={bannerRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative h-[185px] sm:h-auto sm:min-h-[330px] lg:min-h-[410px] rounded-2xl overflow-hidden bg-slate-950/90 border border-cyan-500/30 hover:border-cyan-400/60 transition-all duration-500 group shadow-2xl shadow-cyan-950/30 hover:shadow-[0_0_35px_rgba(6,182,212,0.2)]"
+        className="relative h-[200px] sm:h-[340px] lg:h-[410px] rounded-2xl overflow-hidden bg-slate-950/90 border border-cyan-500/30 hover:border-cyan-400/60 transition-all duration-500 group shadow-2xl shadow-cyan-950/30 hover:shadow-[0_0_35px_rgba(6,182,212,0.2)] flex flex-col justify-center"
       >
         {/* Conic neon laser edge trace */}
         <div className="absolute inset-0 rounded-2xl pointer-events-none overflow-hidden opacity-40 group-hover:opacity-80 transition-opacity">
           <div className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,#3b82f6,#06b6d4,#f59e0b,#8b5cf6,#3b82f6)] animate-spin-slow opacity-20 group-hover:opacity-40" />
         </div>
 
-        {/* Background Image */}
+        {/* Background Image & Gradient Overlays */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
             ref={imageRef}
@@ -152,25 +152,26 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
             alt={activeBanner.title}
             className="w-full h-full object-cover object-center will-change-transform scale-100 group-hover:scale-105 transition-transform duration-700"
           />
-          {/* High-tech gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 sm:via-slate-950/80 to-transparent z-10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/30 z-10" />
-          {/* Cyber grid & mesh pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(6,182,212,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(6,182,212,0.06)_1px,transparent_1px)] bg-[size:32px_32px] z-10 pointer-events-none" />
-          <div className="absolute inset-0 cyber-grid-mesh opacity-30 z-10 pointer-events-none" />
+          {/* Left-to-Right & Bottom-to-Top High-Tech Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 sm:via-slate-950/70 to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/30 z-10" />
           
-          {/* Glowing Ambient Light Orbs */}
-          <div className="absolute top-0 left-0 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl z-10 pointer-events-none" />
-          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl z-10 pointer-events-none" />
+          {/* Cyber grid & mesh pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(6,182,212,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(6,182,212,0.05)_1px,transparent_1px)] bg-[size:36px_36px] z-10 pointer-events-none" />
+          <div className="absolute inset-0 cyber-grid-mesh opacity-25 z-10 pointer-events-none" />
+          
+          {/* Ambient Glow Orbs */}
+          <div className="absolute top-0 left-0 w-80 h-80 bg-cyan-500/15 rounded-full blur-3xl z-10 pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl z-10 pointer-events-none" />
         </div>
 
-        {/* Content */}
+        {/* Content (Positioned in Exact Vertical Middle between Top & Bottom) */}
         <div
           ref={contentRef}
-          className="relative z-20 max-w-xl px-4 py-3.5 sm:px-8 sm:py-8 flex flex-col justify-center gap-1.5 sm:gap-3 h-full bg-slate-950/40 sm:bg-transparent backdrop-blur-[3px] sm:backdrop-blur-none"
+          className="relative z-20 max-w-2xl px-5 sm:px-10 lg:px-12 flex flex-col justify-center items-start text-left gap-1.5 sm:gap-3.5 my-auto"
         >
           {/* Badge */}
-          <div className="hero-badge inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-600/20 backdrop-blur-md border border-cyan-400/40 text-cyan-300 text-[8.5px] sm:text-[10.5px] font-black uppercase tracking-widest w-fit shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+          <div className="hero-badge inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-gradient-to-r from-blue-600/20 via-cyan-500/20 to-blue-600/20 backdrop-blur-md border border-cyan-400/40 text-cyan-300 text-[8.5px] sm:text-[10.5px] font-black uppercase tracking-widest w-fit shadow-[0_0_15px_rgba(6,182,212,0.25)]">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
@@ -179,11 +180,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
           </div>
 
           {/* Title — word-by-word animation */}
-          <h1 className="text-sm sm:text-2xl lg:text-3xl font-black tracking-tight text-zenov-text leading-tight sm:leading-snug">
+          <h1 className="text-sm sm:text-2xl lg:text-3xl xl:text-4xl font-black tracking-tight text-white leading-tight sm:leading-snug max-w-xl text-left drop-shadow-md">
             {titleWords.map((word, wi) => (
               <span
                 key={wi}
-                className={`hero-word inline-block mr-[0.25em] ${wi === 1 || wi === 2 ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-zenov-primary to-zenov-accent' : ''}`}
+                className={`hero-word inline-block mr-[0.25em] ${wi === 1 || wi === 2 ? 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-amber-300' : ''}`}
                 style={{ perspective: '800px' }}
               >
                 {word}
@@ -192,34 +193,35 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
           </h1>
 
           {/* Subtitle */}
-          <p className="hero-subtitle hidden sm:block text-xs sm:text-sm text-zenov-text-secondary max-w-md leading-relaxed pl-3 border-l-2 border-cyan-400/80">
+          <p className="hero-subtitle hidden sm:block text-xs sm:text-sm text-slate-300 max-w-md leading-relaxed text-left pl-3 border-l-2 border-cyan-400/80">
             {activeBanner.subtitle}
           </p>
 
           {/* Perks */}
-          <div className="hero-perks hidden sm:flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] text-zenov-text-secondary">
-            <span className="flex items-center gap-1 font-semibold text-zenov-success">
+          <div className="hero-perks hidden sm:flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] sm:text-xs text-slate-300">
+            <span className="flex items-center gap-1.5 font-semibold text-emerald-400">
               <ShieldCheck className="w-3.5 h-3.5" /> 100% Authorized
             </span>
-            <span className="flex items-center gap-1 font-semibold">
+            <span className="flex items-center gap-1.5 font-semibold">
               <Zap className="w-3.5 h-3.5 text-cyan-400" /> Direct UID Top-Up
             </span>
-            <span className="flex items-center gap-1 font-semibold">
-              <Clock className="w-3.5 h-3.5 text-zenov-accent" /> Instant Delivery
+            <span className="flex items-center gap-1.5 font-semibold">
+              <Clock className="w-3.5 h-3.5 text-amber-400" /> Instant Delivery
             </span>
           </div>
 
-          {/* CTA */}
-          <div className="hero-cta flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-0">
+          {/* CTA & Trust */}
+          <div className="hero-cta flex items-center gap-2.5 sm:gap-3 mt-1 sm:mt-1.5">
             <button
               onClick={() => onSelectGame(activeBanner.gameId)}
-              className="magnetic-btn px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg font-extrabold text-[9.5px] sm:text-xs uppercase tracking-wider shadow-accent hover:shadow-glow-amber transition-all duration-300 flex items-center gap-1.5 group/btn will-change-transform active:scale-[0.97] border border-zenov-accent/40 hover:border-zenov-accent/80"
+              className="magnetic-btn px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-md shadow-amber-500/25 hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-300 flex items-center gap-1.5 sm:gap-2 group/btn will-change-transform active:scale-95 cursor-pointer border border-amber-300/60"
             >
               <span>{activeBanner.ctaText}</span>
-              <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-200 group-hover/btn:translate-x-1" />
+              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-1" />
             </button>
-            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono text-zenov-text-muted">
-              <span>Trusted by 1M+ gamers</span>
+            <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-slate-400 bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/5">
+              <span className="text-cyan-400 font-bold">1M+</span>
+              <span>Gamers</span>
             </div>
           </div>
         </div>
@@ -227,29 +229,29 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         {/* Compact Arrow navigation */}
         <button
           onClick={prevSlide}
-          className="absolute left-2.5 sm:left-3.5 top-1/2 -translate-y-1/2 z-30 p-1.5 sm:p-2 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white hover:bg-zenov-primary/20 hover:border-cyan-400/50 transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:flex items-center justify-center cursor-pointer"
+          className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-slate-950/75 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white hover:bg-cyan-500/20 hover:border-cyan-400/50 transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:flex items-center justify-center cursor-pointer"
           aria-label="Previous"
         >
-          <ChevronLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 z-30 p-1.5 sm:p-2 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white hover:bg-zenov-primary/20 hover:border-cyan-400/50 transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:flex items-center justify-center cursor-pointer"
+          className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-slate-950/75 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white hover:bg-cyan-500/20 hover:border-cyan-400/50 transition-all shadow-md opacity-0 group-hover:opacity-100 duration-300 hidden sm:flex items-center justify-center cursor-pointer"
           aria-label="Next"
         >
-          <ChevronRight className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
-        {/* Slide indicators */}
-        <div className="absolute bottom-3 left-4 sm:bottom-4 sm:left-8 z-30 flex items-center gap-1 sm:gap-1.5">
+        {/* Slide indicators (Bottom-Left) */}
+        <div className="absolute bottom-3.5 left-5 sm:bottom-4 sm:left-10 z-30 flex items-center gap-1.5">
           {banners.map((_, idx) => (
             <button
               key={idx}
               onClick={() => goToSlide(idx)}
               className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
                 currentIndex === idx
-                  ? 'w-5 sm:w-7 bg-gradient-to-r from-zenov-primary to-zenov-accent shadow-primary'
-                  : 'w-1.5 sm:w-2 bg-zenov-text-muted/40 hover:bg-zenov-text-muted/70'
+                  ? 'w-6 sm:w-8 bg-gradient-to-r from-blue-500 via-cyan-400 to-amber-400 shadow-[0_0_8px_rgba(6,182,212,0.6)]'
+                  : 'w-1.5 sm:w-2 bg-slate-600 hover:bg-slate-400'
               }`}
               aria-label={`Slide ${idx + 1}`}
             />
@@ -257,17 +259,17 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         </div>
 
         {/* Slide counter */}
-        <div className="absolute bottom-3.5 right-5 sm:bottom-5 sm:right-6 z-30 text-[9px] sm:text-[11px] font-mono text-zenov-text-muted">
-          <span className="text-zenov-primary font-bold">{String(currentIndex + 1).padStart(2, '0')}</span>
+        <div className="absolute bottom-3.5 right-5 sm:bottom-4 sm:right-6 z-30 text-[9px] sm:text-[11px] font-mono text-slate-400">
+          <span className="text-cyan-400 font-bold">{String(currentIndex + 1).padStart(2, '0')}</span>
           {' / '}
           {String(banners.length).padStart(2, '0')}
         </div>
 
         {/* Progress timer bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zenov-border z-30 overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-800 z-30 overflow-hidden">
           <div
             ref={progressRef}
-            className="h-full bg-gradient-to-r from-zenov-primary to-zenov-accent origin-left"
+            className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-amber-400 origin-left"
             style={{ transform: 'scaleX(0)' }}
           />
         </div>

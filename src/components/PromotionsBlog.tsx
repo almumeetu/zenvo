@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { BlogArticle } from '../types';
@@ -57,31 +58,30 @@ export const PromotionsBlog: React.FC<PromotionsBlogProps> = ({ articles }) => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="blog-header flex items-end justify-between gap-4 mb-8 sm:mb-10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-zenov-accent-soft border border-zenov-accent-border flex items-center justify-center">
-            <Newspaper className="w-[18px] h-[18px] text-zenov-accent" />
+    <div ref={sectionRef} className="w-full">
+      <div className="blog-header flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 sm:mb-8">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10.5px] font-black uppercase tracking-widest mb-2 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            Official Guides &amp; News
           </div>
-          <div>
-            <h2 className="text-lg sm:text-xl font-black tracking-tight text-zenov-text uppercase">
-              Promotions & Gaming Guides
-            </h2>
-            <p className="text-xs sm:text-sm text-zenov-text-secondary mt-1">
-              Tips, tricks, and exclusive bonus offers for every gamer
-            </p>
-          </div>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white uppercase">
+            Gaming Guides &amp; Reviews
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Tips, tricks, and expert redeem guides for every gamer
+          </p>
         </div>
-        <a
-          href="#"
-          onClick={(e) => e.preventDefault()}
-          className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-zenov-text-secondary hover:text-zenov-primary transition-colors"
+        <Link
+          href="/blog"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors w-fit group"
         >
-          View all <ArrowRight className="w-3.5 h-3.5" />
-        </a>
+          <span>View all guides</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {articles.map((article) => (
           <article
             key={article.id}
@@ -196,6 +196,6 @@ export const PromotionsBlog: React.FC<PromotionsBlogProps> = ({ articles }) => {
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 };

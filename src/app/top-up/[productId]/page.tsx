@@ -33,6 +33,8 @@ import {
   Mail,
   List,
   LayoutGrid,
+  ShoppingCart,
+  ShoppingBag,
 } from 'lucide-react';
 import { PaymentLogo } from '@/components/payment/PaymentLogos';
 import ManualPaymentBox from '@/components/payment/ManualPaymentBox';
@@ -231,15 +233,22 @@ export default function TopUpPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-10">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-zenov-text-muted mb-4 sm:mb-6 flex-wrap">
-        <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
-        <ChevronRight className="w-2.5 h-2.5" />
-        <Link href="/shop" className="hover:text-zenov-primary transition-colors">Shop</Link>
-        <ChevronRight className="w-2.5 h-2.5" />
-        <span className="text-zenov-text font-semibold truncate max-w-[160px] sm:max-w-[240px]">{product.title}</span>
-      </div>
+    <div className="relative flex flex-col overflow-hidden bg-zenov-bg">
+      {/* ── CRISP HIGH-DPI DEEP GAMING BACKGROUND (ZERO BANDING, CRYSTAL CLEAR) ── */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(6,182,212,0.08),transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[600px] -right-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(245,158,11,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[1400px] -left-40 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(139,92,246,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-60" />
+
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-10">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-zenov-text-muted mb-4 sm:mb-6 flex-wrap">
+          <Link href="/" className="hover:text-zenov-primary transition-colors">Home</Link>
+          <ChevronRight className="w-2.5 h-2.5" />
+          <Link href="/shop" className="hover:text-zenov-primary transition-colors">Shop</Link>
+          <ChevronRight className="w-2.5 h-2.5" />
+          <span className="text-zenov-text font-semibold truncate max-w-[160px] sm:max-w-[240px]">{product.title}</span>
+        </div>
 
       {/* SUCCESS STATE */}
       {successResult && (
@@ -267,7 +276,7 @@ export default function TopUpPage() {
                 href="/shop"
                 className="px-4 py-2.5 rounded-lg bg-zenov-primary hover:bg-zenov-primary-hover text-white text-sm font-semibold shadow-primary inline-flex items-center gap-1.5"
               >
-                Continue Shopping
+                <ShoppingBag className="w-4 h-4" /> Continue Shopping
               </Link>
             </div>
           </div>
@@ -575,17 +584,17 @@ export default function TopUpPage() {
 
               {paymentTab === 'trxid' ? (
                 <>
-                  <div className="px-3.5 sm:px-5 pt-1">
-                    <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zenov-text mb-2.5 flex items-center gap-2">
-                      <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zenov-primary" /> Select Payment Method
+                  <div className="px-3.5 sm:px-5 pt-0.5">
+                    <h3 className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-zenov-text mb-2 flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-cyan-400" /> Select Payment Method
                     </h3>
-                     <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
                       {[
-                        { id: 'bKash', tag: 'Personal', accent: 'border-pink-500 bg-pink-500/15 shadow-pink-500/20' },
-                        { id: 'Nagad', tag: 'Personal', accent: 'border-orange-500 bg-orange-500/15 shadow-orange-500/20' },
-                        { id: 'Rocket', tag: 'Personal', accent: 'border-purple-500 bg-purple-500/15 shadow-purple-500/20' },
-                        { id: 'Bank Transfer', tag: 'Local Bank', accent: 'border-blue-500 bg-blue-500/15 shadow-blue-500/20' },
-                        { id: 'Crypto/USDT', tag: 'TRC20', accent: 'border-emerald-500 bg-emerald-500/15 shadow-emerald-500/20' },
+                        { id: 'bKash', tag: 'Personal', accent: 'border-pink-500 bg-pink-500/20 text-pink-400 shadow-pink-500/20' },
+                        { id: 'Nagad', tag: 'Personal', accent: 'border-orange-500 bg-orange-500/20 text-orange-400 shadow-orange-500/20' },
+                        { id: 'Rocket', tag: 'Personal', accent: 'border-purple-500 bg-purple-500/20 text-purple-400 shadow-purple-500/20' },
+                        { id: 'Bank Transfer', tag: 'Bank', accent: 'border-blue-500 bg-blue-500/20 text-blue-400 shadow-blue-500/20' },
+                        { id: 'Crypto/USDT', tag: 'USDT', accent: 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-emerald-500/20' },
                       ].map(({ id, tag, accent }) => {
                         const active = paymentMethod === (id as PaymentMethod);
                         return (
@@ -593,27 +602,17 @@ export default function TopUpPage() {
                             key={id}
                             type="button"
                             onClick={() => setPaymentMethod(id as PaymentMethod)}
-                            className={`relative p-2.5 sm:p-3 rounded-xl border-2 transition-all flex items-center gap-2.5 text-left ${
+                            className={`relative p-2 rounded-xl border transition-all flex flex-col items-center justify-center text-center gap-1 cursor-pointer active:scale-95 ${
                               active
-                                ? `${accent} shadow-md scale-[1.02]`
-                                : 'bg-zenov-surface/70 border-zenov-border hover:border-zenov-border-hover hover:bg-zenov-surface'
+                                ? `${accent} border-2 shadow-md`
+                                : 'bg-slate-950/70 border-white/10 hover:border-white/20 hover:bg-slate-900 text-slate-300'
                             }`}
                           >
-                            <PaymentLogo method={id} className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-[11px] sm:text-xs font-black truncate leading-tight ${active ? 'text-white' : 'text-zenov-text'}`}>
-                                {id}
-                              </p>
-                              {tag && <p className="text-[9px] text-zenov-text-muted font-medium leading-none mt-0.5">{tag}</p>}
-                            </div>
-                            {/* Active checkmark */}
-                            {active && (
-                              <div className="w-4 h-4 rounded-full bg-white/90 flex items-center justify-center shrink-0">
-                                <svg className="w-2.5 h-2.5 text-zenov-bg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                              </div>
-                            )}
+                            <PaymentLogo method={id} className="w-6 h-6 sm:w-7 sm:h-7 rounded-md shadow-xs shrink-0" />
+                            <span className={`text-[10.5px] sm:text-[11px] font-black leading-none truncate max-w-full ${active ? 'text-white' : 'text-slate-300'}`}>
+                              {id === 'Bank Transfer' ? 'Bank' : id === 'Crypto/USDT' ? 'USDT' : id}
+                            </span>
+                            <span className="text-[8px] text-slate-400 font-medium leading-none">{tag}</span>
                           </button>
                         );
                       })}
@@ -703,7 +702,7 @@ export default function TopUpPage() {
                         </>
                       ) : (
                         <>
-                          <Zap className="w-3.5 h-3.5 fill-white text-white shrink-0" />
+                          <ShoppingBag className="w-4 h-4 text-white shrink-0" />
                           <span>Submit Order with TrxID ({formatCurrency(total, selectedCurrency)})</span>
                         </>
                       )}
@@ -752,9 +751,9 @@ export default function TopUpPage() {
                   <button
                     onClick={onAddToCart}
                     disabled={!denom || total <= 0}
-                    className="w-full py-3 rounded-xl bg-zenov-surface/60 border border-zenov-border hover:border-zenov-primary/40 hover:bg-zenov-primary-soft/10 disabled:opacity-50 text-xs sm:text-sm font-bold text-zenov-text-secondary hover:text-zenov-primary transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer group"
+                    className="w-full py-3 rounded-xl bg-zenov-surface/60 border border-zenov-border hover:border-cyan-500/40 hover:bg-cyan-500/5 disabled:opacity-50 text-xs sm:text-sm font-bold text-slate-300 hover:text-cyan-400 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer group"
                   >
-                    <Plus className="w-4 h-4 text-zenov-text-secondary group-hover:text-zenov-primary transition-colors shrink-0" />
+                    <ShoppingCart className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform shrink-0" />
                     <span>Add to Cart &amp; Pay Later</span>
                   </button>
                 </div>
@@ -955,6 +954,7 @@ export default function TopUpPage() {
           </div>
         </section>
       )}
+      </div>
     </div>
   );
 }

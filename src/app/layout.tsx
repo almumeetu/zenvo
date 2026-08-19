@@ -5,6 +5,7 @@ import { AppStateProvider } from '@/lib/AppStateContext';
 import { HeaderWrapper } from '@/components/HeaderWrapper';
 import { Footer } from '@/components/Footer';
 import { BackToTop } from '@/components/BackToTop';
+import { GamingPreloader } from '@/components/GamingPreloader';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -69,6 +70,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-zenov-bg text-zenov-text font-sans antialiased flex flex-col`}>
+        <GamingPreloader />
         <AppStateProvider>
           <HeaderWrapper />
           <main className="flex-1">{children}</main>

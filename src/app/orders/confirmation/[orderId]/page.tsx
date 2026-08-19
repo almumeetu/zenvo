@@ -15,6 +15,7 @@ import {
   Download,
   MessageCircle,
   Phone,
+  ShoppingBag,
 } from 'lucide-react';
 
 export default function OrderConfirmationPage() {
@@ -217,7 +218,7 @@ export default function OrderConfirmationPage() {
             href="/shop"
             className="flex-1 px-4 py-3 rounded-xl bg-zenov-accent hover:bg-zenov-accent-hover text-zenov-bg text-sm font-black uppercase tracking-wider inline-flex items-center justify-center gap-2 transition-all active:scale-95"
           >
-            <Zap className="w-4 h-4 fill-zenov-bg/60" />
+            <ShoppingBag className="w-4 h-4" />
             Continue Shopping
           </Link>
         </div>
