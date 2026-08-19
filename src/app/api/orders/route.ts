@@ -13,6 +13,8 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { sendOrderNotificationEmail } from '@/lib/resend';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 function parseOrderNotes(rawOrder: any) {
   let customerName = rawOrder.customerName || (rawOrder.userId === 'guest' ? 'Guest Customer' : 'Customer');

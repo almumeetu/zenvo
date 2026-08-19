@@ -223,9 +223,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     // RLS policies or missing tables.
     setProductsLoading(true);
     Promise.allSettled([
-      fetch('/api/products').then((r) => r.ok ? r.json() : null),
-      fetch('/api/orders').then((r) => r.ok ? r.json() : null),
-      fetch('/api/tickets').then((r) => r.ok ? r.json() : null),
+      fetch('/api/products', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+      fetch('/api/orders', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+      fetch('/api/tickets', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
     ]).then(([pRes, oRes, tRes]) => {
       if (pRes.status === 'fulfilled' && pRes.value?.success) {
         // Always update — DB is the source of truth, even if it returns []
@@ -574,7 +574,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const refreshOrders = async () => {
     try {
-      const res = await fetch('/api/orders');
+      const res = await fetch('/api/orders', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.orders)) {
