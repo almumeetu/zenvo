@@ -243,25 +243,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div>
 
-          {/* Gaming Gradient Action Button */}
+          {/* Ultra-Compact Gaming Micro Action Button */}
           <button
             onClick={handleAddToCartClick}
             disabled={!product.inStock}
-            className={`w-full py-1.5 min-[380px]:py-2 px-2 rounded-xl text-[8.5px] min-[380px]:text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider inline-flex items-center justify-center gap-1.5 transition-all duration-200 active:scale-95 cursor-pointer shadow-md ${
+            className={`w-full py-1 min-[380px]:py-1 sm:py-1.5 px-1.5 rounded-lg text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider inline-flex items-center justify-center gap-1 transition-all duration-200 active:scale-95 cursor-pointer shadow-xs ${
               isAdded
-                ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/30'
-                : 'bg-gradient-to-r from-blue-600 via-zenov-primary to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-blue-500/25 hover:shadow-blue-500/40 hover:shadow-lg'
+                ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
+                : 'bg-gradient-to-r from-blue-600 via-zenov-primary to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-blue-500/20'
             }`}
           >
             {isAdded ? (
               <>
-                <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-950 stroke-[3]" />
+                <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-950 stroke-[3]" />
                 <span>Added ✓</span>
               </>
             ) : (
               <>
-                <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span>Add To Cart</span>
+                <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
+                <span>+ Cart</span>
               </>
             )}
           </button>
