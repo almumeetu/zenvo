@@ -130,39 +130,50 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
 
   return (
     <section ref={sectionRef} className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2.5 pb-2.5 sm:pt-6 sm:pb-10">
+      {/* Outer Pulsing Ambient Neon Aura (Matching Logo Spectrum) */}
+      <div className="absolute -inset-1 sm:-inset-2 rounded-3xl bg-gradient-to-r from-blue-600/30 via-cyan-400/25 to-amber-500/25 opacity-70 blur-2xl pointer-events-none animate-pulse" />
+
       <div
         ref={bannerRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative h-[180px] sm:h-auto sm:min-h-[320px] lg:min-h-[400px] rounded-2xl overflow-hidden bg-zenov-surface border border-zenov-border hover:border-zenov-primary/20 transition-all duration-500 group shadow-lg shadow-black/40 hover:shadow-primary/5"
+        className="relative h-[185px] sm:h-auto sm:min-h-[330px] lg:min-h-[410px] rounded-2xl overflow-hidden bg-slate-950/90 border border-cyan-500/30 hover:border-cyan-400/60 transition-all duration-500 group shadow-2xl shadow-cyan-950/30 hover:shadow-[0_0_35px_rgba(6,182,212,0.2)]"
       >
+        {/* Conic neon laser edge trace */}
+        <div className="absolute inset-0 rounded-2xl pointer-events-none overflow-hidden opacity-40 group-hover:opacity-80 transition-opacity">
+          <div className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,#3b82f6,#06b6d4,#f59e0b,#8b5cf6,#3b82f6)] animate-spin-slow opacity-20 group-hover:opacity-40" />
+        </div>
+
         {/* Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
             ref={imageRef}
             src={activeBanner.image}
             alt={activeBanner.title}
-            className="w-full h-full object-cover object-center will-change-transform"
+            className="w-full h-full object-cover object-center will-change-transform scale-100 group-hover:scale-105 transition-transform duration-700"
           />
-          {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-r from-zenov-bg via-zenov-bg/95 sm:via-zenov-bg/90 to-zenov-bg/40 sm:to-zenov-bg/25 z-10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-zenov-bg via-zenov-bg/30 to-transparent z-10" />
-          {/* Subtle grid pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:44px_44px] z-10 pointer-events-none" />
-          {/* Accent glow */}
-          <div className="absolute top-0 left-0 w-64 h-64 bg-zenov-primary/10 rounded-full blur-3xl z-10 pointer-events-none" />
+          {/* High-tech gradient overlays */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 sm:via-slate-950/80 to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/30 z-10" />
+          {/* Cyber grid & mesh pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(6,182,212,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(6,182,212,0.06)_1px,transparent_1px)] bg-[size:32px_32px] z-10 pointer-events-none" />
+          <div className="absolute inset-0 cyber-grid-mesh opacity-30 z-10 pointer-events-none" />
+          
+          {/* Glowing Ambient Light Orbs */}
+          <div className="absolute top-0 left-0 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl z-10 pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl z-10 pointer-events-none" />
         </div>
 
         {/* Content */}
         <div
           ref={contentRef}
-          className="relative z-20 max-w-xl px-4 py-3.5 sm:px-8 sm:py-8 flex flex-col justify-center gap-1.5 sm:gap-3 h-full bg-zenov-bg/35 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none"
+          className="relative z-20 max-w-xl px-4 py-3.5 sm:px-8 sm:py-8 flex flex-col justify-center gap-1.5 sm:gap-3 h-full bg-slate-950/40 sm:bg-transparent backdrop-blur-[3px] sm:backdrop-blur-none"
         >
           {/* Badge */}
-          <div className="hero-badge inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-zenov-primary-soft/85 backdrop-blur-md border border-zenov-primary-border text-zenov-primary text-[8px] sm:text-[10px] font-bold uppercase tracking-widest w-fit shadow-[0_0_12px_rgba(59,130,246,0.15)]">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-live-pulse absolute inline-flex h-full w-full rounded-full bg-zenov-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-zenov-primary" />
+          <div className="hero-badge inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-600/20 backdrop-blur-md border border-cyan-400/40 text-cyan-300 text-[8.5px] sm:text-[10.5px] font-black uppercase tracking-widest w-fit shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
             </span>
             <span>{activeBanner.badge}</span>
           </div>

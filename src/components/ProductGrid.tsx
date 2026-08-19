@@ -156,6 +156,7 @@ interface ProductSectionProps {
   selectedCurrency: CurrencyCode;
   onSelectProduct: (product: Product) => void;
   highlight?: boolean;
+  themeColor?: 'blue' | 'purple' | 'amber' | 'emerald' | 'default';
 }
 
 const ProductSection: React.FC<ProductSectionProps> = ({
@@ -169,6 +170,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
   selectedCurrency,
   onSelectProduct,
   highlight = false,
+  themeColor = 'default',
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -201,27 +203,69 @@ const ProductSection: React.FC<ProductSectionProps> = ({
 
   if (items.length === 0) return null;
 
+  // Section theme lighting styles matching logo spectrum
+  const themeStyles = {
+    blue: {
+      bg: 'bg-gradient-to-r from-blue-950/30 via-slate-950/40 to-cyan-950/20',
+      border: 'border-cyan-500/25 hover:border-cyan-400/50',
+      glow: 'bg-cyan-500/10',
+      iconBg: 'bg-gradient-to-br from-blue-600/20 to-cyan-500/20 border-cyan-400/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]',
+      titleGrad: 'text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-blue-200',
+    },
+    purple: {
+      bg: 'bg-gradient-to-r from-purple-950/30 via-slate-950/40 to-pink-950/20',
+      border: 'border-purple-500/25 hover:border-purple-400/50',
+      glow: 'bg-purple-500/10',
+      iconBg: 'bg-gradient-to-br from-purple-600/20 to-pink-500/20 border-purple-400/40 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.25)]',
+      titleGrad: 'text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-100 to-pink-200',
+    },
+    amber: {
+      bg: 'bg-gradient-to-r from-amber-950/30 via-slate-950/40 to-orange-950/20',
+      border: 'border-amber-500/25 hover:border-amber-400/50',
+      glow: 'bg-amber-500/10',
+      iconBg: 'bg-gradient-to-br from-amber-600/20 to-orange-500/20 border-amber-400/40 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]',
+      titleGrad: 'text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-orange-200',
+    },
+    emerald: {
+      bg: 'bg-gradient-to-r from-emerald-950/30 via-slate-950/40 to-teal-950/20',
+      border: 'border-emerald-500/25 hover:border-emerald-400/50',
+      glow: 'bg-emerald-500/10',
+      iconBg: 'bg-gradient-to-br from-emerald-600/20 to-teal-500/20 border-emerald-400/40 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.25)]',
+      titleGrad: 'text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-100 to-teal-200',
+    },
+    default: {
+      bg: 'bg-gradient-to-r from-slate-950/40 via-zenov-surface/30 to-slate-950/40',
+      border: 'border-slate-800/80 hover:border-cyan-500/30',
+      glow: 'bg-blue-500/10',
+      iconBg: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400',
+      titleGrad: 'text-zenov-text',
+    },
+  }[themeColor];
+
   return (
     <section
       ref={sectionRef}
-      className="py-3 sm:py-7 first:pt-1 sm:first:pt-2 border-b border-zenov-border/50 last:border-0"
+      className={`relative p-2.5 min-[380px]:p-3 sm:p-5 rounded-3xl ${themeStyles.bg} border ${themeStyles.border} shadow-lg shadow-black/20 my-3 sm:my-5 transition-all duration-300 overflow-hidden`}
     >
+      {/* Ambient Lighting Orb */}
+      <div className={`absolute top-0 right-0 w-64 h-64 ${themeStyles.glow} rounded-full blur-3xl pointer-events-none`} />
+
       {/* Section Header */}
-      <div ref={headerRef} className="flex items-center justify-between gap-2 mb-2.5 sm:mb-5">
+      <div ref={headerRef} className="relative z-10 flex items-center justify-between gap-2 mb-3 sm:mb-4 px-1">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="w-7 h-7 min-[380px]:w-8 min-[380px]:h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 border bg-zenov-primary-soft border-zenov-primary-border text-zenov-primary">
+          <div className={`w-7 h-7 min-[380px]:w-8 min-[380px]:h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border ${themeStyles.iconBg}`}>
             {icon}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <h2 className="text-xs min-[380px]:text-sm sm:text-lg font-black tracking-tight uppercase text-zenov-text flex items-center gap-1 sm:gap-2">
+              <h2 className={`text-xs min-[380px]:text-sm sm:text-lg font-black tracking-tight uppercase ${themeStyles.titleGrad} flex items-center gap-1 sm:gap-2`}>
                 <span className="truncate">{title}</span>
                 <span className="text-[9.5px] min-[380px]:text-[11px] sm:text-xs font-semibold text-zenov-text-muted normal-case tracking-normal">
                   ({items.length})
                 </span>
               </h2>
               {badge && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[7.5px] min-[380px]:text-[8.5px] sm:text-[10px] font-black uppercase tracking-wider bg-zenov-accent-soft text-zenov-accent border border-zenov-accent-border">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-xs">
                   {badge}
                 </span>
               )}
@@ -232,7 +276,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
         {items.length > defaultCount && (
           <button
             onClick={() => onToggle(sectionKey)}
-            className="shrink-0 text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs font-bold text-zenov-text-secondary hover:text-zenov-primary inline-flex items-center gap-0.5 sm:gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-zenov-surface border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/40 transition-all active:scale-95 cursor-pointer"
+            className="shrink-0 text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs font-black text-slate-300 hover:text-white inline-flex items-center gap-0.5 sm:gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-slate-950/80 border border-white/10 hover:border-cyan-400/50 hover:bg-cyan-500/10 transition-all active:scale-95 cursor-pointer shadow-xs"
           >
             <span>{isExpanded ? 'Show Less' : `View All (${items.length})`}</span>
             {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -241,7 +285,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
       </div>
 
       {/* 3-Card Responsive Grid Layout */}
-      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5 min-[380px]:gap-2 sm:gap-3 lg:gap-4">
+      <div className="relative z-10 grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5 min-[380px]:gap-2 sm:gap-3 lg:gap-4">
         {visibleItems.map((product, idx) => (
           <ProductCard
             key={product.id}
@@ -255,10 +299,10 @@ const ProductSection: React.FC<ProductSectionProps> = ({
       </div>
 
       {items.length > defaultCount && !isExpanded && (
-        <div className="mt-3.5 sm:mt-6 text-center">
+        <div className="relative z-10 mt-3.5 sm:mt-5 text-center">
           <button
             onClick={() => onToggle(sectionKey)}
-            className="px-3.5 py-1.5 sm:px-6 sm:py-2 rounded-lg bg-zenov-card hover:bg-zenov-card-hover border border-zenov-border hover:border-zenov-primary-border text-zenov-text-secondary hover:text-zenov-primary text-[9px] min-[380px]:text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center gap-1 active:scale-95 shadow-xs cursor-pointer"
+            className="px-4 py-1.5 sm:px-6 sm:py-2 rounded-xl bg-slate-950/90 hover:bg-slate-900 border border-white/10 hover:border-cyan-400/60 text-slate-300 hover:text-cyan-300 text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs font-black uppercase tracking-wider transition-all inline-flex items-center gap-1.5 active:scale-95 shadow-md hover:shadow-[0_0_15px_rgba(6,182,212,0.2)] cursor-pointer"
           >
             <span>Show All {title} ({items.length - defaultCount} more)</span>
             <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -371,43 +415,47 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
       />
       <ProductSection
         title="Game Top Up"
-        icon={<Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 text-zenov-primary" />}
+        icon={<Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />}
         items={gameTopupProducts}
         sectionKey="gameTopup"
         isExpanded={expandedSections.gameTopup}
         onToggle={toggleSection}
         selectedCurrency={selectedCurrency}
         onSelectProduct={onSelectProduct}
+        themeColor="blue"
       />
       <ProductSection
         title="Social Top Up"
-        icon={<Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-zenov-primary" />}
+        icon={<Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />}
         items={socialTopupProducts}
         sectionKey="socialTopup"
         isExpanded={expandedSections.socialTopup}
         onToggle={toggleSection}
         selectedCurrency={selectedCurrency}
         onSelectProduct={onSelectProduct}
+        themeColor="purple"
       />
       <ProductSection
         title="Gift Cards"
-        icon={<Gift className="w-4 h-4 sm:w-5 sm:h-5 text-zenov-accent" />}
+        icon={<Gift className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />}
         items={giftCardProducts}
         sectionKey="giftCard"
         isExpanded={expandedSections.giftCard}
         onToggle={toggleSection}
         selectedCurrency={selectedCurrency}
         onSelectProduct={onSelectProduct}
+        themeColor="amber"
       />
       <ProductSection
         title="Subscriptions & Accounts"
-        icon={<Crown className="w-4 h-4 sm:w-5 sm:h-5 text-zenov-accent" />}
+        icon={<Crown className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />}
         items={subscriptionProducts}
         sectionKey="subscription"
         isExpanded={expandedSections.subscription}
         onToggle={toggleSection}
         selectedCurrency={selectedCurrency}
         onSelectProduct={onSelectProduct}
+        themeColor="emerald"
       />
     </div>
   );

@@ -86,44 +86,44 @@ export const PromotionsBlog: React.FC<PromotionsBlogProps> = ({ articles }) => {
           <article
             key={article.id}
             onClick={() => setSelectedArticle(article)}
-            className="blog-card group bg-zenov-card border border-zenov-border hover:border-zenov-border-hover rounded-xl overflow-hidden cursor-pointer transition-all duration-250 shadow-sm hover:shadow-md flex flex-col"
+            className="blog-card group bg-slate-950/85 border border-cyan-500/20 hover:border-cyan-400/70 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 shadow-md hover:shadow-[0_0_25px_rgba(6,182,212,0.25)] hover:-translate-y-1 flex flex-col"
           >
-            <div className="relative aspect-[16/10] overflow-hidden bg-zenov-surface">
+            <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
               <img
                 src={article.image}
                 alt={article.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-zenov-card/85 via-transparent to-transparent pointer-events-none" />
-              <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-zenov-primary text-white text-[10px] font-bold uppercase tracking-wide">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent pointer-events-none" />
+              <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-[9.5px] font-black uppercase tracking-wider shadow-sm">
                 {article.category}
               </span>
             </div>
 
             <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-4">
               <div>
-                <div className="flex items-center gap-3 text-[11px] text-zenov-text-muted mb-2.5">
+                <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-2.5 font-mono">
                   <span className="inline-flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-zenov-primary" /> {article.date}
+                    <Calendar className="w-3 h-3 text-cyan-400" /> {article.date}
                   </span>
                   <span className="inline-flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-zenov-accent" /> {article.readTime}
+                    <Clock className="w-3 h-3 text-amber-400" /> {article.readTime}
                   </span>
                 </div>
-                <h3 className="text-sm font-bold text-zenov-text group-hover:text-zenov-primary transition-colors line-clamp-2 leading-snug">
+                <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2 leading-snug">
                   {article.title}
                 </h3>
-                <p className="text-xs text-zenov-text-secondary line-clamp-2 mt-2 leading-relaxed">
+                <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">
                   {article.excerpt}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-zenov-border flex items-center justify-between text-xs font-semibold">
-                <span className="text-zenov-primary group-hover:text-zenov-primary-hover transition-colors inline-flex items-center gap-1">
-                  Read <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+              <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-semibold">
+                <span className="text-cyan-400 group-hover:text-cyan-300 transition-colors inline-flex items-center gap-1 font-bold">
+                  Read <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </span>
-                <span className="text-zenov-text-muted font-medium">by {article.author}</span>
+                <span className="text-slate-500 font-medium">by {article.author}</span>
               </div>
             </div>
           </article>

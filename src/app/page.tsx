@@ -62,21 +62,26 @@ export default function HomePage() {
 
   return (
     <div className="relative flex flex-col overflow-hidden bg-zenov-bg">
-      {/* ── VIBRANT CYBER GAMING LIGHTING BACKGROUNDS ── */}
-      {/* Spot 1: Neon Cyan & Electric Blue Hero Aura */}
-      <div className="absolute top-12 left-1/4 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-to-tr from-cyan-500/15 via-blue-600/10 to-transparent blur-[140px] pointer-events-none rounded-full" />
+      {/* ── VIBRANT MULTI-COLOR GAMING LIGHTING BACKGROUND SYSTEM (LOGO-STYLE SPECTRUM) ── */}
+      {/* Aurora 1: Electric Cyan & Sky Blue (Hero Top-Left Aura) */}
+      <div className="absolute -top-10 left-1/4 -translate-x-1/2 w-[700px] h-[480px] bg-gradient-to-tr from-cyan-500/25 via-blue-600/20 to-transparent blur-[120px] pointer-events-none rounded-full animate-aurora-slow" />
 
-      {/* Spot 2: Warm Amber & Gold Trending Aura */}
-      <div className="absolute top-[520px] right-[-100px] w-[500px] h-[450px] bg-gradient-to-bl from-amber-500/15 via-orange-600/10 to-transparent blur-[140px] pointer-events-none rounded-full" />
+      {/* Aurora 2: Warm Amber & Gold Neon Glow (Highlights & Trending Mid-Right) */}
+      <div className="absolute top-[480px] -right-20 w-[600px] h-[520px] bg-gradient-to-bl from-amber-500/20 via-orange-500/15 to-transparent blur-[130px] pointer-events-none rounded-full animate-pulse" />
 
-      {/* Spot 3: Neon Purple & Cyan Category Aura */}
-      <div className="absolute top-[1200px] left-[-80px] w-[550px] h-[500px] bg-gradient-to-tr from-purple-600/15 via-cyan-500/10 to-transparent blur-[150px] pointer-events-none rounded-full" />
+      {/* Aurora 3: Cyber Violet & Magenta Pulse (Middle Sections Mid-Left) */}
+      <div className="absolute top-[1100px] -left-28 w-[650px] h-[550px] bg-gradient-to-tr from-purple-600/20 via-pink-600/15 to-transparent blur-[140px] pointer-events-none rounded-full" />
 
-      {/* Spot 4: Electric Blue & Emerald Bottom Aura */}
-      <div className="absolute bottom-32 right-1/4 w-[600px] h-[400px] bg-gradient-to-tl from-emerald-500/10 via-cyan-600/10 to-transparent blur-[150px] pointer-events-none rounded-full" />
+      {/* Aurora 4: Electric Cyan & Emerald Radiance (Why Choose Us & Blog Bottom Area) */}
+      <div className="absolute top-[1800px] right-1/4 w-[700px] h-[500px] bg-gradient-to-tl from-cyan-400/20 via-emerald-500/15 to-transparent blur-[140px] pointer-events-none rounded-full" />
 
-      {/* High-Tech Cyber Grid Background Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
+      {/* Aurora 5: Deep Electric Blue Gaming Floor */}
+      <div className="absolute bottom-10 left-1/3 w-[600px] h-[400px] bg-gradient-to-t from-blue-600/15 via-indigo-600/10 to-transparent blur-[130px] pointer-events-none rounded-full" />
+
+      {/* High-Tech Cyber Tech Grid Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:44px_44px] pointer-events-none" />
+      {/* Subtle Micro Hex Mesh */}
+      <div className="absolute inset-0 cyber-grid-mesh opacity-40 pointer-events-none" />
 
       {/* HERO */}
       <section className="relative z-10">
@@ -87,8 +92,8 @@ export default function HomePage() {
         />
       </section>
 
-      {/* LIVE MARQUEE */}
-      <section className="relative z-10 border-y border-zenov-border/70 bg-zenov-surface/40 backdrop-blur-sm">
+      {/* LIVE MARQUEE WITH NEON GRADIENT ACCENT */}
+      <section className="relative z-10 border-y border-cyan-500/20 bg-gradient-to-r from-blue-950/40 via-zenov-surface/70 to-amber-950/30 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.08)]">
         <NewArrivalMarquee />
       </section>
 
@@ -119,6 +124,10 @@ export default function HomePage() {
       {/* PROMOTIONS BLOG */}
       <section id="promotions-blog" className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         <div ref={blogHeaderRef} className="flex flex-col mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[11px] font-black uppercase tracking-[0.18em] w-fit mb-3 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            Official Guides
+          </div>
           <h2 className="text-2xl sm:text-3xl font-black text-zenov-text tracking-tight uppercase">
             Gaming Guides & Reviews
           </h2>

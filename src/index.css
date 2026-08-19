@@ -210,6 +210,38 @@ body {
   }
 }
 
+/* Aurora shift animation */
+@keyframes aurora-flow {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.45;
+  }
+  33% {
+    transform: translate(25px, -18px) scale(1.1);
+    opacity: 0.65;
+  }
+  66% {
+    transform: translate(-20px, 15px) scale(0.95);
+    opacity: 0.5;
+  }
+}
+
+/* Neon laser sweep */
+@keyframes laser-sweep {
+  0% { transform: translateX(-100%); }
+  50%, 100% { transform: translateX(200%); }
+}
+
+/* Multi-color neon pulse */
+@keyframes neon-pulse-multi {
+  0%, 100% {
+    filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.4)) drop-shadow(0 0 30px rgba(59, 130, 246, 0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.5)) drop-shadow(0 0 45px rgba(139, 92, 246, 0.3));
+  }
+}
+
 /* Spin slow */
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
@@ -266,12 +298,56 @@ body {
   animation: glow-pulse-accent 2.5s ease-in-out infinite;
 }
 
+.animate-aurora-slow {
+  animation: aurora-flow 12s ease-in-out infinite;
+}
+
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
 }
 
 .animate-bounce-subtle {
   animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   CYBER GAMING MESH & LIGHTING PATTERNS
+   ============================================================ */
+
+.cyber-grid-mesh {
+  background-image: 
+    linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.03) 50%, rgba(255, 255, 255, 0.03) 75%, transparent 75%, transparent);
+  background-size: 8px 8px;
+}
+
+.cyber-dot-grid {
+  background-image: radial-gradient(rgba(59, 130, 246, 0.18) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.cyber-grid-lines {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+/* Logo-style Conic Laser Border */
+.neon-conic-border {
+  position: relative;
+}
+.neon-conic-border::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, #3b82f6, #06b6d4, #f59e0b, #8b5cf6, #3b82f6);
+  z-index: -1;
+  opacity: 0.75;
+  transition: opacity 0.3s ease;
+}
+.neon-conic-border:hover::before {
+  opacity: 1;
 }
 
 /* ============================================================

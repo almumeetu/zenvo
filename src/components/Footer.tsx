@@ -167,29 +167,33 @@ export const Footer: React.FC = () => {
         <ChevronUp className="w-5 h-5" />
       </button>
 
-      <footer className="relative bg-zenov-surface border-t border-zenov-border text-zenov-text-secondary font-sans overflow-hidden">
-        {/* Top gradient line */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zenov-primary/50 to-transparent" />
-        {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-zenov-primary/4 rounded-full blur-3xl pointer-events-none" />
+      <footer className="relative bg-gradient-to-b from-slate-950 via-slate-950 to-[#04060a] border-t border-cyan-500/30 text-slate-400 font-sans overflow-hidden">
+        {/* Top Multi-Color Neon Glowing Laser Line */}
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-blue-600 via-cyan-400 to-amber-500 shadow-[0_0_15px_rgba(6,182,212,0.6)]" />
+        
+        {/* Background Ambient Gaming Glows (Logo Spectrum) */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[250px] bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[450px] h-[250px] bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+        {/* Subtle Cyber Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(6,182,212,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(6,182,212,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-10 pb-6">
 
-          {/* ── MAIN GRID ── */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+          {/* ── MAIN GRID (CLEAN MOBILE RESPONSIVE SPACING) ── */}
+          <div className="grid grid-cols-1 min-[520px]:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-8 mb-10">
 
             {/* Brand */}
-            <div className="col-span-2 sm:col-span-2 lg:col-span-1 space-y-4">
+            <div className="min-[520px]:col-span-2 lg:col-span-1 space-y-4">
               {/* Logo */}
               <ZenovLogo size="lg" isLink href="/" />
 
-              <p className="text-xs text-zenov-text-secondary leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
                 Your trusted digital gaming store in Bangladesh. PSN, Steam, Xbox Gift Cards, PS Plus & instant game top-ups — delivered in seconds.
               </p>
 
               {/* Social icons */}
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zenov-text-muted mb-2.5">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-400/80 mb-2.5">
                   Follow Us
                 </p>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -200,7 +204,7 @@ export const Footer: React.FC = () => {
                       onClick={(e) => e.preventDefault()}
                       title={name}
                       aria-label={name}
-                      className={`w-9 h-9 rounded-xl bg-zenov-card border border-zenov-border text-zenov-text-muted flex items-center justify-center transition-all duration-200 ${color}`}
+                      className={`w-9 h-9 rounded-xl bg-slate-900/90 border border-white/10 text-slate-400 flex items-center justify-center transition-all duration-200 ${color}`}
                     >
                       {icon}
                     </a>
@@ -209,22 +213,22 @@ export const Footer: React.FC = () => {
               </div>
 
               {/* Rating badge */}
-              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-zenov-card border border-zenov-border">
+              <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-slate-900/80 border border-white/10 shadow-xs max-w-sm">
                 <div className="flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 text-zenov-accent fill-zenov-accent" />
+                    <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                   ))}
                 </div>
                 <div className="text-xs leading-snug">
-                  <span className="font-bold text-zenov-text">4.9/5</span>{' '}
-                  <span className="text-zenov-text-secondary">Trusted by 1M+ gamers</span>
+                  <span className="font-bold text-white">4.9/5</span>{' '}
+                  <span className="text-slate-400">Trusted by 1M+ gamers</span>
                 </div>
               </div>
             </div>
 
             {/* Quick Links */}
-            <div>
-              <h4 className="text-xs font-black text-zenov-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenov-primary">
+            <div className="space-y-4">
+              <h4 className="text-xs font-black text-white uppercase tracking-wider pl-3 border-l-2 border-cyan-400">
                 Quick Links
               </h4>
               <ul className="space-y-2.5 text-xs">
@@ -232,7 +236,7 @@ export const Footer: React.FC = () => {
                   <li key={link.label}>
                     <FooterLink href={link.href}>
                       {link.icon}
-                      <span className="group-hover:translate-x-0.5 transition-transform duration-200 inline-block">
+                      <span className="group-hover:translate-x-1 group-hover:text-cyan-300 transition-all duration-200 inline-block font-medium">
                         {link.label}
                       </span>
                     </FooterLink>
@@ -242,73 +246,73 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* Information */}
-            <div>
-              <h4 className="text-xs font-black text-zenov-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenov-primary">
+            <div className="space-y-4">
+              <h4 className="text-xs font-black text-white uppercase tracking-wider pl-3 border-l-2 border-cyan-400">
                 Information
               </h4>
               <ul className="space-y-2.5 text-xs">
                 <li>
                   <FooterLink href="/faqs?tab=refund">
-                    <ShieldCheck className="w-3.5 h-3.5 text-zenov-success mt-0.5 shrink-0" />
-                    <span>Refund & Return Policy</span>
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
+                    <span className="group-hover:text-cyan-300 transition-colors">Refund & Return Policy</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="/faqs?tab=privacy">
-                    <Lock className="w-3.5 h-3.5 text-zenov-primary mt-0.5 shrink-0" />
-                    <span>Privacy Policy</span>
+                    <Lock className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                    <span className="group-hover:text-cyan-300 transition-colors">Privacy Policy</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="/faqs?tab=terms">
-                    <FileText className="w-3.5 h-3.5 text-zenov-primary mt-0.5 shrink-0" />
-                    <span>Terms & Conditions</span>
+                    <FileText className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                    <span className="group-hover:text-cyan-300 transition-colors">Terms & Conditions</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="/faqs?tab=faqs">
-                    <HelpCircle className="w-3.5 h-3.5 text-zenov-accent mt-0.5 shrink-0" />
-                    <span>FAQ & Help Center</span>
+                    <HelpCircle className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+                    <span className="group-hover:text-amber-300 transition-colors">FAQ & Help Center</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="tel:+8801300529836">
-                    <Phone className="w-3.5 h-3.5 text-zenov-primary mt-0.5 shrink-0" />
-                    <span>+880 1300-529836</span>
+                    <Phone className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                    <span className="group-hover:text-cyan-300 transition-colors font-mono">+880 1300-529836</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="mailto:Siddikpers@gmail.com">
-                    <Mail className="w-3.5 h-3.5 text-zenov-primary mt-0.5 shrink-0" />
-                    <span className="break-all">Siddikpers@gmail.com</span>
+                    <Mail className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                    <span className="break-all group-hover:text-cyan-300 transition-colors">Siddikpers@gmail.com</span>
                   </FooterLink>
                 </li>
                 <li>
                   <FooterLink href="https://wa.me/8801300529836" external>
-                    <FaWhatsapp className="w-3.5 h-3.5 text-zenov-success mt-0.5 shrink-0" />
-                    <span>WhatsApp: 01300529836</span>
+                    <FaWhatsapp className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
+                    <span className="group-hover:text-emerald-300 transition-colors font-mono">WhatsApp: 01300529836</span>
                   </FooterLink>
                 </li>
               </ul>
             </div>
 
             {/* Newsletter */}
-            <div className="col-span-2 sm:col-span-2 lg:col-span-1">
-              <h4 className="text-xs font-black text-zenov-text uppercase tracking-wider mb-4 pl-3 border-l-2 border-zenov-accent">
+            <div className="min-[520px]:col-span-2 lg:col-span-1 space-y-3.5">
+              <h4 className="text-xs font-black text-white uppercase tracking-wider pl-3 border-l-2 border-amber-400">
                 Gamer Newsletter
               </h4>
-              <p className="text-xs text-zenov-text-secondary mb-3 leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Subscribe for instant drop alerts, free diamond giveaways & exclusive bonus codes.
               </p>
 
               {subscribed ? (
-                <div className="p-3.5 rounded-xl bg-zenov-success-soft border border-zenov-success/30 text-zenov-success text-xs font-bold text-center">
+                <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold text-center">
                   🎉 You&apos;re in! Check your inbox.
                 </div>
               ) : (
                 <form
                   onSubmit={handleSubscribe}
-                  className="flex items-stretch gap-2 bg-zenov-card border border-zenov-border rounded-xl p-1.5 focus-within:border-zenov-primary-border transition-all duration-200"
+                  className="flex items-stretch gap-2 bg-slate-900/90 border border-white/10 rounded-xl p-1.5 focus-within:border-cyan-400/60 transition-all duration-200"
                 >
                   <input
                     type="email"
@@ -316,19 +320,19 @@ export const Footer: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
-                    className="w-full min-w-0 bg-transparent px-3 py-2 text-xs text-zenov-text placeholder:text-zenov-text-muted focus:outline-none rounded-md"
+                    className="w-full min-w-0 bg-transparent px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none rounded-md"
                   />
                   <button
                     type="submit"
-                    className="magnetic-btn px-3 py-2 rounded-lg bg-gradient-to-r from-zenov-accent to-orange-500 hover:from-zenov-accent-hover hover:to-orange-400 text-zenov-bg transition-all inline-flex items-center justify-center gap-1.5 text-xs font-black shrink-0"
+                    className="magnetic-btn px-3 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 transition-all inline-flex items-center justify-center gap-1.5 text-xs font-black shrink-0 shadow-md shadow-amber-500/20"
                     aria-label="Subscribe"
                   >
                     <Send className="w-3 h-3" />
-                    <span className="hidden sm:inline">Subscribe</span>
+                    <span>Subscribe</span>
                   </button>
                 </form>
               )}
-              <p className="text-[10px] text-zenov-text-muted mt-2">No spam. Unsubscribe anytime.</p>
+              <p className="text-[10px] text-slate-500">No spam. Unsubscribe anytime.</p>
 
               {/* Trust Badges grid */}
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -338,9 +342,9 @@ export const Footer: React.FC = () => {
                   { value: 'Secure', label: 'bKash / Nagad' },
                   { value: '24/7', label: 'Live Support' },
                 ].map(({ value, label }) => (
-                  <div key={label} className="p-2 bg-zenov-card border border-zenov-border text-center">
-                    <p className="text-xs sm:text-sm font-black text-zenov-primary font-mono leading-tight">{value}</p>
-                    <p className="text-[8.5px] sm:text-[9px] text-zenov-text-muted uppercase tracking-wide font-bold leading-tight mt-0.5">{label}</p>
+                  <div key={label} className="p-2.5 rounded-xl bg-slate-900/80 border border-cyan-500/20 text-center shadow-xs">
+                    <p className="text-xs sm:text-sm font-black text-cyan-400 font-mono leading-tight">{value}</p>
+                    <p className="text-[8.5px] sm:text-[9px] text-slate-400 uppercase tracking-wide font-bold leading-tight mt-0.5">{label}</p>
                   </div>
                 ))}
               </div>
@@ -348,8 +352,8 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* ── PAYMENT METHODS ── */}
-          <div className="border-t border-zenov-border pt-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zenov-text-muted text-center mb-3">
+          <div className="border-t border-slate-800/80 pt-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 text-center mb-3">
               Official Payment Methods
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -357,7 +361,7 @@ export const Footer: React.FC = () => {
                 <div
                   key={label}
                   title={label}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zenov-card border border-zenov-border text-xs font-semibold text-zenov-text-secondary cursor-default transition-all duration-200 ${color}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-semibold text-slate-300 cursor-default transition-all duration-200 ${color}`}
                 >
                   {icon}
                   <span>{label}</span>
@@ -367,10 +371,10 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* ── COPYRIGHT ── */}
-          <div className="border-t border-zenov-border mt-5 pt-5 text-center">
-            <p className="text-[11px] text-zenov-text-muted leading-relaxed max-w-3xl mx-auto">
+          <div className="border-t border-slate-800/80 mt-5 pt-5 text-center">
+            <p className="text-[11px] text-slate-500 leading-relaxed max-w-3xl mx-auto">
               © {new Date().getFullYear()}{' '}
-              <span className="text-zenov-text font-semibold">ZENOV Games — Chattogram, Bangladesh</span>.
+              <span className="text-slate-300 font-semibold">ZENOV Games — Chattogram, Bangladesh</span>.
               {' '}All Rights Reserved.{' '}
               Game logos & trademarks belong to their respective publishers. ZENOV is an authorized reseller.
             </p>

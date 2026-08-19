@@ -132,20 +132,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={handleMouseEnter}
-      className={`group relative bg-gradient-to-b from-zenov-card/95 via-zenov-card/90 to-zenov-surface/95 border rounded-2xl overflow-hidden transition-all duration-300 ease-out shadow-md hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between will-change-transform ${
+      className={`group relative bg-gradient-to-b from-slate-900/90 via-slate-950/95 to-slate-950 border rounded-2xl overflow-hidden transition-all duration-300 ease-out shadow-md hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between will-change-transform ${
         isHotSection || product.isHot
-          ? 'border-amber-500/30 hover:border-amber-400/80 hover:shadow-glow-amber'
-          : 'border-zenov-border hover:border-zenov-primary/60 hover:shadow-glow-blue'
+          ? 'border-amber-500/40 hover:border-amber-400 hover:shadow-[0_0_22px_rgba(245,158,11,0.3)]'
+          : 'border-cyan-500/25 hover:border-cyan-400/80 hover:shadow-[0_0_22px_rgba(6,182,212,0.25)]'
       }`}
       style={{ transformStyle: 'preserve-3d' }}
     >
-      {/* Ambient Top Glow on Hover */}
-      <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-28 h-14 bg-zenov-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      {/* Ambient Cyber Top Lighting Reflection (Logo Glow Spectrum) */}
+      <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-14 bg-gradient-to-r from-blue-500/30 via-cyan-400/30 to-amber-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       {/* ── PRODUCT POSTER / IMAGE ── */}
       <Link
         href={`/top-up/${product.id}`}
-        className="relative aspect-square overflow-hidden bg-zenov-surface/90 block shrink-0 rounded-t-2xl"
+        className="relative aspect-square overflow-hidden bg-slate-950/90 block shrink-0 rounded-t-2xl"
       >
         <img
           ref={imageRef}
@@ -156,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         />
 
         {/* Bottom image gradient shadow */}
-        <div className="absolute inset-0 bg-gradient-to-t from-zenov-card via-transparent to-transparent opacity-70 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80 pointer-events-none" />
 
         {/* Out of Stock Overlay */}
         {!product.inStock && (

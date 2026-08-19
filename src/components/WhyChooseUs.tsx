@@ -100,26 +100,30 @@ export const WhyChooseUs: React.FC = () => {
   return (
     <section
       ref={sectionRef}
-      className="py-16 sm:py-20 bg-zenov-surface/40 border-y border-zenov-border/70 relative overflow-hidden"
+      className="py-14 sm:py-20 rounded-3xl bg-gradient-to-b from-slate-950/90 via-slate-900/60 to-slate-950/90 border border-cyan-500/30 relative overflow-hidden shadow-2xl shadow-cyan-950/20"
     >
-      {/* Background decorations */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(59,130,246,0.07),transparent_55%)] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(245,158,11,0.05),transparent_55%)] pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:56px_56px] pointer-events-none opacity-40" />
+      {/* Multi-Color Gaming Lighting Backdrops (Logo Spectrum Aura) */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[350px] bg-gradient-to-br from-cyan-500/20 via-blue-600/15 to-transparent rounded-full blur-[110px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[350px] bg-gradient-to-tl from-amber-500/20 via-orange-600/15 to-transparent rounded-full blur-[110px] pointer-events-none" />
+      <div className="absolute top-1/2 left-0 w-[400px] h-[300px] bg-gradient-to-r from-purple-600/15 to-transparent rounded-full blur-[120px] pointer-events-none" />
+      
+      {/* Cyber Grid & Diagonal Mesh Pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(6,182,212,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(6,182,212,0.04)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+      <div className="absolute inset-0 cyber-grid-mesh opacity-30 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div ref={headerRef} className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zenov-primary-soft border border-zenov-primary-border text-zenov-primary text-[11px] font-black uppercase tracking-[0.18em] mb-4">
-            <Zap className="w-3 h-3 fill-zenov-primary/50" />
+        <div ref={headerRef} className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/20 via-blue-600/20 to-amber-500/20 border border-cyan-400/40 text-cyan-300 text-[11px] font-black uppercase tracking-[0.2em] mb-4 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
+            <Zap className="w-3.5 h-3.5 fill-cyan-400 text-cyan-400 animate-pulse" />
             Why Choose ZENOV
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-zenov-text leading-tight">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
             Built for gamers who demand the{' '}
-            <span className="text-gradient-full">fastest & safest</span>{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-amber-400">fastest & safest</span>{' '}
             experience
           </h2>
-          <p className="text-sm sm:text-base text-zenov-text-secondary mt-4 leading-relaxed max-w-xl mx-auto">
+          <p className="text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed max-w-xl mx-auto">
             Millions of mobile and PC gamers trust ZENOV for lightning-fast, secure, and automated
             gaming top-ups with official publisher-backed guarantees.
           </p>
@@ -130,25 +134,25 @@ export const WhyChooseUs: React.FC = () => {
           {features.map((feat, idx) => (
             <div
               key={idx}
-              className="feature-card group card-premium p-5 sm:p-6 rounded-xl bg-zenov-card border border-zenov-border hover:border-zenov-border-hover relative overflow-hidden"
+              className="feature-card group card-premium p-5 sm:p-6 rounded-2xl bg-slate-950/80 backdrop-blur-md border border-cyan-500/20 hover:border-cyan-400/70 relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)] hover:-translate-y-1"
             >
-              {/* Corner glow */}
-              <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-zenov-primary/5 group-hover:bg-zenov-primary/10 blur-2xl transition-all duration-500 pointer-events-none" />
+              {/* Corner Glow Lighting */}
+              <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-cyan-500/10 group-hover:bg-cyan-400/20 blur-2xl transition-all duration-500 pointer-events-none" />
 
               {/* Icon + stat */}
               <div className="flex items-start justify-between mb-4">
                 <div className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-all duration-300 ${feat.iconBg}`}>
                   {feat.icon}
                 </div>
-                <span className="text-xl font-black text-zenov-text-muted/40 font-mono group-hover:text-zenov-primary/30 transition-colors duration-300 leading-none">
+                <span className="text-xl font-black text-slate-600 font-mono group-hover:text-cyan-400 transition-colors duration-300 leading-none">
                   {feat.stat}
                 </span>
               </div>
 
-              <h3 className="text-base font-black text-zenov-text group-hover:text-zenov-primary transition-colors duration-200 mb-2">
+              <h3 className="text-base font-black text-white group-hover:text-cyan-300 transition-colors duration-200 mb-2">
                 {feat.title}
               </h3>
-              <p className="text-sm text-zenov-text-secondary leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed">
                 {feat.description}
               </p>
             </div>

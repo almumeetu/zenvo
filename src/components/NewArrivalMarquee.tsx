@@ -14,25 +14,29 @@ export const NewArrivalMarquee: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3">
-      <div className="bg-zenov-surface border border-zenov-border rounded-xl p-2 sm:p-2.5 pl-2.5 sm:pl-3 flex items-center gap-2 sm:gap-3 overflow-hidden">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zenov-accent-soft border border-zenov-accent-border text-zenov-accent text-[11px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
-          <Flame className="w-3.5 h-3.5 text-zenov-accent" />
-          Live Activity
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5">
+      <div className="relative bg-slate-950/80 border border-cyan-500/30 rounded-xl p-2 sm:p-2.5 pl-2.5 sm:pl-3 flex items-center gap-2 sm:gap-3 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+        {/* Subtle glowing laser background glow */}
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-cyan-500/10 to-blue-600/10 pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent pointer-events-none" />
+
+        <div className="relative flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+          <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+          <span>Live Activity</span>
         </div>
 
         <div className="flex-1 overflow-hidden whitespace-nowrap relative">
-          <div className="inline-flex items-center gap-10 animate-marquee text-xs text-zenov-text-secondary">
+          <div className="inline-flex items-center gap-10 animate-marquee text-xs text-slate-300">
             {[...recentPurchases, ...recentPurchases].map((purchase, idx) => (
               <div key={idx} className="inline-flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-zenov-success shrink-0" />
-                <span className="text-zenov-text-muted truncate max-w-[100px]">{purchase.user}</span>
-                <span className="font-semibold text-zenov-text truncate max-w-[180px]">{purchase.item}</span>
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zenov-success-soft text-zenov-success text-[10px] font-semibold whitespace-nowrap">
-                  <Zap className="w-2.5 h-2.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="text-slate-400 font-mono text-[11px] truncate max-w-[100px]">{purchase.user}</span>
+                <span className="font-bold text-white truncate max-w-[180px] drop-shadow-xs">{purchase.item}</span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold whitespace-nowrap shadow-xs">
+                  <Zap className="w-2.5 h-2.5 fill-emerald-400" />
                   {purchase.speed}
                 </span>
-                <span className="text-zenov-text-muted text-[11px]">({purchase.time})</span>
+                <span className="text-slate-500 text-[10.5px] font-mono">({purchase.time})</span>
               </div>
             ))}
           </div>
