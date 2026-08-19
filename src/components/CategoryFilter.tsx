@@ -72,13 +72,13 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             <button
               key={cat.id}
               onClick={() => onSelectCategory(cat.id as any)}
-              className={`category-btn shrink-0 px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-[0.97] will-change-transform ${
+              className={`category-btn shrink-0 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-95 will-change-transform cursor-pointer ${
                 isSelected
-                  ? 'bg-zenov-primary text-white shadow-sm'
-                  : 'bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:border-zenov-border-hover hover:bg-zenov-card'
+                  ? 'bg-gradient-to-r from-blue-600 to-zenov-primary text-white shadow-md shadow-blue-500/30 border border-blue-400/40'
+                  : 'bg-zenov-card/80 backdrop-blur-md border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:border-zenov-primary/40 hover:bg-zenov-card'
               }`}
             >
-              <span className={isSelected ? 'text-white/90' : 'text-zenov-primary'}>{cat.icon}</span>
+              <span className={isSelected ? 'text-white' : 'text-zenov-primary'}>{cat.icon}</span>
               <span>{cat.label}</span>
             </button>
           );
