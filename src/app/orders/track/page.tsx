@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useApp } from '@/lib/AppStateContext';
 import { formatCurrency } from '@/lib/currency';
 import {
@@ -17,12 +17,30 @@ const STEPS: readonly string[] = ['Order Placed', 'Paid', 'Processing', 'Deliver
 function OrderTrackerContent() {
   const router = useRouter();
   const params = useSearchParams();
-  const prefill = params.get('q') || params.get('orderNumber') || '';
+  const prefill = params.get('q') || params.get('orderNumber') || params.get('orderId') || '';
   const { orders, searchOrder, selectedCurrency, user, authLoading } = useApp();
   const [q, setQ] = useState<string>(prefill);
   const [found, setFound] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [searchedEmpty, setSearchedEmpty] = useState(false);
+
+  useEffect(() => {
+    if (prefill) {
+      setQ(prefill);
+      const executePrefillSearch = async () => {
+        setLoading(true);
+        setSearchedEmpty(false);
+        const r = await searchOrder(prefill);
+        if (r) {
+          setFound(r);
+        } else {
+          setSearchedEmpty(true);
+        }
+        setLoading(false);
+      };
+      executePrefillSearch();
+    }
+  }, [prefill]);
 
   const preSelected = useMemo(() => {
     if (!q.trim()) return null;
