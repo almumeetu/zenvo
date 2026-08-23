@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   Product,
   CategoryType,
@@ -602,6 +603,40 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
     return orders;
   };
+
+  // Real-time admin order sync: poll /api/orders while the admin panel is open
+  const adminPathname = usePathname();
+  useEffect(() => {
+    if (adminPathname !== '/admin') return;
+    if (user.role !== 'admin') return;
+
+    let active = true;
+    const sync = async () => {
+      if (!active) return;
+      await refreshOrders();
+    };
+
+    sync();
+    const intervalId = setInterval(sync, 10000);
+
+    // Re-sync whenever the tab becomes visible again
+    const onVisible = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        sync();
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisible);
+    }
+
+    return () => {
+      active = false;
+      clearInterval(intervalId);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisible);
+      }
+    };
+  }, [adminPathname, user.role, refreshOrders]);
 
   const depositWallet = async (amountUSD: number, method: string, reference: string) => {
     const newBal = parseFloat((user.walletBalanceUSD + amountUSD).toFixed(2));
