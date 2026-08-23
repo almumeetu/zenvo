@@ -154,6 +154,26 @@ export const checkIsAdmin = (email?: string): boolean => {
   return cleanEmail.includes('admin') || cleanEmail === 'almumeetu@gmail.com' || cleanEmail === 'zenovgamesbd@gmail.com';
 };
 
+const MAX_LOCAL_STORAGE_ITEMS = 200;
+
+const safeSetItem = (key: string, value: unknown): void => {
+  try {
+    const serialized = JSON.stringify(value);
+    localStorage.setItem(key, serialized);
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      const fallback = Array.isArray(value) ? value.slice(-MAX_LOCAL_STORAGE_ITEMS) : value;
+      try {
+        localStorage.setItem(key, JSON.stringify(fallback));
+      } catch (e2) {
+        console.warn(`Failed to save ${key} to localStorage`, e2);
+      }
+    } else {
+      console.warn(`Failed to save ${key} to localStorage`, e);
+    }
+  }
+};
+
 type AppStateValue = AppState & AppActions;
 
 const AppCtx = createContext<AppStateValue | null>(null);
@@ -376,17 +396,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_orders', JSON.stringify(orders));
+    safeSetItem('zenov_v3_orders', orders);
   }, [orders, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_transactions', JSON.stringify(walletTransactions));
+    safeSetItem('zenov_v3_transactions', walletTransactions);
   }, [walletTransactions, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_tickets', JSON.stringify(tickets));
+    safeSetItem('zenov_v3_tickets', tickets);
   }, [tickets, isMounted]);
 
   const addToCart = (item: CartItem) => setCartItems((p) => [...p, item]);
