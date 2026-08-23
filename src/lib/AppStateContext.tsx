@@ -189,6 +189,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // Fast Instant Hydration + Background SWR Sync
   useEffect(() => {
     // 1. Instantly load cache from localStorage (0ms render time)
+    let hasLocalProducts = false;
     try {
       const storedProducts = localStorage.getItem('zenov_v3_products');
       const storedCategories = localStorage.getItem('zenov_v3_categories');
@@ -201,7 +202,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const storedTransactions = localStorage.getItem('zenov_v3_transactions');
       const storedTickets = localStorage.getItem('zenov_v3_tickets');
 
-      if (storedProducts) setProducts(JSON.parse(storedProducts));
+      if (storedProducts) {
+        const parsed = JSON.parse(storedProducts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+          hasLocalProducts = true;
+        }
+      }
       if (storedCategories) setCategories(JSON.parse(storedCategories));
       if (storedUnits) setUnits(JSON.parse(storedUnits));
       if (storedBanners) setHeroBanners(JSON.parse(storedBanners));
@@ -216,33 +223,41 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
     setIsMounted(true);
 
-    // 2. Background parallel sync with database (non-blocking)
-    // CRITICAL: always replace state with DB results when the fetch succeeds,
-    // even if the result is an empty array. The old `length > 0` guard was
-    // causing stale seed data to persist when Supabase returned empty due to
-    // RLS policies or missing tables.
-    setProductsLoading(true);
+    // If we have cached or initial products, don't block the UI with a skeleton
+    if (hasLocalProducts || INITIAL_PRODUCTS.length > 0) {
+      setProductsLoading(false);
+    } else {
+      setProductsLoading(true);
+    }
+
+    // 2. High-speed background sync (non-blocking SWR)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
     Promise.allSettled([
-      fetch('/api/products', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
-      fetch('/api/orders', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
-      fetch('/api/tickets', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+      fetch('/api/products', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+      fetch('/api/orders', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+      fetch('/api/tickets', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
     ]).then(([pRes, oRes, tRes]) => {
-      if (pRes.status === 'fulfilled' && pRes.value?.success) {
-        // Always update — DB is the source of truth, even if it returns []
-        setProducts(pRes.value.products ?? []);
+      clearTimeout(timeoutId);
+      if (pRes.status === 'fulfilled' && pRes.value?.success && Array.isArray(pRes.value.products)) {
+        setProducts(pRes.value.products);
       }
-      if (oRes.status === 'fulfilled' && oRes.value?.success) {
-        setOrders(oRes.value.orders ?? []);
+      if (oRes.status === 'fulfilled' && oRes.value?.success && Array.isArray(oRes.value.orders)) {
+        setOrders(oRes.value.orders);
       }
-      if (tRes.status === 'fulfilled' && tRes.value?.success) {
-        setTickets(tRes.value.tickets ?? []);
+      if (tRes.status === 'fulfilled' && tRes.value?.success && Array.isArray(tRes.value.tickets)) {
+        setTickets(tRes.value.tickets);
       }
     }).catch((err) => {
-      console.warn('Background sync error (using local cache):', err);
+      console.warn('Background sync warning:', err);
     }).finally(() => {
       setProductsLoading(false);
     });
+
+    return () => clearTimeout(timeoutId);
   }, []);
+
 
   // Listen to Supabase Auth State Changes
   useEffect(() => {
@@ -613,14 +628,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const searchOrder = async (orderId: string): Promise<Order | null> => {
     const query = orderId.trim().toUpperCase();
-    return (
-      orders.find(
-        (o) =>
-          o.id.toUpperCase() === query ||
-          o.orderNumber.toUpperCase() === query ||
-          o.transactionId?.toUpperCase() === query
-      ) || null
+    const localMatch = orders.find(
+      (o) =>
+        o.id.toUpperCase() === query ||
+        o.orderNumber.toUpperCase() === query ||
+        o.transactionId?.toUpperCase() === query
     );
+    if (localMatch) return localMatch;
+
+    try {
+      const res = await fetch(`/api/orders/track/${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.order) {
+          return data.order;
+        }
+      }
+    } catch (err) {
+      console.warn('Order tracking API call error:', err);
+    }
+    return null;
   };
 
   const createTicket = async (

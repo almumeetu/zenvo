@@ -1,5 +1,9 @@
+packages:
+  - '.'
+  - 'zenov-api'
 ignoredBuiltDependencies:
   - '@google/genai'
   - esbuild
   - protobufjs
   - sharp
+

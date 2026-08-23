@@ -1,38 +1,54 @@
 /**
  * /api/products — Public product catalog API
  *
- * Uses the SERVICE ROLE key (supabaseAdmin) so that:
- *  - All products added by the admin panel are visible, regardless of
- *    any Row Level Security (RLS) anon-role restrictions.
- *  - There is no silent empty-array response caused by missing SELECT policies.
- *
- * force-dynamic prevents Next.js from caching this response, ensuring the
- * latest products are always served after admin edits.
+ * Proxies requests to the deployed backend API (https://api-zenov.bornobyte.com/api/products)
+ * with a automatic fallback to Supabase Admin client if the backend API is unreachable.
  */
 
 import { NextResponse } from 'next/server';
+import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 
-// Never cache this route — always fetch fresh data from Supabase
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+  try {
+    // 1. Fast fetch from deployed API server
+    const apiRes = await fetch(`${API_BASE_URL}/products`, {
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    clearTimeout(timeoutId);
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success && Array.isArray(data.products)) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    console.warn('[API Proxy /products GET] Primary API server warning (falling back):', err?.message || err);
+  }
+
+
+  // 2. Fallback to direct Supabase query
   try {
     if (!supabaseAdmin) {
-      console.warn('[API /products] supabaseAdmin is not initialized. Check SUPABASE_SERVICE_ROLE_KEY in env vars.');
+      console.warn('[API /products] supabaseAdmin is not initialized.');
       return NextResponse.json({ success: true, products: [] });
     }
 
-    let { data: products, error } = await supabaseAdmin
-      .from('products')
-      .select('*');
+    let { data: products, error } = await supabaseAdmin.from('products').select('*');
 
     if (error) {
-      console.warn('[API /products] Supabase select error:', error.message);
       return NextResponse.json({ success: false, products: [], message: error.message }, { status: 500 });
     }
 
-    // Sort in JS if created_at or createdAt exists
     const sortedProducts = (products ?? []).sort((a: any, b: any) => {
       const timeA = new Date(a.createdAt || a.created_at || 0).getTime();
       const timeB = new Date(b.createdAt || b.created_at || 0).getTime();
@@ -41,34 +57,51 @@ export async function GET() {
 
     return NextResponse.json({ success: true, products: sortedProducts });
   } catch (error: any) {
-    console.error('[API /products] Unexpected error:', error);
+    console.error('[API /products] Fallback error:', error);
     return NextResponse.json({ success: false, products: [], message: error.message }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
+  let body: any;
   try {
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    body = {};
+  }
 
+  try {
+    // 1. Try posting to deployed API server
+    const apiRes = await fetch(`${API_BASE_URL}/products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    console.warn('[API Proxy /products POST] Primary API error, using Supabase fallback:', err?.message || err);
+  }
+
+  // 2. Fallback to Supabase insert
+  try {
     if (!supabaseAdmin) {
-      console.warn('[API /products POST] supabaseAdmin is not initialized. Product not saved to DB.');
-      return NextResponse.json({ success: false, product: null, message: 'Database not configured. Check SUPABASE_SERVICE_ROLE_KEY.' }, { status: 503 });
+      return NextResponse.json({ success: false, product: null, message: 'Database not configured.' }, { status: 503 });
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('products')
-      .insert([body])
-      .select()
-      .single();
+    const { data, error } = await supabaseAdmin.from('products').insert([body]).select().single();
 
     if (error) {
-      console.error('[API /products POST] Supabase insert error:', error.message, error.details);
       return NextResponse.json({ success: false, product: null, message: error.message }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, product: data });
   } catch (error: any) {
-    console.error('[API /products POST] Unexpected error:', error);
     return NextResponse.json({ success: false, product: null, message: error.message }, { status: 500 });
   }
 }

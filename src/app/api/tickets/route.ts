@@ -1,10 +1,12 @@
 /**
- * /api/tickets — Support ticket creation and listing
+ * /api/tickets — Support ticket creation and listing API
  *
- * Uses supabaseAdmin (service role) for reliable read/write access.
+ * Proxies to deployed API server (https://api-zenov.bornobyte.com/api/tickets)
+ * with automatic fallback to Supabase Admin and Resend email.
  */
 
 import { NextResponse } from 'next/server';
+import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { sendContactUsEmail } from '@/lib/resend';
 
@@ -12,8 +14,23 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const apiRes = await fetch(`${API_BASE_URL}/tickets`, {
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success && Array.isArray(data.tickets)) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    console.warn('[API Proxy /tickets GET] Primary API error, using Supabase fallback:', err?.message || err);
+  }
+
+  try {
     if (!supabaseAdmin) {
-      console.warn('[API /tickets GET] supabaseAdmin is not initialized. Check SUPABASE_SERVICE_ROLE_KEY.');
       return NextResponse.json({ success: true, tickets: [] });
     }
 
@@ -23,21 +40,41 @@ export async function GET() {
       .order('updatedAt', { ascending: false });
 
     if (error) {
-      console.error('[API /tickets GET] Supabase query error:', error.message);
       return NextResponse.json({ success: true, tickets: [] });
     }
 
     return NextResponse.json({ success: true, tickets: tickets ?? [] });
   } catch (error: any) {
-    console.error('[API /tickets GET] Unexpected error:', error);
     return NextResponse.json({ success: true, tickets: [] });
   }
 }
 
 export async function POST(request: Request) {
+  let body: any;
   try {
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    body = {};
+  }
 
+  try {
+    const apiRes = await fetch(`${API_BASE_URL}/tickets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    console.warn('[API Proxy /tickets POST] Primary API error, using Supabase fallback:', err?.message || err);
+  }
+
+  try {
     const id = body.id || 'tkt_' + Date.now();
     const ticketNumber =
       body.ticketNumber ||
@@ -56,14 +93,10 @@ export async function POST(request: Request) {
       messages: body.messages || [],
     };
 
-    // Send email notification (non-blocking)
     try {
-      const emailResult = await sendContactUsEmail(newTicket);
-      if (!emailResult.success) {
-        console.error('[API /tickets POST] Contact email failed. Resend error:', JSON.stringify(emailResult.error || emailResult.message));
-      }
+      await sendContactUsEmail(newTicket);
     } catch (mailErr: any) {
-      console.error('[API /tickets POST] Contact email threw an exception:', mailErr?.message || mailErr);
+      console.error('[API /tickets POST] Email notification exception:', mailErr?.message || mailErr);
     }
 
     if (!supabaseAdmin) {
@@ -77,13 +110,11 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      console.error('[API /tickets POST] Supabase insert error:', error.message);
       return NextResponse.json({ success: true, ticketNumber, ticket: newTicket });
     }
 
     return NextResponse.json({ success: true, ticketNumber, ticket: data || newTicket });
   } catch (error: any) {
-    console.error('[API /tickets POST] Unexpected error:', error);
     return NextResponse.json(
       { success: false, message: error.message, ticketNumber: 'TCK-' + Date.now() },
       { status: 500 }

@@ -1,14 +1,12 @@
 /**
- * /api/orders — Order creation and listing
+ * /api/orders — Order creation and listing API
  *
- * Uses supabaseAdmin (service role) so orders are always saved to the DB
- * regardless of any RLS restrictions on the anon role.
- *
- * Email notification is sent after a successful order insert.
- * Email failures are logged but do NOT fail the order response.
+ * Proxies requests to deployed API server (https://api-zenov.bornobyte.com/api/orders)
+ * with automatic fallback to Supabase Admin and Resend email notification if primary API is unreachable.
  */
 
 import { NextResponse } from 'next/server';
+import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { sendOrderNotificationEmail } from '@/lib/resend';
 
@@ -52,27 +50,39 @@ function parseOrderNotes(rawOrder: any) {
 
 export async function GET() {
   try {
+    const apiRes = await fetch(`${API_BASE_URL}/orders`, {
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success && Array.isArray(data.orders)) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    console.warn('[API Proxy /orders GET] Primary API server error, switching to Supabase fallback:', err?.message || err);
+  }
+
+  try {
     if (!supabaseAdmin) {
       console.warn('[API /orders GET] supabaseAdmin is not initialized. Check SUPABASE_SERVICE_ROLE_KEY.');
       return NextResponse.json({ success: true, orders: [] });
     }
 
-    // Try ordering by createdAt (camelCase schema in Supabase)
     let { data: orders, error } = await supabaseAdmin
       .from('orders')
       .select('*')
       .order('createdAt', { ascending: false });
 
-    // Fallback if schema uses created_at or unordered
     if (error) {
-      console.warn('[API /orders GET] order("createdAt") fallback:', error.message);
       const fallback = await supabaseAdmin.from('orders').select('*');
       orders = fallback.data ?? [];
       error = fallback.error;
     }
 
     if (error) {
-      console.error('[API /orders GET] Supabase query error:', error.message, error.details);
       return NextResponse.json({ success: false, orders: [], message: error.message }, { status: 500 });
     }
 
@@ -82,7 +92,7 @@ export async function GET() {
 
     return NextResponse.json({ success: true, orders: formattedOrders });
   } catch (error: any) {
-    console.error('[API /orders GET] Unexpected error:', error);
+    console.error('[API /orders GET] Fallback error:', error);
     return NextResponse.json({ success: false, orders: [], message: error.message }, { status: 500 });
   }
 }
@@ -98,11 +108,33 @@ function getClientIp(request: Request): string {
 }
 
 export async function POST(request: Request) {
+  let body: any;
   try {
-    const body = await request.json();
-    const clientIp = getClientIp(request);
+    body = await request.json();
+  } catch {
+    body = {};
+  }
+  const clientIp = getClientIp(request);
 
-    // Auto-generate order identifiers if missing
+  try {
+    const apiRes = await fetch(`${API_BASE_URL}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, ipAddress: clientIp }),
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    console.warn('[API Proxy /orders POST] Primary API server error, using Supabase fallback:', err?.message || err);
+  }
+
+  // Fallback save to Supabase + Resend email
+  try {
     const id = body.id || 'ord_' + Date.now();
     const orderNumber =
       body.orderNumber ||
@@ -118,7 +150,6 @@ export async function POST(request: Request) {
     const playerId = body.playerId || body.items?.[0]?.playerId || 'PLAYER_GUEST';
     const serverId = body.serverId || body.items?.[0]?.serverId || '';
 
-    // Metadata packed into notes for seamless database compatibility
     const metaObj = {
       customerName,
       customerPhone,
@@ -127,7 +158,6 @@ export async function POST(request: Request) {
       adminNotes: body.notes || body.adminNotes || '',
     };
 
-    // Exact schema payload matching Supabase orders table columns
     const dbOrder = {
       id,
       orderNumber,
@@ -148,7 +178,6 @@ export async function POST(request: Request) {
       updatedAt: body.updatedAt || new Date().toISOString(),
     };
 
-    // 1. Save order to Supabase database
     let savedOrder: any = dbOrder;
     if (supabaseAdmin) {
       const { data, error } = await supabaseAdmin
@@ -158,36 +187,24 @@ export async function POST(request: Request) {
         .single();
 
       if (error) {
-        console.error('[API /orders POST] Supabase insert error:', error.message, error.details, error.hint);
+        console.error('[API /orders POST] Supabase insert error:', error.message);
       } else if (data) {
         savedOrder = data;
       }
-    } else {
-      console.warn('[API /orders POST] supabaseAdmin is not initialized. Check SUPABASE_SERVICE_ROLE_KEY.');
     }
 
     const formattedSavedOrder = parseOrderNotes(savedOrder);
 
-    // 2. Send email notification (non-blocking, never fails the order)
     try {
-      const emailResult = await sendOrderNotificationEmail({
+      await sendOrderNotificationEmail({
         ...formattedSavedOrder,
         customerName,
         customerPhone,
         senderNumber,
         ipAddress: clientIp,
       });
-
-      if (!emailResult.success) {
-        console.error(
-          '[API /orders POST] Order email failed. Resend error:',
-          JSON.stringify(emailResult?.error || emailResult.message)
-        );
-      } else {
-        console.log('[API /orders POST] Order notification email sent successfully for order:', orderNumber);
-      }
     } catch (mailErr: any) {
-      console.error('[API /orders POST] Order email notification threw an exception:', mailErr?.message || mailErr);
+      console.error('[API /orders POST] Order email notification exception:', mailErr?.message || mailErr);
     }
 
     return NextResponse.json({ success: true, orderNumber, order: formattedSavedOrder });
@@ -199,4 +216,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

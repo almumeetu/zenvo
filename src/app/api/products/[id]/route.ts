@@ -1,10 +1,11 @@
 /**
- * /api/products/[id] — Single product update and delete
+ * /api/products/[id] — Single product update and delete API
  *
- * Uses supabaseAdmin (service role) to bypass RLS for write operations.
+ * Proxies requests to deployed API server with fallback to Supabase Admin.
  */
 
 import { NextResponse } from 'next/server';
+import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
@@ -13,13 +14,34 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  let body: any;
   try {
-    const { id } = await params;
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    body = {};
+  }
 
+  try {
+    const apiRes = await fetch(`${API_BASE_URL}/products/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[API Proxy /products/${id} PUT] Primary API error, using Supabase fallback:`, err?.message || err);
+  }
+
+  try {
     if (!supabaseAdmin) {
-      console.warn('[API /products/[id] PUT] supabaseAdmin is not initialized. Product not updated in DB.');
-      return NextResponse.json({ success: false, product: null, message: 'Database not configured. Check SUPABASE_SERVICE_ROLE_KEY.' }, { status: 503 });
+      return NextResponse.json({ success: false, product: null, message: 'Database not configured.' }, { status: 503 });
     }
 
     const { data, error } = await supabaseAdmin
@@ -30,13 +52,11 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('[API /products/[id] PUT] Supabase update error:', error.message, error.details);
       return NextResponse.json({ success: false, product: null, message: error.message }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, product: data });
   } catch (error: any) {
-    console.error('[API /products/[id] PUT] Unexpected error:', error);
     return NextResponse.json({ success: false, product: null, message: error.message }, { status: 500 });
   }
 }
@@ -45,27 +65,37 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
+  const { id } = await params;
 
+  try {
+    const apiRes = await fetch(`${API_BASE_URL}/products/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[API Proxy /products/${id} DELETE] Primary API error, using Supabase fallback:`, err?.message || err);
+  }
+
+  try {
     if (!supabaseAdmin) {
-      console.warn('[API /products/[id] DELETE] supabaseAdmin is not initialized. Product not deleted from DB.');
-      return NextResponse.json({ success: false, message: 'Database not configured. Check SUPABASE_SERVICE_ROLE_KEY.' }, { status: 503 });
+      return NextResponse.json({ success: false, message: 'Database not configured.' }, { status: 503 });
     }
 
-    const { error } = await supabaseAdmin
-      .from('products')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabaseAdmin.from('products').delete().eq('id', id);
 
     if (error) {
-      console.error('[API /products/[id] DELETE] Supabase delete error:', error.message, error.details);
       return NextResponse.json({ success: false, message: error.message }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
   } catch (error: any) {
-    console.error('[API /products/[id] DELETE] Unexpected error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }

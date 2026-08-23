@@ -5,7 +5,20 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Product, CategoryType, CurrencyCode } from '../types';
 import { ProductCard } from './ProductCard';
-import { Flame, Gamepad2, Smartphone, Gift, Crown, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { useApp } from '@/lib/AppStateContext';
+import {
+  Flame,
+  Gamepad2,
+  Smartphone,
+  Gift,
+  Crown,
+  Layers,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -18,6 +31,17 @@ interface ProductGridProps {
   onSelectProduct: (product: Product) => void;
   loading?: boolean;
 }
+
+const ICON_MAP: Record<string, React.ReactNode> = {
+  Gamepad2: <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />,
+  Smartphone: <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />,
+  Gift: <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />,
+  Crown: <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />,
+  Layers: <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />,
+  Sparkles: <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />,
+};
+
+const COLOR_CYCLE: ('blue' | 'purple' | 'amber' | 'emerald')[] = ['blue', 'purple', 'amber', 'emerald'];
 
 // Perfect 3-Column Skeleton card matching the exact ProductCard layout
 const SkeletonCard = () => (
@@ -320,26 +344,23 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   onSelectProduct,
   loading = false,
 }) => {
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    hot: false,
-    gameTopup: false,
-    socialTopup: false,
-    giftCard: false,
-    subscription: false,
-  });
+  const { categories } = useApp();
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   const toggleSection = (section: string) =>
     setExpandedSections((p) => ({ ...p, [section]: !p[section] }));
 
+  // Filter active categories
+  const activeCategories = (categories ?? []).filter((c) => c.active !== false);
+
   // Highlight and trending shows all products (hot products prioritized first)
   const displayHot = [...products].sort((a, b) => (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0));
-  const gameTopupProducts = products.filter((p) => p.category === 'game-topup');
-  const socialTopupProducts = products.filter((p) => p.category === 'social-topup');
-  const giftCardProducts = products.filter((p) => p.category === 'gift-card');
-  const subscriptionProducts = products.filter((p) => p.category === 'subscription');
 
   if (selectedCategory !== 'all') {
+    const matchedCategory = activeCategories.find((c) => c.slug === selectedCategory);
+    const categoryTitle = matchedCategory ? matchedCategory.name : selectedCategory.replace('-', ' ');
     const filtered = products.filter((p) => p.category === selectedCategory);
+
     return (
       <div className="max-w-7xl mx-auto px-2 min-[380px]:px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
         <div className="flex items-center gap-2.5 mb-3.5 sm:mb-6">
@@ -349,7 +370,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
               Category
             </p>
             <h2 className="text-base sm:text-2xl font-black tracking-tight text-zenov-text uppercase">
-              {selectedCategory.replace('-', ' ')}
+              {categoryTitle}
             </h2>
           </div>
           <span className="text-[11px] sm:text-xs font-semibold text-zenov-text-muted ml-1.5">
@@ -413,51 +434,32 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         selectedCurrency={selectedCurrency}
         onSelectProduct={onSelectProduct}
       />
-      <ProductSection
-        title="Game Top Up"
-        icon={<Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />}
-        items={gameTopupProducts}
-        sectionKey="gameTopup"
-        isExpanded={expandedSections.gameTopup}
-        onToggle={toggleSection}
-        selectedCurrency={selectedCurrency}
-        onSelectProduct={onSelectProduct}
-        themeColor="blue"
-      />
-      <ProductSection
-        title="Social Top Up"
-        icon={<Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />}
-        items={socialTopupProducts}
-        sectionKey="socialTopup"
-        isExpanded={expandedSections.socialTopup}
-        onToggle={toggleSection}
-        selectedCurrency={selectedCurrency}
-        onSelectProduct={onSelectProduct}
-        themeColor="purple"
-      />
-      <ProductSection
-        title="Gift Cards"
-        icon={<Gift className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />}
-        items={giftCardProducts}
-        sectionKey="giftCard"
-        isExpanded={expandedSections.giftCard}
-        onToggle={toggleSection}
-        selectedCurrency={selectedCurrency}
-        onSelectProduct={onSelectProduct}
-        themeColor="amber"
-      />
-      <ProductSection
-        title="Subscriptions & Accounts"
-        icon={<Crown className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />}
-        items={subscriptionProducts}
-        sectionKey="subscription"
-        isExpanded={expandedSections.subscription}
-        onToggle={toggleSection}
-        selectedCurrency={selectedCurrency}
-        onSelectProduct={onSelectProduct}
-        themeColor="emerald"
-      />
+
+      {/* Dynamically render a ProductSection for every active Category */}
+      {activeCategories.map((categoryItem, index) => {
+        const categoryProducts = products.filter((p) => p.category === categoryItem.slug);
+        const iconNode =
+          (categoryItem.icon && ICON_MAP[categoryItem.icon]) || (
+            <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
+          );
+        const themeColor = COLOR_CYCLE[index % COLOR_CYCLE.length];
+
+        return (
+          <ProductSection
+            key={categoryItem.id || categoryItem.slug}
+            title={categoryItem.name}
+            badge={categoryItem.badge}
+            icon={iconNode}
+            items={categoryProducts}
+            sectionKey={categoryItem.slug}
+            isExpanded={Boolean(expandedSections[categoryItem.slug])}
+            onToggle={toggleSection}
+            selectedCurrency={selectedCurrency}
+            onSelectProduct={onSelectProduct}
+            themeColor={themeColor}
+          />
+        );
+      })}
     </div>
   );
 };
-

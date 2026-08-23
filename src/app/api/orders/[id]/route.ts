@@ -1,10 +1,12 @@
 /**
  * /api/orders/[id] — Single order update (status changes from admin panel)
  *
- * Uses supabaseAdmin (service role) to bypass RLS for write operations.
+ * Proxies to deployed API server (PUT /api/orders/:id or PUT /api/admin/orders/:id/status)
+ * with automatic fallback to Supabase Admin.
  */
 
 import { NextResponse } from 'next/server';
+import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
@@ -34,16 +36,43 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  let body: any;
   try {
-    const { id } = await params;
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    body = {};
+  }
 
+  // 1. Try primary backend API endpoints
+  try {
+    // Check if status-only update or general order update
+    const endpoint = body.status
+      ? `${API_BASE_URL}/admin/orders/${id}/status`
+      : `${API_BASE_URL}/orders/${id}`;
+
+    const apiRes = await fetch(endpoint, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success) {
+        return NextResponse.json(data);
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[API Proxy /orders/${id} PUT] Primary API error, using Supabase fallback:`, err?.message || err);
+  }
+
+  // 2. Fallback to direct Supabase update
+  try {
     if (!supabaseAdmin) {
-      console.warn('[API /orders/[id] PUT] supabaseAdmin is not initialized. Order status not updated in DB.');
-      return NextResponse.json({ success: false, order: null, message: 'Database not configured. Check SUPABASE_SERVICE_ROLE_KEY.' }, { status: 503 });
+      return NextResponse.json({ success: false, order: null, message: 'Database not configured.' }, { status: 503 });
     }
 
-    // Build sanitized update payload
     const updatePayload: Record<string, any> = {
       updatedAt: new Date().toISOString(),
     };
@@ -54,7 +83,6 @@ export async function PUT(
       }
     }
 
-    // If extra customer metadata is provided, preserve or update in notes
     if (body.customerName || body.customerPhone || body.senderNumber || body.adminNotes) {
       const meta = {
         customerName: body.customerName,
@@ -66,7 +94,6 @@ export async function PUT(
       updatePayload.notes = JSON.stringify(meta);
     }
 
-    // Try matching by row id first
     let { data, error } = await supabaseAdmin
       .from('orders')
       .update(updatePayload)
@@ -75,7 +102,6 @@ export async function PUT(
       .single();
 
     if (error) {
-      // Fall back to orderNumber match (admin panel may use either)
       const altResult = await supabaseAdmin
         .from('orders')
         .update(updatePayload)
@@ -84,7 +110,6 @@ export async function PUT(
         .single();
 
       if (altResult.error) {
-        console.error('[API /orders/[id] PUT] Supabase update error:', altResult.error.message);
         return NextResponse.json({ success: false, order: null, message: altResult.error.message }, { status: 400 });
       }
       data = altResult.data;
@@ -92,8 +117,6 @@ export async function PUT(
 
     return NextResponse.json({ success: true, order: data });
   } catch (error: any) {
-    console.error('[API /orders/[id] PUT] Unexpected error:', error);
     return NextResponse.json({ success: false, order: null, message: error.message }, { status: 500 });
   }
 }
-
