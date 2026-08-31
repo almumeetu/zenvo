@@ -77,65 +77,71 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </button>
               </div>
             ) : (
-              cartItems.map((item, idx) => (
-                <div
-                  key={`${item.productId}-${item.denomination.id}-${idx}`}
-                  className="bg-zenov-surface/60 border border-zenov-border rounded-xl p-3.5 flex gap-3 items-center hover:border-zenov-border-hover transition-colors"
-                >
-                  <img
-                    src={item.productImage}
-                    alt={item.productTitle}
-                    className="w-12 h-12 rounded-lg object-cover border border-zenov-border shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-zenov-text truncate">
-                      {item.productTitle}
-                    </h4>
-                    <p className="text-[11px] text-zenov-primary font-medium mt-0.5 truncate">
-                      {item.denomination.name}
-                    </p>
-                    <p className="text-[10px] text-zenov-text-muted mt-0.5 font-mono">
-                      UID: {item.playerId}
-                    </p>
-                  </div>
+              cartItems.map((item, idx) => {
+                const denomId = item.denomination?.id || `denom_${idx}`;
+                const denomName = item.denomination?.name || item.denomination?.label || (item as any)?.packageName || 'Package';
+                const denomAmount = item.denomination?.amount ?? (item as any)?.price ?? 0;
 
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-black text-zenov-text font-mono">
-                      {formatCurrency(item.denomination.amount * item.quantity, selectedCurrency)}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1.5 justify-end">
-                      <button
-                        onClick={() =>
-                          onUpdateQuantity(item.productId, item.denomination.id, Math.max(1, item.quantity - 1))
-                        }
-                        className="w-6 h-6 rounded-md bg-zenov-card border border-zenov-border hover:border-zenov-primary-border hover:text-zenov-primary text-zenov-text-secondary transition-all inline-flex items-center justify-center"
-                        aria-label="Decrease quantity"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="text-xs font-mono px-1.5 min-w-[22px] text-center text-zenov-text font-semibold">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          onUpdateQuantity(item.productId, item.denomination.id, item.quantity + 1)
-                        }
-                        className="w-6 h-6 rounded-md bg-zenov-card border border-zenov-border hover:border-zenov-primary-border hover:text-zenov-primary text-zenov-text-secondary transition-all inline-flex items-center justify-center"
-                        aria-label="Increase quantity"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => onRemoveItem(item.productId, item.denomination.id)}
-                        className="p-1.5 rounded-md text-zenov-text-muted hover:text-zenov-error hover:bg-zenov-error-soft ml-1 transition-colors"
-                        aria-label="Remove item"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                return (
+                  <div
+                    key={`${item.productId}-${denomId}-${idx}`}
+                    className="bg-zenov-surface/60 border border-zenov-border rounded-xl p-3.5 flex gap-3 items-center hover:border-zenov-border-hover transition-colors"
+                  >
+                    <img
+                      src={item.productImage || ''}
+                      alt={item.productTitle || ''}
+                      className="w-12 h-12 rounded-lg object-cover border border-zenov-border shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-zenov-text truncate">
+                        {item.productTitle}
+                      </h4>
+                      <p className="text-[11px] text-zenov-primary font-medium mt-0.5 truncate">
+                        {denomName}
+                      </p>
+                      <p className="text-[10px] text-zenov-text-muted mt-0.5 font-mono">
+                        UID: {item.playerId}
+                      </p>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-black text-zenov-text font-mono">
+                        {formatCurrency(denomAmount * item.quantity, selectedCurrency)}
+                      </p>
+                      <div className="flex items-center gap-1 mt-1.5 justify-end">
+                        <button
+                          onClick={() =>
+                            onUpdateQuantity(item.productId, denomId, Math.max(1, item.quantity - 1))
+                          }
+                          className="w-6 h-6 rounded-md bg-zenov-card border border-zenov-border hover:border-zenov-primary-border hover:text-zenov-primary text-zenov-text-secondary transition-all inline-flex items-center justify-center"
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="text-xs font-mono px-1.5 min-w-[22px] text-center text-zenov-text font-semibold">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            onUpdateQuantity(item.productId, denomId, item.quantity + 1)
+                          }
+                          className="w-6 h-6 rounded-md bg-zenov-card border border-zenov-border hover:border-zenov-primary-border hover:text-zenov-primary text-zenov-text-secondary transition-all inline-flex items-center justify-center"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => onRemoveItem(item.productId, denomId)}
+                          className="p-1.5 rounded-md text-zenov-text-muted hover:text-zenov-error hover:bg-zenov-error-soft ml-1 transition-colors"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

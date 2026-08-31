@@ -203,26 +203,26 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                     className="p-3 rounded-xl bg-zenov-card border border-zenov-border/80 flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-3">
-                      {item.productImage && (
+                      {item?.productImage && (
                         <img
                           src={item.productImage}
-                          alt={item.productTitle}
+                          alt={item.productTitle || ''}
                           className="w-10 h-10 rounded-lg object-cover bg-zenov-surface"
                         />
                       )}
                       <div>
-                        <p className="font-bold text-zenov-text leading-tight">{item.productTitle}</p>
+                        <p className="font-bold text-zenov-text leading-tight">{item?.productTitle || 'Product'}</p>
                         <p className="text-xs text-zenov-text-secondary">
-                          {item.denomination.name} × {item.quantity}
+                          {item?.denomination?.name || item?.denomination?.label || (item as any)?.packageName || 'Standard Package'} × {item?.quantity || 1}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-mono font-black text-zenov-success">
-                        {formatCurrency(item.denomination.amount * item.quantity, selectedCurrency)}
+                        {formatCurrency((item?.denomination?.amount ?? (item as any)?.price ?? 0) * (item?.quantity || 1), selectedCurrency)}
                       </p>
                       <p className="text-[10px] font-mono text-zenov-text-muted">
-                        ৳{(item.denomination.priceBDT || Math.round(item.denomination.amount * 120)) * item.quantity}
+                        ৳{((item?.denomination?.priceBDT || Math.round((item?.denomination?.amount ?? (item as any)?.price ?? 0) * 120))) * (item?.quantity || 1)}
                       </p>
                     </div>
                   </div>

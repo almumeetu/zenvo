@@ -246,7 +246,7 @@ export default function CartPage() {
                           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zenov-primary-soft text-zenov-primary text-[9px] sm:text-[10px] font-bold">
                               <Tag className="w-2.5 h-2.5" />
-                              {item.denomination.label || item.denomination.name}
+                              {item.denomination?.label || item.denomination?.name || (item as any).packageName || 'Package'}
                             </span>
                             {item.playerId && (
                               <span className="text-[9.5px] sm:text-[10px] font-mono text-zenov-text-muted truncate">
@@ -261,27 +261,27 @@ export default function CartPage() {
                       <div className="sm:col-span-2 sm:text-center w-full flex justify-between sm:block">
                         <span className="sm:hidden text-[10px] text-zenov-text-muted font-semibold">Unit Price:</span>
                         <span className="font-mono font-bold text-xs sm:text-sm text-zenov-text">
-                          {formatCurrency(item.denomination.amount, selectedCurrency)}
+                          {formatCurrency(item.denomination?.amount ?? (item as any).price ?? 0, selectedCurrency)}
                         </span>
                       </div>
 
-                      {/* Quantity Controller (Col 9-10) */}
-                      <div className="sm:col-span-2 sm:flex sm:justify-center w-full flex justify-between items-center">
+                      {/* Quantity Selector (Col 9-10) */}
+                      <div className="sm:col-span-2 flex items-center justify-between sm:justify-center w-full">
                         <span className="sm:hidden text-[10px] text-zenov-text-muted font-semibold">Quantity:</span>
                         <div className="flex items-center gap-1 p-0.5 rounded-lg bg-zenov-surface border border-zenov-border">
                           <button
-                            onClick={() => updateCartQuantity(item.productId, item.denomination.id, item.quantity - 1)}
+                            onClick={() => updateCartQuantity(item.productId, item.denomination?.id || '', item.quantity - 1)}
                             disabled={item.quantity <= 1}
                             className="p-1 rounded-md text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-card transition-colors disabled:opacity-30 cursor-pointer"
                             aria-label="Decrease quantity"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="min-w-[24px] text-center font-mono font-black text-xs">
+                          <span className="text-xs font-mono px-1.5 min-w-[22px] text-center text-zenov-text font-semibold">
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateCartQuantity(item.productId, item.denomination.id, item.quantity + 1)}
+                            onClick={() => updateCartQuantity(item.productId, item.denomination?.id || '', item.quantity + 1)}
                             className="p-1 rounded-md text-zenov-text-muted hover:text-zenov-text hover:bg-zenov-card transition-colors cursor-pointer"
                             aria-label="Increase quantity"
                           >
@@ -290,15 +290,15 @@ export default function CartPage() {
                         </div>
                       </div>
 
-                      {/* Line Subtotal & Delete Action (Col 11-12) */}
-                      <div className="sm:col-span-2 flex items-center justify-between sm:justify-end gap-2 w-full pt-1 sm:pt-0 border-t sm:border-0 border-zenov-border/40">
+                      {/* Total & Delete (Col 11-12) */}
+                      <div className="sm:col-span-2 flex items-center justify-between sm:justify-end gap-2 w-full pt-1.5 sm:pt-0 border-t border-zenov-border/40 sm:border-t-0">
                         <span className="sm:hidden text-[10px] text-zenov-text-muted font-semibold">Total:</span>
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-black text-xs sm:text-sm text-zenov-primary">
-                            {formatCurrency(item.denomination.amount * item.quantity, selectedCurrency)}
+                            {formatCurrency((item.denomination?.amount ?? (item as any).price ?? 0) * item.quantity, selectedCurrency)}
                           </span>
                           <button
-                            onClick={() => removeCartItem(item.productId, item.denomination.id)}
+                            onClick={() => removeCartItem(item.productId, item.denomination?.id || '')}
                             className="p-1.5 rounded-lg text-zenov-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                             title="Remove item"
                             aria-label="Remove item"

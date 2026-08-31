@@ -219,12 +219,16 @@ export const QuickTopUpModal: React.FC<QuickTopUpModalProps> = ({
                 SELECT PACKAGE
               </label>
 
-               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {product.denominations.map((denom) => {
-                  const isSelected = selectedDenom.id === denom.id;
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {(product?.denominations || []).map((denom, idx) => {
+                  const denomId = denom?.id || `denom_${idx}`;
+                  const isSelected = selectedDenom?.id === denomId;
+                  const denomName = denom?.name || denom?.label || 'Package';
+                  const denomAmount = denom?.amount ?? 0;
+
                   return (
                     <button
-                      key={denom.id}
+                      key={denomId}
                       onClick={() => setSelectedDenom(denom)}
                       className={`p-3 rounded-xl border text-left transition-all duration-200 relative overflow-hidden group ${
                         isSelected
@@ -232,14 +236,14 @@ export const QuickTopUpModal: React.FC<QuickTopUpModalProps> = ({
                           : 'bg-zenov-card border-zenov-border hover:border-zenov-primary-border/60 text-zenov-secondary hover:text-zenov-text'
                       }`}
                     >
-                      {denom.bonus && (
+                      {denom?.bonus && (
                         <span className="absolute top-0 right-0 px-2 py-0.5 bg-zenov-accent text-zenov-bg text-[9px] font-mono font-black rounded-bl-lg">
                           {denom.bonus}
                         </span>
                       )}
-                      <p className="text-xs font-medium">{denom.name}</p>
+                      <p className="text-xs font-medium">{denomName}</p>
                       <p className="text-sm font-black font-mono text-zenov-primary mt-1">
-                        {formatCurrency(denom.amount, selectedCurrency)}
+                        {formatCurrency(denomAmount, selectedCurrency)}
                       </p>
                     </button>
                   );

@@ -55,14 +55,14 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     return () => ctx.revert();
   }, [dynamicCategories]);
 
-  const activeCategories = dynamicCategories.filter((c) => c.active !== false);
+  const activeCategories = (dynamicCategories || []).filter((c) => c && c.active !== false);
 
   const displayList: { id: string; label: string; icon: React.ReactNode }[] = [
     { id: 'all', label: 'All Categories', icon: <Layers className="w-4 h-4" /> },
     ...activeCategories.map((c) => ({
-      id: c.slug,
-      label: c.name,
-      icon: (c.icon && ICON_MAP[c.icon]) || <Gamepad2 className="w-4 h-4" />,
+      id: c?.slug || c?.id || '',
+      label: c?.name || c?.slug || 'Category',
+      icon: (c?.icon && ICON_MAP[c.icon]) || <Gamepad2 className="w-4 h-4" />,
     })),
   ];
 

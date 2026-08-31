@@ -442,12 +442,12 @@ export default function TopUpPage() {
                           </div>
                           <div className="min-w-0">
                             <span className={`text-xs sm:text-sm font-bold block transition-colors leading-tight ${active ? 'text-zenov-primary' : 'text-zenov-text'}`}>
-                              {d.label || d.name}
+                              {d?.label || d?.name || 'Package'}
                             </span>
                             {/* Bonus or Extra Info Badge */}
-                            {(d.bonusAmount || d.bonus || d.bonusLabel) && (
+                            {(d?.bonusAmount || d?.bonus || d?.bonusLabel) && (
                               <span className="inline-block text-[9px] font-bold text-zenov-accent mt-1 bg-zenov-accent-soft/30 px-2 py-0.5 rounded border border-zenov-accent-border/20">
-                                {d.bonusLabel || d.bonus}
+                                {d?.bonusLabel || d?.bonus}
                               </span>
                             )}
                           </div>
@@ -456,9 +456,9 @@ export default function TopUpPage() {
                         <div className="flex items-center gap-2.5 shrink-0 pl-2">
                           <div className="text-right">
                             <span className="text-xs sm:text-sm font-black text-zenov-text font-mono leading-none">
-                              {formatCurrency(d.amount, selectedCurrency)}
+                              {formatCurrency(d?.amount ?? 0, selectedCurrency)}
                             </span>
-                            {d.originalAmount && d.originalAmount > d.amount && (
+                            {d?.originalAmount && d.originalAmount > (d?.amount ?? 0) && (
                               <p className="text-[10px] text-zenov-text-muted line-through font-mono leading-tight mt-0.5">
                                 {formatCurrency(d.originalAmount, selectedCurrency)}
                               </p>
@@ -477,16 +477,17 @@ export default function TopUpPage() {
               ) : (
                 /* Grid Layout (Clean 3-column, optimized badges) */
                 <div className="grid grid-cols-3 gap-2">
-                  {product.denominations.map((d) => {
-                    const active = d.id === selectedDenom;
-                    const save = d.originalAmount && d.originalAmount > d.amount
+                  {(product?.denominations || []).map((d, idx) => {
+                    const denomId = d?.id || `denom_${idx}`;
+                    const active = denomId === selectedDenom;
+                    const save = d?.originalAmount && d?.amount && d.originalAmount > d.amount
                       ? Math.round((1 - d.amount / d.originalAmount) * 100)
                       : 0;
                     return (
                       <button
-                        key={d.id}
+                        key={denomId}
                         type="button"
-                        onClick={() => setSelectedDenom(d.id)}
+                        onClick={() => setSelectedDenom(denomId)}
                         className={`relative text-left p-2.5 rounded-xl border transition-all active:scale-[0.96] group cursor-pointer ${
                           active
                             ? 'bg-zenov-primary-soft/40 border-zenov-primary ring-1 ring-zenov-primary-border/40 shadow-md shadow-zenov-primary/5'
@@ -499,14 +500,14 @@ export default function TopUpPage() {
                           </span>
                         )}
                         <p className={`text-[10px] sm:text-xs font-black leading-snug truncate ${active ? 'text-zenov-primary' : 'text-zenov-text'}`}>
-                          {d.label || d.name}
+                          {d?.label || d?.name || 'Package'}
                         </p>
                         <p className="text-[10px] sm:text-[11px] mt-0.5 text-zenov-text-secondary font-bold leading-tight">
-                          {formatCurrency(d.amount, selectedCurrency)}
+                          {formatCurrency(d?.amount ?? 0, selectedCurrency)}
                         </p>
-                        {(d.bonusAmount || d.bonus || d.bonusLabel) && (
+                        {(d?.bonusAmount || d?.bonus || d?.bonusLabel) && (
                           <p className="text-[8px] sm:text-[9px] mt-0.5 text-zenov-accent font-semibold leading-tight truncate">
-                            {d.bonusLabel || d.bonus}
+                            {d?.bonusLabel || d?.bonus}
                           </p>
                         )}
                       </button>

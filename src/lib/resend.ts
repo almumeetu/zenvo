@@ -12,7 +12,10 @@
  */
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
+const ADMIN_NOTIFICATION_EMAIL =
+  process.env.ADMIN_NOTIFICATION_EMAIL ||
+  process.env.RESEND_TO_EMAIL ||
+  'zenovgamesbd@gmail.com';
 const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ZENOV Gaming <onboarding@resend.dev>';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://zenvo-gaming.vercel.app';
 

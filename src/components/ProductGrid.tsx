@@ -354,15 +354,15 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
     setExpandedSections((p) => ({ ...p, [section]: !p[section] }));
 
   // Filter active categories
-  const activeCategories = (categories ?? []).filter((c) => c.active !== false);
+  const activeCategories = (categories ?? []).filter((c) => c && c.active !== false);
 
   // Highlight and trending shows all products (hot products prioritized first)
-  const displayHot = [...products].sort((a, b) => (b.isHot ? 1 : 0) - (a.isHot ? 1 : 0));
+  const displayHot = [...(products || [])].sort((a, b) => ((b && b.isHot) ? 1 : 0) - ((a && a.isHot) ? 1 : 0));
 
   if (selectedCategory !== 'all') {
-    const matchedCategory = activeCategories.find((c) => c.slug === selectedCategory);
-    const categoryTitle = matchedCategory ? matchedCategory.name : selectedCategory.replace('-', ' ');
-    const filtered = products.filter((p) => p.category === selectedCategory);
+    const matchedCategory = activeCategories.find((c) => c && c.slug === selectedCategory);
+    const categoryTitle = matchedCategory?.name || selectedCategory.replace('-', ' ');
+    const filtered = (products || []).filter((p) => p && p.category === selectedCategory);
 
     return (
       <div className="max-w-7xl mx-auto px-2 min-[380px]:px-3 sm:px-6 lg:px-8 py-3 sm:py-6">
@@ -385,7 +385,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1.5 min-[380px]:gap-2 sm:gap-3 lg:gap-4">
           {filtered.map((product, idx) => (
             <ProductCard
-              key={product.id}
+              key={product?.id || idx}
               product={product}
               selectedCurrency={selectedCurrency}
               onSelectProduct={onSelectProduct}
@@ -411,7 +411,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   // Empty state — products loaded but DB returned nothing
-  if (!loading && products.length === 0) {
+  if (!loading && (!products || products.length === 0)) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col items-center justify-center text-center">
         <div className="w-14 h-14 rounded-2xl bg-zenov-primary-soft border border-zenov-primary-border flex items-center justify-center mb-3">
@@ -440,7 +440,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 
       {/* Dynamically render a ProductSection for every active Category */}
       {activeCategories.map((categoryItem, index) => {
-        const categoryProducts = products.filter((p) => p.category === categoryItem.slug);
+        if (!categoryItem) return null;
+        const categoryProducts = (products || []).filter((p) => p && p.category === categoryItem.slug);
         const iconNode =
           (categoryItem.icon && ICON_MAP[categoryItem.icon]) || (
             <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
@@ -449,8 +450,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 
         return (
           <ProductSection
-            key={categoryItem.id || categoryItem.slug}
-            title={categoryItem.name}
+            key={categoryItem.id || categoryItem.slug || index}
+            title={categoryItem.name || categoryItem.slug || 'Category'}
             badge={categoryItem.badge}
             icon={iconNode}
             items={categoryProducts}

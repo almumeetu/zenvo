@@ -215,11 +215,18 @@ export const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
                   onChange={(e) => setSelectedDenomId(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text font-medium focus:border-zenov-primary focus:outline-none"
                 >
-                  {currentProduct?.denominations.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} — {formatCurrency(d.amount, selectedCurrency)} (৳{d.priceBDT || Math.round(d.amount * 120)})
-                    </option>
-                  ))}
+                  {(currentProduct?.denominations || []).map((d, idx) => {
+                    const denomId = d?.id || `denom_${idx}`;
+                    const denomName = d?.name || d?.label || `Package ${idx + 1}`;
+                    const denomAmount = d?.amount ?? 0;
+                    const priceBDT = d?.priceBDT || Math.round(denomAmount * 120);
+
+                    return (
+                      <option key={denomId} value={denomId}>
+                        {denomName} — {formatCurrency(denomAmount, selectedCurrency)} (৳{priceBDT})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>

@@ -115,26 +115,32 @@ export default function OrderConfirmationPage() {
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider text-zenov-text mb-3">Order Items</h3>
               <div className="space-y-2.5">
-                {order.items.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-zenov-surface/60 border border-zenov-border">
-                    {item.productImage && (
-                      <img src={item.productImage} alt="" className="w-12 h-12 rounded-lg object-cover border border-zenov-border shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-zenov-text truncate">{item.productTitle}</p>
-                      <p className="text-xs text-zenov-text-secondary">Package: {item.denomination.name}</p>
-                      {item.playerId && (
-                        <p className="text-xs font-mono text-zenov-text-muted mt-0.5">Player: {item.playerId}</p>
+                {(order.items || []).map((item, idx) => {
+                  const denomName = item?.denomination?.name || item?.denomination?.label || (item as any)?.packageName || 'Standard Package';
+                  const denomAmount = item?.denomination?.amount ?? (item as any)?.price ?? 0;
+                  const qty = item?.quantity || 1;
+
+                  return (
+                    <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-zenov-surface/60 border border-zenov-border">
+                      {item?.productImage && (
+                        <img src={item.productImage} alt="" className="w-12 h-12 rounded-lg object-cover border border-zenov-border shrink-0" />
                       )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-zenov-text truncate">{item?.productTitle || 'Top-Up'}</p>
+                        <p className="text-xs text-zenov-text-secondary">Package: {denomName}</p>
+                        {item?.playerId && (
+                          <p className="text-xs font-mono text-zenov-text-muted mt-0.5">Player: {item.playerId}</p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs text-zenov-text-muted">Qty {qty}</p>
+                        <p className="font-mono font-black text-zenov-text text-sm">
+                          {formatCurrency(denomAmount * qty, selectedCurrency)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-zenov-text-muted">Qty {item.quantity}</p>
-                      <p className="font-mono font-black text-zenov-text text-sm">
-                        {formatCurrency(item.denomination.amount * item.quantity, selectedCurrency)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
