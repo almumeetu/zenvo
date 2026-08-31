@@ -75,7 +75,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
         data?.name === 'validation_error';
 
       if (isRestricted) {
-        const fallbackAdmin = ADMIN_NOTIFICATION_EMAIL || 'almumeetu@gmail.com';
+        const fallbackAdmin = ADMIN_NOTIFICATION_EMAIL || 'zenovgamesbd@gmail.com';
         if (recipients.length > 1 || !recipients.includes(fallbackAdmin)) {
           console.log(`[Resend Fallback] Forwarding order invoice to verified admin inbox: ${fallbackAdmin}`);
           const fallbackRes = await fetch('https://api.resend.com/emails', {
@@ -229,8 +229,8 @@ export function parseOrderData(order: any): ParsedOrderDetails {
         denom.priceBDT !== undefined && Number(denom.priceBDT) > 0
           ? Number(denom.priceBDT)
           : item.priceBDT !== undefined && Number(item.priceBDT) > 0
-          ? Number(item.priceBDT)
-          : Math.round(unitPriceUSD * 120);
+            ? Number(item.priceBDT)
+            : Math.round(unitPriceUSD * 120);
 
       const totalPriceUSD = Number((unitPriceUSD * qty).toFixed(2));
       const totalPriceBDT = unitPriceBDT * qty;
@@ -277,8 +277,8 @@ export function parseOrderData(order: any): ParsedOrderDetails {
     sumItemsBDT > 0
       ? sumItemsBDT
       : order.currency === 'BDT' && Number(order.paidAmountCurrency) > 0
-      ? Number(order.paidAmountCurrency)
-      : Math.round(totalUSD * 120);
+        ? Number(order.paidAmountCurrency)
+        : Math.round(totalUSD * 120);
 
   return {
     orderNum,
@@ -322,8 +322,8 @@ export function generateOrderEmailHtml(order: any): string {
   const fulBadge = isDelivered
     ? { bg: '#064e3b', border: '#059669', text: '#34d399', label: 'DELIVERED TO IN-GAME UID' }
     : isProcessing
-    ? { bg: '#172554', border: '#2563eb', text: '#60a5fa', label: 'PROCESSING DELIVERY' }
-    : { bg: '#3b0764', border: '#7e22ce', text: '#c084fc', label: 'PENDING VERIFICATION' };
+      ? { bg: '#172554', border: '#2563eb', text: '#60a5fa', label: 'PROCESSING DELIVERY' }
+      : { bg: '#3b0764', border: '#7e22ce', text: '#c084fc', label: 'PENDING VERIFICATION' };
 
   // Items Table HTML Rows
   const itemsHtml = data.items
@@ -337,13 +337,11 @@ export function generateOrderEmailHtml(order: any): string {
           <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">
             Package: <span style="color: #38bdf8; font-weight: 700;">${item.packageName}</span>
           </div>
-          ${
-            item.playerId
-              ? `<div style="font-size: 11px; color: #64748b; font-family: monospace;">UID: <strong style="color: #cbd5e1;">${item.playerId}</strong>${
-                  item.serverId ? ` • Server: <strong style="color: #cbd5e1;">${item.serverId}</strong>` : ''
-                }</div>`
-              : ''
-          }
+          ${item.playerId
+          ? `<div style="font-size: 11px; color: #64748b; font-family: monospace;">UID: <strong style="color: #cbd5e1;">${item.playerId}</strong>${item.serverId ? ` • Server: <strong style="color: #cbd5e1;">${item.serverId}</strong>` : ''
+          }</div>`
+          : ''
+        }
           <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
             Rate: <span style="color: #10b981; font-weight: 600; font-family: monospace;">৳${item.unitPriceBDT.toLocaleString()}</span>
             <span style="color: #475569;"> / </span>
@@ -491,17 +489,16 @@ export function generateOrderEmailHtml(order: any): string {
                         ${data.playerId}
                       </span>
                     </td>
-                    ${
-                      data.serverId
-                        ? `
+                    ${data.serverId
+      ? `
                     <td style="padding: 4px 0; font-size: 13px; color: #cbd5e1; text-align: right;">
                       <strong style="color: #94a3b8; font-size: 12px; text-transform: uppercase;">Server / Zone:</strong>
                       <span style="font-family: monospace; font-size: 14px; font-weight: 800; color: #38bdf8; background: #070c18; padding: 4px 10px; border-radius: 8px; border: 1px solid #334155; margin-left: 6px;">
                         ${data.serverId}
                       </span>
                     </td>`
-                        : ''
-                    }
+      : ''
+    }
                   </tr>
                 </table>
               </td>
@@ -525,24 +522,22 @@ export function generateOrderEmailHtml(order: any): string {
               <td style="padding: 5px 0; font-size: 12px; color: #94a3b8;">Email Address:</td>
               <td style="padding: 5px 0; font-size: 12px; color: #38bdf8; font-family: monospace; font-weight: 600;">${data.customerEmail || 'N/A'}</td>
             </tr>
-            ${
-              data.customerPhone
-                ? `
+            ${data.customerPhone
+      ? `
             <tr>
               <td style="padding: 5px 0; font-size: 12px; color: #94a3b8;">Phone / WhatsApp:</td>
               <td style="padding: 5px 0; font-size: 12px; color: #34d399; font-family: monospace; font-weight: 700;">${data.customerPhone}</td>
             </tr>`
-                : ''
-            }
-            ${
-              data.ipAddress
-                ? `
+      : ''
+    }
+            ${data.ipAddress
+      ? `
             <tr>
               <td style="padding: 5px 0; font-size: 12px; color: #64748b;">Client IP:</td>
               <td style="padding: 5px 0; font-size: 11px; color: #64748b; font-family: monospace;">${data.ipAddress}</td>
             </tr>`
-                : ''
-            }
+      : ''
+    }
           </table>
         </td>
       </tr>
@@ -618,15 +613,14 @@ export function generateOrderEmailHtml(order: any): string {
               <td style="padding: 6px 0; font-size: 12px; color: #94a3b8; width: 38%;">Payment Gateway / Method:</td>
               <td style="padding: 6px 0; font-size: 13px; color: #f8fafc; font-weight: 800;">${data.paymentMethod}</td>
             </tr>
-            ${
-              data.senderNumber
-                ? `
+            ${data.senderNumber
+      ? `
             <tr>
               <td style="padding: 6px 0; font-size: 12px; color: #94a3b8;">Sender Account / Mobile:</td>
               <td style="padding: 6px 0; font-size: 13px; color: #fbbf24; font-family: monospace; font-weight: 800;">${data.senderNumber}</td>
             </tr>`
-                : ''
-            }
+      : ''
+    }
             <tr>
               <td style="padding: 6px 0; font-size: 12px; color: #94a3b8;">Transaction ID (TrxID):</td>
               <td style="padding: 6px 0; font-size: 13px; color: #38bdf8; font-family: monospace; font-weight: 900;">${data.transactionId}</td>
@@ -641,9 +635,8 @@ export function generateOrderEmailHtml(order: any): string {
         </td>
       </tr>
 
-      ${
-        data.adminNotes
-          ? `
+      ${data.adminNotes
+      ? `
       <!-- Admin Notes / Delivery PINs -->
       <tr>
         <td style="padding: 0 24px 20px 24px;">
@@ -655,8 +648,8 @@ ${data.adminNotes}
           </div>
         </td>
       </tr>`
-          : ''
-      }
+      : ''
+    }
 
       <!-- Live Order Tracking Button CTA -->
       <tr>
@@ -671,8 +664,8 @@ ${data.adminNotes}
               <td style="width: 12px;"></td>
               <td align="center" style="border-radius: 14px; background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);">
                 <a href="${DEFAULT_SITE_SETTINGS.whatsappLink || 'https://wa.me/8801300529836'}?text=${encodeURIComponent(
-    `Hi ZENOV Gaming, I have an inquiry regarding my order #${data.orderNum} (UID: ${data.playerId})`
-  )}" target="_blank" style="display: inline-block; padding: 14px 24px; font-size: 13px; font-weight: 900; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 1.2px; border-radius: 14px; box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);">
+      `Hi ZENOV Gaming, I have an inquiry regarding my order #${data.orderNum} (UID: ${data.playerId})`
+    )}" target="_blank" style="display: inline-block; padding: 14px 24px; font-size: 13px; font-weight: 900; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 1.2px; border-radius: 14px; box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);">
                   💬 WhatsApp Support
                 </a>
               </td>
