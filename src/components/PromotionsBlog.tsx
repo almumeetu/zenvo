@@ -15,7 +15,10 @@ export const PromotionsBlog: React.FC<PromotionsBlogProps> = ({ articles }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Disable all GSAP animations and ScrollTrigger on mobile for 100% native smooth scrolling
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
     if (!sectionRef.current) return;
+
     const cards = sectionRef.current.querySelectorAll('.blog-card');
     const header = sectionRef.current.querySelector('.blog-header');
     const ctx = gsap.context(() => {

@@ -114,8 +114,9 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // GSAP entrance animation (once on mount)
+  // GSAP entrance animation (once on mount - desktop only)
   useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
     if (!logoRef.current || !navRef.current) return;
     const navItems = navRef.current.querySelectorAll('a');
     const ctx = gsap.context(() => {

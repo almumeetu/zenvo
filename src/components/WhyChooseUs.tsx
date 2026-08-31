@@ -13,7 +13,10 @@ export const WhyChooseUs: React.FC = () => {
   const cardsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Disable all GSAP animations and ScrollTrigger on mobile for 100% native smooth scrolling
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
     if (!sectionRef.current) return;
+
     const cards = cardsRef.current?.querySelectorAll('.feature-card');
     const ctx = gsap.context(() => {
       if (headerRef.current) {
@@ -51,49 +54,49 @@ export const WhyChooseUs: React.FC = () => {
       icon: <Zap className="w-5 h-5" />,
       title: 'Sub-30 Sec Delivery',
       description:
-        'Automated OpenAPI integration credits diamonds and top-ups directly to your UID within seconds.',
-      iconBg: 'bg-zenov-accent-soft text-zenov-accent group-hover:bg-zenov-accent group-hover:text-zenov-bg border-zenov-accent-border',
+        'Automated order processing delivers gift cards, in-game credits, and voucher pins directly within seconds.',
+      iconBg: 'bg-cyan-500/15 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 border-cyan-500/30',
       stat: '<30s',
     },
     {
       icon: <ShieldCheck className="w-5 h-5" />,
-      title: '100% Secure & Authorized',
+      title: '100% Genuine & Authorized',
       description:
-        'Official direct publisher partnership with Garena, Krafton, Moonton, and EA Sports.',
-      iconBg: 'bg-zenov-success/15 text-zenov-success group-hover:bg-zenov-success group-hover:text-zenov-bg border-zenov-success/25',
+        'Direct sourced codes & official top-up vouchers for Free Fire, PUBG, Steam, PlayStation, Xbox, and Google Play.',
+      iconBg: 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-slate-950 border-emerald-500/30',
       stat: '100%',
     },
     {
       icon: <Headphones className="w-5 h-5" />,
-      title: '24/7 Dedicated Support',
+      title: '24/7 Human Support',
       description:
-        'Live chat, WhatsApp, and AI support assistants active round the clock to assist you.',
-      iconBg: 'bg-zenov-primary-soft text-zenov-primary group-hover:bg-zenov-primary group-hover:text-white border-zenov-primary-border',
+        'Live chat, WhatsApp (+880 1300-529836), and instant ticket resolution active 24/7 for all orders.',
+      iconBg: 'bg-blue-500/15 text-blue-400 group-hover:bg-blue-500 group-hover:text-white border-blue-500/30',
       stat: '24/7',
     },
     {
       icon: <Globe2 className="w-5 h-5" />,
-      title: 'Global Payment Gateways',
+      title: 'Trusted Local & Global Payments',
       description:
-        'Pay with bKash, Nagad, Rocket, Bank Transfer, USDT, and ZENOV Wallet — all secured.',
-      iconBg: 'bg-zenov-primary-soft text-zenov-primary group-hover:bg-zenov-primary group-hover:text-white border-zenov-primary-border',
-      stat: '10+',
+        'Seamlessly pay with bKash, Nagad, Rocket, Local Bank Transfer, or USDT (TRC20) with instant verification.',
+      iconBg: 'bg-purple-500/15 text-purple-400 group-hover:bg-purple-500 group-hover:text-white border-purple-500/30',
+      stat: '5+',
     },
     {
       icon: <Sparkles className="w-5 h-5" />,
-      title: 'Wallet Cashback Rewards',
+      title: 'Best Competitive Rates',
       description:
-        'Earn instant reward coins and bonus discounts on every ZENOV Wallet deposit and order.',
-      iconBg: 'bg-zenov-accent-soft text-zenov-accent group-hover:bg-zenov-accent group-hover:text-zenov-bg border-zenov-accent-border',
-      stat: 'VIP',
+        'Guaranteed lowest market pricing in BDT with real-time currency conversion and transparent checkout.',
+      iconBg: 'bg-amber-500/15 text-amber-400 group-hover:bg-amber-500 group-hover:text-slate-950 border-amber-500/30',
+      stat: 'BEST',
     },
     {
       icon: <Award className="w-5 h-5" />,
-      title: '1M+ Verified Gamers',
+      title: 'Verified Gamers Community',
       description:
-        'Trusted platform delivering over 5,000 top-ups daily with a 99.9% positive rating.',
-      iconBg: 'bg-zenov-success/15 text-zenov-success group-hover:bg-zenov-success group-hover:text-zenov-bg border-zenov-success/25',
-      stat: '1M+',
+        'Over 50,000+ happy mobile & PC gamers in Bangladesh trust ZENOV for fast and reliable digital gaming top-ups.',
+      iconBg: 'bg-rose-500/15 text-rose-400 group-hover:bg-rose-500 group-hover:text-white border-rose-500/30',
+      stat: '50K+',
     },
   ];
 
@@ -120,8 +123,7 @@ export const WhyChooseUs: React.FC = () => {
             experience
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-2.5 leading-relaxed max-w-2xl">
-            Millions of mobile and PC gamers trust ZENOV for lightning-fast, secure, and automated
-            gaming top-ups with official publisher-backed guarantees.
+            Join thousands of mobile and PC gamers across Bangladesh who rely on ZENOV for lightning-fast, secure, and authentic digital game codes and instant top-ups.
           </p>
         </div>
 

@@ -29,7 +29,10 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Disable GSAP animations on mobile for instant crisp tap and scroll response
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
     if (!filterRef.current) return;
+
     const buttons = filterRef.current.querySelectorAll('.category-btn');
     const ctx = gsap.context(() => {
       gsap.fromTo(

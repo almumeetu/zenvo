@@ -161,11 +161,6 @@ export const Footer: React.FC = () => {
       methodId: 'Crypto/USDT',
       color: 'text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/40',
     },
-    {
-      label: 'ZENOV Wallet',
-      methodId: 'Zenov Wallet',
-      color: 'text-zenov-primary hover:bg-zenov-primary-soft hover:border-zenov-primary-border',
-    },
   ];
 
   return (

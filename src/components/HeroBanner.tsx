@@ -32,18 +32,24 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
   useEffect(() => {
     if (!contentRef.current || !imageRef.current || isAnimating) return;
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+    // On mobile, keep elements visible instantly with no heavy layout shifts or 3D rotations
+    if (isMobile) {
+      if (imageRef.current) gsap.set(imageRef.current, { opacity: 0.4, scale: 1 });
+      return;
+    }
+
     const badge = contentRef.current.querySelector('.hero-badge');
     const words = contentRef.current.querySelectorAll('.hero-word');
     const subtitle = contentRef.current.querySelector('.hero-subtitle');
     const perks = contentRef.current.querySelector('.hero-perks');
     const cta = contentRef.current.querySelector('.hero-cta');
 
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
     const ctx = gsap.context(() => {
-      gsap.set([badge, subtitle, perks, cta], { opacity: 0, y: isMobile ? 10 : 18 });
-      gsap.set(words, { opacity: 0, y: isMobile ? 12 : 28, rotateX: isMobile ? 0 : -15 });
-      gsap.set(imageRef.current, { opacity: 0, scale: isMobile ? 1.02 : 1.08 });
+      gsap.set([badge, subtitle, perks, cta], { opacity: 0, y: 18 });
+      gsap.set(words, { opacity: 0, y: 28, rotateX: -15 });
+      gsap.set(imageRef.current, { opacity: 0, scale: 1.08 });
 
       const tl = gsap.timeline({
         defaults: { ease: 'power2.out' },
@@ -51,9 +57,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         onComplete: () => setIsAnimating(false),
       });
 
-      tl.to(imageRef.current, { opacity: 0.4, scale: 1, duration: isMobile ? 0.6 : 1.1, ease: 'power2.out' })
-        .to(badge, { opacity: 1, y: 0, duration: isMobile ? 0.3 : 0.45 }, isMobile ? '-=0.4' : '-=0.75')
-        .to(words, { opacity: 1, y: 0, rotateX: 0, duration: isMobile ? 0.35 : 0.5, stagger: 0.05, ease: 'power2.out' }, '-=0.2')
+      tl.to(imageRef.current, { opacity: 0.4, scale: 1, duration: 1.1, ease: 'power2.out' })
+        .to(badge, { opacity: 1, y: 0, duration: 0.45 }, '-=0.75')
+        .to(words, { opacity: 1, y: 0, rotateX: 0, duration: 0.5, stagger: 0.05, ease: 'power2.out' }, '-=0.2')
         .to(subtitle, { opacity: 1, y: 0, duration: 0.35 }, '-=0.2')
         .to(perks, { opacity: 1, y: 0, duration: 0.3 }, '-=0.2')
         .to(cta, { opacity: 1, y: 0, duration: 0.3 }, '-=0.2');
@@ -62,8 +68,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
     return () => ctx.revert();
   }, [currentIndex]);
 
-  // Scroll-triggered entrance for banner container
+  // Scroll-triggered entrance for banner container (desktop only)
   useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
     if (!sectionRef.current || !bannerRef.current) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(

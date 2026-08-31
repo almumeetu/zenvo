@@ -202,7 +202,10 @@ const ProductSection: React.FC<ProductSectionProps> = ({
   const visibleItems = isExpanded ? items : items.slice(0, defaultCount);
 
   useEffect(() => {
+    // Disable all GSAP animations on mobile for zero-latency instant rendering
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
     if (!sectionRef.current) return;
+
     const ctx = gsap.context(() => {
       if (headerRef.current) {
         gsap.fromTo(

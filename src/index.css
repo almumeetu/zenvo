@@ -526,7 +526,7 @@ body {
    MOBILE PERFORMANCE & BUTTERY-SMOOTH SCROLL OPTIMIZATION
    ============================================================ */
 @media (max-width: 768px) {
-  /* 1. Prevent heavy backdrop-filters from lagging GPU during scroll */
+  /* 1. Prevent heavy backdrop-filters from lagging GPU during mobile scrolling */
   .backdrop-blur-md,
   .backdrop-blur-lg,
   .backdrop-blur-xl,
@@ -536,27 +536,26 @@ body {
     background-color: rgba(11, 15, 23, 0.96) !important;
   }
 
-  /* 2. Hardware acceleration on scroll containers */
-  main,
-  section,
-  .overflow-x-auto,
-  .overflow-y-auto {
-    -webkit-overflow-scrolling: touch;
-    transform: translateZ(0);
-    will-change: scroll-position;
+  /* 2. Disable hover transforms & transitions on mobile touch to avoid sticky hover states */
+  .card-premium,
+  .magnetic-btn,
+  .feature-card,
+  .product-card {
+    transition: none !important;
+    transform: none !important;
   }
 
-  /* 3. Offload offscreen heavy sections with content-visibility */
-  #why-choose-us,
-  #promotions-blog {
-    content-visibility: auto;
-    contain-intrinsic-size: 0 400px;
+  .card-premium:hover,
+  .feature-card:hover,
+  .product-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
   }
 
-  /* 4. Simplify multi-layer shadows on mobile cards to keep 60-120fps */
+  /* 3. Simplify shadows on mobile for ultra-smooth 60-120fps scrolling */
   .shadow-2xl,
   .shadow-xl,
   .shadow-lg {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
   }
 }

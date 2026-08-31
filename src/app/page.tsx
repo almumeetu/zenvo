@@ -39,6 +39,7 @@ export default function HomePage() {
 
   // GSAP: Blog section header
   useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth < 768) return;
     if (!blogHeaderRef.current) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(

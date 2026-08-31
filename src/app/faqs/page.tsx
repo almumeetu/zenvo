@@ -42,7 +42,7 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'Which payment methods do you accept?',
-    a: 'We accept bKash, Nagad, Rocket, Local Bank Transfer, and Crypto/USDT (TRC20). You can also pay instantly using your ZENOV Wallet balance for 0-second checkout.',
+    a: 'We accept bKash, Nagad, Rocket, Local Bank Transfer, and Crypto/USDT (TRC20) with instant payment confirmation.',
     cat: 'Payment',
   },
   {
@@ -52,13 +52,13 @@ const FAQS: FaqItem[] = [
   },
   {
     q: 'Do you offer refunds for digital cards and top-ups?',
-    a: 'Digital codes that have already been generated or delivered cannot be refunded due to their nature. However, if we fail to deliver your ordered item within our guaranteed timeline, we will issue an immediate 100% full refund to your original payment method or ZENOV Wallet.',
+    a: 'Digital codes that have already been generated or delivered cannot be refunded due to their nature. However, if we fail to deliver your ordered item within our guaranteed timeline, we will issue an immediate 100% full refund to your original payment method.',
     cat: 'Payment',
   },
   {
-    q: 'How does the ZENOV Wallet cashback work?',
-    a: 'Every time you deposit or spend using your ZENOV Wallet, you accumulate VIP XP points. Higher VIP tiers (Gold, Platinum, Cyber Elite) earn up to 5% instant cashback on every single purchase.',
-    cat: 'Wallet',
+    q: 'How do discount promo codes and bonus deals work?',
+    a: 'We regularly post discount promo codes on our website and Facebook/Telegram channels. Enter the voucher code during checkout for instant discounts on game cards and diamonds.',
+    cat: 'Payment',
   },
 ];
 
@@ -303,7 +303,7 @@ export default function FaqsPage() {
                     ⚠️ Digital Codes &amp; Top-Ups Policy: Once a digital voucher, game code, or direct player top-up is processed and delivered, it cannot be refunded or exchanged.
                   </div>
                   <p>
-                    If ZENOV Games fails to deliver your requested digital order within our guaranteed fulfillment window, you will receive an automatic 100% full refund to your original payment channel or instant ZENOV Wallet credit.
+                    If ZENOV Games fails to deliver your requested digital order within our guaranteed fulfillment window, you will receive an automatic 100% full refund directly to your original payment channel (bKash, Nagad, Rocket, Bank, or USDT).
                   </p>
                   <p>
                     Customers are responsible for entering the correct Player ID / UID and account region. If credentials or player numbers are mistyped by the buyer and successfully delivered, ZENOV Games cannot reverse the transaction.
