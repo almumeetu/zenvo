@@ -118,17 +118,27 @@ export async function POST(request: Request) {
   const clientIp = getClientIp(request);
 
   try {
+    console.log(`[API /orders POST] Sending order #${body.orderNumber || 'new'} to Primary API: ${API_BASE_URL}/orders`);
     const apiRes = await fetch(`${API_BASE_URL}/orders`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(request),
       body: JSON.stringify({ ...body, ipAddress: clientIp }),
     });
 
     if (apiRes.ok) {
       const data = await apiRes.json();
       if (data.success) {
+        console.log(`[API /orders POST] Order successfully processed by Primary API (${API_BASE_URL}/orders)`);
+        // Send email confirmation
+        try {
+          await sendOrderNotificationEmail(data.order || body);
+        } catch (mailErr: any) {
+          console.warn('[API /orders POST] Email dispatch warning:', mailErr?.message || mailErr);
+        }
         return NextResponse.json(data);
       }
+    } else {
+      console.warn(`[API Proxy /orders POST] Primary API returned status ${apiRes.status}, switching to Supabase fallback`);
     }
   } catch (err: any) {
     console.warn('[API Proxy /orders POST] Primary API server error, using Supabase fallback:', err?.message || err);
