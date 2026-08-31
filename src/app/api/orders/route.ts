@@ -138,7 +138,8 @@ export async function POST(request: Request) {
         return NextResponse.json(data);
       }
     } else {
-      console.warn(`[API Proxy /orders POST] Primary API returned status ${apiRes.status}, switching to Supabase fallback`);
+      const errText = await apiRes.text().catch(() => '');
+      console.warn(`[API Proxy /orders POST] Primary API returned status ${apiRes.status}. Details: ${errText}. Switching to Supabase fallback`);
     }
   } catch (err: any) {
     console.warn('[API Proxy /orders POST] Primary API server error, using Supabase fallback:', err?.message || err);
@@ -202,7 +203,7 @@ export async function POST(request: Request) {
         ? (Number(body.paidAmountCurrency) && Number(body.paidAmountCurrency) > 10 ? Number(body.paidAmountCurrency) : calculatedBDT)
         : (Number(body.paidAmountCurrency) || calculatedUSD);
 
-    const dbOrder = {
+    let dbOrder = {
       id,
       orderNumber,
       userId: body.userId || 'guest',
@@ -224,7 +225,7 @@ export async function POST(request: Request) {
 
     let savedOrder: any = dbOrder;
     if (supabaseAdmin) {
-      const { data, error } = await supabaseAdmin
+      let { data, error } = await supabaseAdmin
         .from('orders')
         .insert([dbOrder])
         .select()
@@ -232,6 +233,22 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error('[API /orders POST] Supabase insert error:', error.message);
+        // Handle duplicate transactionId or orderNumber by appending unique suffix
+        if (error.message?.includes('orders_transactionId_key') || error.message?.includes('orders_pkey') || error.message?.includes('unique')) {
+          const altTrx = `${dbOrder.transactionId}-${Date.now().toString().slice(-4)}`;
+          const altId = `ord_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+          const retryObj = { ...dbOrder, id: altId, transactionId: altTrx };
+          const retryRes = await supabaseAdmin
+            .from('orders')
+            .insert([retryObj])
+            .select()
+            .single();
+
+          if (retryRes.data) {
+            savedOrder = retryRes.data;
+            console.log('[API /orders POST] Successfully saved to Supabase with unique transactionId:', altTrx);
+          }
+        }
       } else if (data) {
         savedOrder = data;
       }
