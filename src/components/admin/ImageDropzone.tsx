@@ -25,6 +25,9 @@ export function ImageDropzone({
   const [customUrl, setCustomUrl] = useState(initialValue);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [fileSizeWarning, setFileSizeWarning] = useState<string | null>(null);
+  const [fileInfo, setFileInfo] = useState<{ sizeKb: number; isWebp: boolean; name: string } | null>(null);
+
   const handleUpdate = (url: string) => {
     setImagePreview(url);
     setCustomUrl(url);
@@ -33,11 +36,25 @@ export function ImageDropzone({
 
   const handleFileProcess = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      setUploadError('Please select a valid image file (JPG, PNG, WEBP, etc.)');
+      setUploadError('Please select a valid image file (WEBP, JPG, PNG, etc.)');
       return;
     }
 
+    const sizeKb = Math.round(file.size / 1024);
+    const isWebp = file.type === 'image/webp' || file.name.toLowerCase().endsWith('.webp');
+
+    setFileInfo({ sizeKb, isWebp, name: file.name });
     setUploadError(null);
+
+    // Check 250KB limit notice
+    if (sizeKb > 250) {
+      setFileSizeWarning(
+        `⚠️ File is ${sizeKb} KB (exceeds recommended 250 KB limit). Please convert to .WEBP to ensure fast loading and prevent mobile scroll lag!`
+      );
+    } else {
+      setFileSizeWarning(null);
+    }
+
     setIsUploading(true);
 
     // 1. Create immediate local preview
@@ -50,8 +67,8 @@ export function ImageDropzone({
 
     // 2. Attempt Supabase upload if available
     try {
-      const fileExt = file.name.split('.').pop() || 'png';
-      const fileName = `prod_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const fileExt = file.name.split('.').pop() || (isWebp ? 'webp' : 'png');
+      const fileName = `zenov_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
       const uploadRes = await uploadImageToStorage(file, `products/${fileName}`);
       if (uploadRes?.publicUrl) {
         handleUpdate(uploadRes.publicUrl);
@@ -128,6 +145,16 @@ export function ImageDropzone({
         </div>
       </div>
 
+      {/* Best Practice Notice (Max 250KB & WebP Recommended) */}
+      <div className="flex items-center gap-2 p-2.5 rounded-xl bg-cyan-950/30 border border-cyan-500/25 text-[11px] text-cyan-200">
+        <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-black text-[9px] uppercase tracking-wider shrink-0">
+          BEST PRACTICE
+        </span>
+        <span>
+          Use images <strong className="text-white">under 250 KB</strong> in <strong className="text-cyan-300">.WEBP</strong> format for high performance and zero mobile scroll lag.
+        </span>
+      </div>
+
       {/* Hidden input to pass value into form data */}
       <input type="hidden" name={name} value={imagePreview} />
       <input
@@ -159,11 +186,23 @@ export function ImageDropzone({
             </div>
 
             <div className="flex-1 min-w-0 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-zenov-success text-xs font-bold">
-                <Check className="w-4 h-4" /> Image Ready
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="flex items-center gap-1 text-zenov-success text-xs font-bold">
+                  <Check className="w-4 h-4" /> Ready
+                </span>
+                {fileInfo && (
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-bold ${
+                    fileInfo.sizeKb <= 250 
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  }`}>
+                    {fileInfo.sizeKb} KB • {fileInfo.isWebp ? 'WEBP' : 'NON-WEBP'}
+                  </span>
+                )}
               </div>
+
               <p className="text-[11px] text-zenov-text-secondary truncate font-mono bg-zenov-bg/80 px-2.5 py-1 rounded-lg border border-zenov-border">
-                {imagePreview.startsWith('data:') ? 'Local Image (Base64 ready)' : imagePreview}
+                {imagePreview.startsWith('data:') ? 'Local Base64 Optimized Asset' : imagePreview}
               </p>
               <div className="flex items-center gap-2 pt-1">
                 <button
@@ -208,7 +247,7 @@ export function ImageDropzone({
               <span className="text-zenov-primary">Click to upload</span> or drag and drop image
             </p>
             <p className="text-[10px] text-zenov-text-muted mt-0.5">
-              PNG, JPG, WEBP, or SVG (Recommended 600x600 px)
+              WEBP (Recommended ≤ 250 KB), PNG, JPG, or SVG
             </p>
           </div>
         </div>
@@ -234,6 +273,13 @@ export function ImageDropzone({
               Apply
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Warning if file exceeds 250KB */}
+      {fileSizeWarning && (
+        <div className="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[10.5px] text-amber-300 font-semibold leading-relaxed">
+          {fileSizeWarning}
         </div>
       )}
 

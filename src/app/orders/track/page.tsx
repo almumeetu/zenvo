@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { useApp } from '@/lib/AppStateContext';
 import { formatCurrency } from '@/lib/currency';
+import { PaymentLogo } from '@/components/payment/PaymentLogos';
 import {
   Search, ArrowLeft, Package, ChevronRight, Truck, CheckCircle2, AlertCircle,
   Download, RefreshCw, Calendar, User, ArrowUpRight, MessageCircle, Crown,
@@ -257,9 +258,12 @@ function OrderTrackerContent() {
                         <span className="text-zenov-text-muted">Email</span>
                         <span className="font-bold text-zenov-text truncate max-w-[160px]">{user.email}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-zenov-text-muted">Payment</span>
-                        <span className="font-bold text-zenov-text">{result.paymentMethod}</span>
+                        <span className="font-bold text-zenov-text inline-flex items-center gap-1.5">
+                          <PaymentLogo method={result.paymentMethod} className="w-5 h-5 rounded-md shrink-0 shadow-sm" />
+                          <span>{result.paymentMethod}</span>
+                        </span>
                       </div>
                     </div>
                   </div>

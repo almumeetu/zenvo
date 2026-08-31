@@ -62,6 +62,8 @@ export async function GET() {
   }
 }
 
+import { getAuthHeaders } from '@/lib/api-auth';
+
 export async function POST(request: Request) {
   let body: any;
   try {
@@ -71,10 +73,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    // 1. Try posting to deployed API server
+    // 1. Try posting to deployed API server with Admin Auth
     const apiRes = await fetch(`${API_BASE_URL}/products`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(request),
       body: JSON.stringify(body),
     });
 

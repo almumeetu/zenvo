@@ -9,6 +9,8 @@ import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 
+import { getAuthHeaders } from '@/lib/api-auth';
+
 export const dynamic = 'force-dynamic';
 
 export async function PUT(
@@ -26,7 +28,7 @@ export async function PUT(
   try {
     const apiRes = await fetch(`${API_BASE_URL}/tickets/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(request),
       body: JSON.stringify(body),
     });
 
@@ -77,7 +79,7 @@ export async function POST(
   try {
     const apiRes = await fetch(`${API_BASE_URL}/tickets/${id}/reply`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(request),
       body: JSON.stringify(body),
     });
 

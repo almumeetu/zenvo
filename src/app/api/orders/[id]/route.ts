@@ -9,6 +9,8 @@ import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 
+import { getAuthHeaders } from '@/lib/api-auth';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
@@ -44,16 +46,15 @@ export async function PUT(
     body = {};
   }
 
-  // 1. Try primary backend API endpoints
+  // 1. Try primary backend API endpoints with Admin Auth
   try {
-    // Check if status-only update or general order update
     const endpoint = body.status
       ? `${API_BASE_URL}/admin/orders/${id}/status`
       : `${API_BASE_URL}/orders/${id}`;
 
     const apiRes = await fetch(endpoint, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(request),
       body: JSON.stringify(body),
     });
 

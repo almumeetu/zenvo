@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { sendOrderNotificationEmail } from '@/lib/resend';
+import { getAuthHeaders } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -48,11 +49,11 @@ function parseOrderNotes(rawOrder: any) {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const apiRes = await fetch(`${API_BASE_URL}/orders`, {
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(request),
     });
 
     if (apiRes.ok) {

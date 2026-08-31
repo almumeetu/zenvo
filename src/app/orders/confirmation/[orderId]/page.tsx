@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useApp } from '@/lib/AppStateContext';
 import { formatCurrency } from '@/lib/currency';
 import { Order } from '@/types';
+import { PaymentLogo } from '@/components/payment/PaymentLogos';
 import {
   CheckCircle2,
   Zap,
@@ -142,9 +143,12 @@ export default function OrderConfirmationPage() {
               <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border">
                 <h4 className="text-xs font-bold text-zenov-text-muted uppercase tracking-wider mb-2">Payment</h4>
                 <div className="space-y-1.5 text-sm">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-zenov-text-muted">Method</span>
-                    <span className="font-bold text-zenov-text">{order.paymentMethod}</span>
+                    <span className="font-bold text-zenov-text inline-flex items-center gap-1.5">
+                      <PaymentLogo method={order.paymentMethod} className="w-5 h-5 rounded-md shrink-0 shadow-sm" />
+                      <span>{order.paymentMethod}</span>
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-zenov-text-muted">Trx ID</span>

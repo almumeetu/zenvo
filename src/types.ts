@@ -173,3 +173,27 @@ export interface HeroBanner {
   bgGradient: string;
   ctaText: string;
 }
+
+export interface SocialLinks {
+  facebook?: string;
+  youtube?: string;
+  telegram?: string;
+  discord?: string;
+  whatsapp?: string;
+  instagram?: string;
+  twitter?: string;
+}
+
+export interface SiteSettings {
+  id?: string;
+  siteName: string;
+  supportPhone: string;
+  supportEmail: string;
+  whatsappNumber: string;
+  whatsappLink?: string;
+  address: string;
+  aboutText: string;
+  copyrightText: string;
+  socialLinks: SocialLinks;
+  updatedAt?: string;
+}

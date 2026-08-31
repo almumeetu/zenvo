@@ -20,17 +20,17 @@ import {
   Zap,
 } from 'lucide-react';
 import { ZenovLogo } from './ZenovLogo';
+import { PaymentLogo } from './payment/PaymentLogos';
+import { useApp } from '@/lib/AppStateContext';
 import {
   FaFacebookF,
   FaYoutube,
   FaTelegram,
   FaDiscord,
   FaWhatsapp,
-  FaCcVisa,
-  FaCcMastercard,
-  FaMobileAlt,
-  FaBitcoin,
-  FaWallet,
+  FaInstagram,
+  FaTwitter,
+  FaMapMarkerAlt,
 } from 'react-icons/fa';
 
 const FooterLink: React.FC<{ href: string; children: React.ReactNode; external?: boolean }> = ({
@@ -63,6 +63,7 @@ const FooterLink: React.FC<{ href: string; children: React.ReactNode; external?:
 
 export const Footer: React.FC = () => {
   const pathname = usePathname();
+  const { siteSettings } = useApp();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -85,64 +86,84 @@ export const Footer: React.FC = () => {
     { label: 'Blog & Deals', href: '/blog', icon: <Star className="w-3.5 h-3.5 text-zenov-accent" /> },
   ];
 
-  const socials = [
+  const socialConfig = [
     {
       name: 'Facebook',
+      url: siteSettings?.socialLinks?.facebook,
       icon: <FaFacebookF className="w-4 h-4" />,
       color: 'hover:bg-blue-500/20 hover:border-blue-500/40 hover:text-blue-400',
     },
     {
       name: 'YouTube',
+      url: siteSettings?.socialLinks?.youtube,
       icon: <FaYoutube className="w-4 h-4" />,
       color: 'hover:bg-red-500/20 hover:border-red-500/40 hover:text-red-400',
     },
     {
       name: 'Telegram',
+      url: siteSettings?.socialLinks?.telegram,
       icon: <FaTelegram className="w-4 h-4" />,
       color: 'hover:bg-sky-400/20 hover:border-sky-400/40 hover:text-sky-400',
     },
     {
       name: 'Discord',
+      url: siteSettings?.socialLinks?.discord,
       icon: <FaDiscord className="w-4 h-4" />,
       color: 'hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:text-indigo-400',
     },
     {
       name: 'WhatsApp',
+      url: siteSettings?.whatsappLink || (siteSettings?.whatsappNumber ? `https://wa.me/${siteSettings.whatsappNumber.replace(/[^\d]/g, '')}` : undefined),
       icon: <FaWhatsapp className="w-4 h-4" />,
       color: 'hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-400',
     },
+    {
+      name: 'Instagram',
+      url: siteSettings?.socialLinks?.instagram,
+      icon: <FaInstagram className="w-4 h-4" />,
+      color: 'hover:bg-pink-500/20 hover:border-pink-500/40 hover:text-pink-400',
+    },
+    {
+      name: 'Twitter',
+      url: siteSettings?.socialLinks?.twitter,
+      icon: <FaTwitter className="w-4 h-4" />,
+      color: 'hover:bg-sky-500/20 hover:border-sky-500/40 hover:text-sky-400',
+    },
   ];
+
+  // Only show social icons that have configured URLs or default fallback
+  const activeSocials = socialConfig.filter((s) => Boolean(s.url && s.url.trim()));
 
   // Payment methods with icons where available
   const paymentMethods = [
     {
       label: 'bKash',
-      icon: <FaMobileAlt className="w-4 h-4" />,
-      color: 'text-pink-500 hover:bg-pink-500/10 hover:border-pink-500/40',
+      methodId: 'bKash',
+      color: 'text-pink-400 hover:bg-pink-500/10 hover:border-pink-500/40',
     },
     {
       label: 'Nagad',
-      icon: <FaMobileAlt className="w-4 h-4" />,
-      color: 'text-orange-500 hover:bg-orange-500/10 hover:border-orange-500/40',
+      methodId: 'Nagad',
+      color: 'text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/40',
     },
     {
       label: 'Rocket',
-      icon: <FaMobileAlt className="w-4 h-4" />,
-      color: 'text-violet-500 hover:bg-violet-500/10 hover:border-violet-500/40',
+      methodId: 'Rocket',
+      color: 'text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/40',
     },
     {
-      label: 'Bank Transfer',
-      icon: <FaCcVisa className="w-6 h-4" />,
+      label: 'Bank Card',
+      methodId: 'Bank Transfer',
       color: 'text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/40',
     },
     {
       label: 'USDT',
-      icon: <FaBitcoin className="w-4 h-4" />,
+      methodId: 'Crypto/USDT',
       color: 'text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/40',
     },
     {
       label: 'ZENOV Wallet',
-      icon: <FaWallet className="w-4 h-4" />,
+      methodId: 'Zenov Wallet',
       color: 'text-zenov-primary hover:bg-zenov-primary-soft hover:border-zenov-primary-border',
     },
   ];
@@ -170,29 +191,33 @@ export const Footer: React.FC = () => {
               <ZenovLogo size="lg" isLink href="/" />
 
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-                Your trusted digital gaming store in Bangladesh. PSN, Steam, Xbox Gift Cards, PS Plus & instant game top-ups — delivered in seconds.
+                {siteSettings?.aboutText ||
+                  'Your trusted digital gaming store in Bangladesh. PSN, Steam, Xbox Gift Cards, PS Plus & instant game top-ups — delivered in seconds.'}
               </p>
 
               {/* Social icons */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-400/80 mb-2.5">
-                  Follow Us
-                </p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {socials.map(({ name, icon, color }) => (
-                    <a
-                      key={name}
-                      href="#"
-                      onClick={(e) => e.preventDefault()}
-                      title={name}
-                      aria-label={name}
-                      className={`w-9 h-9 rounded-xl bg-slate-900/90 border border-white/10 text-slate-400 flex items-center justify-center transition-all duration-200 ${color}`}
-                    >
-                      {icon}
-                    </a>
-                  ))}
+              {activeSocials.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-400/80 mb-2.5">
+                    Follow Us
+                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {activeSocials.map(({ name, icon, color, url }) => (
+                      <a
+                        key={name}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={name}
+                        aria-label={name}
+                        className={`w-9 h-9 rounded-xl bg-slate-900/90 border border-white/10 text-slate-400 flex items-center justify-center transition-all duration-200 ${color}`}
+                      >
+                        {icon}
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Rating badge */}
               <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-slate-900/80 border border-white/10 shadow-xs max-w-sm">
@@ -257,24 +282,55 @@ export const Footer: React.FC = () => {
                     <span className="group-hover:text-amber-300 transition-colors">FAQ & Help Center</span>
                   </FooterLink>
                 </li>
-                <li>
-                  <FooterLink href="tel:+8801300529836">
-                    <Phone className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
-                    <span className="group-hover:text-cyan-300 transition-colors font-mono">+880 1300-529836</span>
-                  </FooterLink>
-                </li>
-                <li>
-                  <FooterLink href="mailto:Siddikpers@gmail.com">
-                    <Mail className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
-                    <span className="break-all group-hover:text-cyan-300 transition-colors">Siddikpers@gmail.com</span>
-                  </FooterLink>
-                </li>
-                <li>
-                  <FooterLink href="https://wa.me/8801300529836" external>
-                    <FaWhatsapp className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
-                    <span className="group-hover:text-emerald-300 transition-colors font-mono">WhatsApp: 01300529836</span>
-                  </FooterLink>
-                </li>
+                {siteSettings?.supportPhone && (
+                  <li>
+                    <FooterLink href={`tel:${siteSettings.supportPhone.replace(/\s+/g, '')}`}>
+                      <Phone className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                      <span className="group-hover:text-cyan-300 transition-colors font-mono">
+                        {siteSettings.supportPhone}
+                      </span>
+                    </FooterLink>
+                  </li>
+                )}
+
+                {siteSettings?.supportEmail && (
+                  <li>
+                    <FooterLink href={`mailto:${siteSettings.supportEmail}`}>
+                      <Mail className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                      <span className="break-all group-hover:text-cyan-300 transition-colors">
+                        {siteSettings.supportEmail}
+                      </span>
+                    </FooterLink>
+                  </li>
+                )}
+
+                {(siteSettings?.whatsappNumber || siteSettings?.whatsappLink) && (
+                  <li>
+                    <FooterLink
+                      href={
+                        siteSettings.whatsappLink ||
+                        `https://wa.me/${siteSettings.whatsappNumber?.replace(/[^\d]/g, '')}`
+                      }
+                      external
+                    >
+                      <FaWhatsapp className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
+                      <span className="group-hover:text-emerald-300 transition-colors font-mono">
+                        WhatsApp: {siteSettings.whatsappNumber || 'Chat with us'}
+                      </span>
+                    </FooterLink>
+                  </li>
+                )}
+
+                {siteSettings?.address && (
+                  <li>
+                    <div className="text-slate-400 inline-flex items-start gap-2 group cursor-default">
+                      <FaMapMarkerAlt className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+                      <span className="text-slate-300 font-medium">
+                        {siteSettings.address}
+                      </span>
+                    </div>
+                  </li>
+                )}
               </ul>
             </div>
 
@@ -324,13 +380,13 @@ export const Footer: React.FC = () => {
               Official Payment Methods
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              {paymentMethods.map(({ label, icon, color }) => (
+              {paymentMethods.map(({ label, methodId, color }) => (
                 <div
                   key={label}
                   title={label}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-semibold text-slate-300 cursor-default transition-all duration-200 ${color}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-300 cursor-default transition-all duration-200 shadow-xs ${color}`}
                 >
-                  {icon}
+                  <PaymentLogo method={methodId} className="w-5 h-5 rounded-md shrink-0 shadow-sm" />
                   <span>{label}</span>
                 </div>
               ))}
@@ -341,9 +397,12 @@ export const Footer: React.FC = () => {
           <div className="border-t border-slate-800/80 mt-5 pt-5 text-center">
             <p className="text-[11px] text-slate-500 leading-relaxed max-w-3xl mx-auto">
               © {new Date().getFullYear()}{' '}
-              <span className="text-slate-300 font-semibold">ZENOV Games — Chattogram, Bangladesh</span>.
-              {' '}All Rights Reserved.{' '}
-              Game logos & trademarks belong to their respective publishers. ZENOV is an authorized reseller.
+              <span className="text-slate-300 font-semibold">
+                {siteSettings?.siteName || 'ZENOV Games'} — {siteSettings?.address || 'Chattogram, Bangladesh'}
+              </span>
+              .{' '}
+              {siteSettings?.copyrightText ||
+                'All Rights Reserved. Game logos & trademarks belong to their respective publishers. ZENOV is an authorized reseller.'}
             </p>
           </div>
 

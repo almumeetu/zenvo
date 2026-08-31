@@ -64,18 +64,18 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   ];
 
   return (
-    <div ref={filterRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-4">
-      <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+    <div ref={filterRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3.5">
+      <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto pb-1.5 scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
         {displayList.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => onSelectCategory(cat.id as any)}
-              className={`category-btn shrink-0 px-3.5 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-95 cursor-pointer ${
+              className={`category-btn shrink-0 px-3.5 py-1.5 sm:px-4.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-95 cursor-pointer ${
                 isSelected
-                  ? 'bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/25 border border-cyan-400/40'
-                  : 'bg-slate-900/80 backdrop-blur-md border border-slate-800/90 text-slate-400 hover:text-slate-200 hover:border-slate-700 hover:bg-slate-850'
+                  ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/25 border border-cyan-300/50'
+                  : 'bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40 hover:bg-slate-850'
               }`}
             >
               <span className={isSelected ? 'text-white' : 'text-cyan-400'}>{cat.icon}</span>

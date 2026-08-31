@@ -21,6 +21,7 @@ import {
   Calendar,
   Globe,
 } from 'lucide-react';
+import { PaymentLogo } from '@/components/payment/PaymentLogos';
 
 interface OrderDetailsModalProps {
   order: Order | null;
@@ -310,7 +311,10 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
                   Gateway
                 </span>
-                <span className="font-black text-zenov-text text-sm">{order.paymentMethod}</span>
+                <span className="font-black text-zenov-text text-sm flex items-center gap-1.5 mt-0.5">
+                  <PaymentLogo method={order.paymentMethod} className="w-5 h-5 rounded-md shrink-0 shadow-sm" />
+                  <span>{order.paymentMethod}</span>
+                </span>
               </div>
 
               <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">

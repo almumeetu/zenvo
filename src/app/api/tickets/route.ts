@@ -12,11 +12,13 @@ import { sendContactUsEmail } from '@/lib/resend';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+import { getAuthHeaders } from '@/lib/api-auth';
+
+export async function GET(request: Request) {
   try {
     const apiRes = await fetch(`${API_BASE_URL}/tickets`, {
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(request),
     });
 
     if (apiRes.ok) {
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
   try {
     const apiRes = await fetch(`${API_BASE_URL}/tickets`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(request),
       body: JSON.stringify(body),
     });
 

@@ -38,23 +38,25 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
     const perks = contentRef.current.querySelector('.hero-perks');
     const cta = contentRef.current.querySelector('.hero-cta');
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     const ctx = gsap.context(() => {
-      gsap.set([badge, subtitle, perks, cta], { opacity: 0, y: 18 });
-      gsap.set(words, { opacity: 0, y: 28, rotateX: -15 });
-      gsap.set(imageRef.current, { opacity: 0, scale: 1.08 });
+      gsap.set([badge, subtitle, perks, cta], { opacity: 0, y: isMobile ? 10 : 18 });
+      gsap.set(words, { opacity: 0, y: isMobile ? 12 : 28, rotateX: isMobile ? 0 : -15 });
+      gsap.set(imageRef.current, { opacity: 0, scale: isMobile ? 1.02 : 1.08 });
 
       const tl = gsap.timeline({
-        defaults: { ease: 'power3.out' },
+        defaults: { ease: 'power2.out' },
         onStart: () => setIsAnimating(true),
         onComplete: () => setIsAnimating(false),
       });
 
-      tl.to(imageRef.current, { opacity: 0.4, scale: 1, duration: 1.1, ease: 'power2.out' })
-        .to(badge, { opacity: 1, y: 0, duration: 0.45 }, '-=0.75')
-        .to(words, { opacity: 1, y: 0, rotateX: 0, duration: 0.5, stagger: 0.07, ease: 'back.out(1.4)' }, '-=0.3')
-        .to(subtitle, { opacity: 1, y: 0, duration: 0.45 }, '-=0.3')
-        .to(perks, { opacity: 1, y: 0, duration: 0.4 }, '-=0.25')
-        .to(cta, { opacity: 1, y: 0, duration: 0.4 }, '-=0.2');
+      tl.to(imageRef.current, { opacity: 0.4, scale: 1, duration: isMobile ? 0.6 : 1.1, ease: 'power2.out' })
+        .to(badge, { opacity: 1, y: 0, duration: isMobile ? 0.3 : 0.45 }, isMobile ? '-=0.4' : '-=0.75')
+        .to(words, { opacity: 1, y: 0, rotateX: 0, duration: isMobile ? 0.35 : 0.5, stagger: 0.05, ease: 'power2.out' }, '-=0.2')
+        .to(subtitle, { opacity: 1, y: 0, duration: 0.35 }, '-=0.2')
+        .to(perks, { opacity: 1, y: 0, duration: 0.3 }, '-=0.2')
+        .to(cta, { opacity: 1, y: 0, duration: 0.3 }, '-=0.2');
     }, contentRef);
 
     return () => ctx.revert();

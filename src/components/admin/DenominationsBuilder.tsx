@@ -80,6 +80,8 @@ export function DenominationsBuilder({
     ];
   });
 
+  const [currentExchangeRate, setCurrentExchangeRate] = useState<number>(exchangeRate || 120);
+
   const updateList = (newList: ProductDenomination[]) => {
     setDenominations(newList);
     if (onChange) onChange(newList);
@@ -89,11 +91,22 @@ export function DenominationsBuilder({
     const updated = denominations.map((d) => {
       if (d.id === id) {
         const item = { ...d, [field]: value };
-        // Auto-calculate BDT if amount USD is modified
-        if (field === 'amount' && (d.priceBDT === undefined || d.priceBDT === Math.round(Number(d.amount || 0) * exchangeRate))) {
-          const num = parseFloat(value) || 0;
-          item.priceBDT = Math.round(num * exchangeRate);
+        
+        // 1. Auto-calculate BDT if amount (USD/USDT) is modified
+        if (field === 'amount') {
+          const numUsd = parseFloat(value) || 0;
+          item.priceBDT = Math.round(numUsd * currentExchangeRate);
         }
+
+        // 2. Auto-calculate USD/USDT if price (BDT) is modified
+        if (field === 'priceBDT') {
+          const numBdt = parseFloat(value) || 0;
+          if (currentExchangeRate > 0) {
+            // Round to 4 decimal places for precise micro-rates (e.g. 5.4167)
+            item.amount = Math.round((numBdt / currentExchangeRate) * 10000) / 10000;
+          }
+        }
+
         return item;
       }
       return d;
@@ -163,14 +176,23 @@ export function DenominationsBuilder({
   const handleAutoCalcAllBDT = () => {
     const updated = denominations.map((d) => ({
       ...d,
-      priceBDT: Math.round(Number(d.amount || 0) * exchangeRate),
+      priceBDT: Math.round(Number(d.amount || 0) * currentExchangeRate),
+    }));
+    updateList(updated);
+  };
+
+  const handleAutoCalcAllUSD = () => {
+    if (currentExchangeRate <= 0) return;
+    const updated = denominations.map((d) => ({
+      ...d,
+      amount: Math.round((Number(d.priceBDT || 0) / currentExchangeRate) * 10000) / 10000,
     }));
     updateList(updated);
   };
 
   // Convert denominations to string format compatible with backend or fallback
   const serializedDenominationsString = denominations
-    .map((d) => `${d.name}, ${d.amount}, ${d.priceBDT || Math.round(d.amount * exchangeRate)}, ${d.bonus || ''}`)
+    .map((d) => `${d.name}, ${d.amount}, ${d.priceBDT || Math.round(d.amount * currentExchangeRate)}, ${d.bonus || ''}`)
     .join('\n');
 
   return (
@@ -195,20 +217,45 @@ export function DenominationsBuilder({
             Packages & Denominations Builder
           </h4>
           <p className="text-[11px] text-zenov-text-muted mt-0.5">
-            Configure dynamic item packages, USD/BDT pricing, and promotional badges.
+            Auto-converts between ৳ BDT & $ USDT/USD in real-time as you type.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Live Rate Pill */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zenov-surface border border-zenov-border text-[11px] font-mono">
+            <span className="text-zenov-text-muted font-bold">1$ =</span>
+            <input
+              type="number"
+              min="1"
+              value={currentExchangeRate}
+              onChange={(e) => setCurrentExchangeRate(parseFloat(e.target.value) || 120)}
+              className="w-12 bg-transparent text-emerald-400 font-bold focus:outline-none text-center"
+              title="Change exchange rate (BDT per USD)"
+            />
+            <span className="text-emerald-400 font-bold">৳</span>
+          </div>
+
           <button
             type="button"
             onClick={handleAutoCalcAllBDT}
-            title="Auto-calculate BDT prices for all rows (1 USD = 120 BDT)"
+            title={`Sync all BDT prices from USD (1$ = ${currentExchangeRate}৳)`}
+            className="px-2.5 py-1.5 rounded-xl bg-zenov-surface border border-zenov-border hover:border-emerald-500/50 text-[11px] font-bold text-zenov-text-secondary hover:text-emerald-400 flex items-center gap-1.5 transition-all"
+          >
+            <Zap className="w-3.5 h-3.5 text-emerald-400" />
+            $ ➔ ৳ Sync
+          </button>
+
+          <button
+            type="button"
+            onClick={handleAutoCalcAllUSD}
+            title={`Sync all USD amounts from BDT (1$ = ${currentExchangeRate}৳)`}
             className="px-2.5 py-1.5 rounded-xl bg-zenov-surface border border-zenov-border hover:border-zenov-primary text-[11px] font-bold text-zenov-text-secondary hover:text-zenov-primary flex items-center gap-1.5 transition-all"
           >
             <Zap className="w-3.5 h-3.5 text-amber-400" />
-            Sync ৳ (1$ = {exchangeRate}৳)
+            ৳ ➔ $ Sync
           </button>
+
           <button
             type="button"
             onClick={handleAddRow}
@@ -321,7 +368,7 @@ export function DenominationsBuilder({
                     type="number"
                     step="1"
                     min="0"
-                    value={denom.priceBDT ?? Math.round(denom.amount * exchangeRate)}
+                    value={denom.priceBDT ?? Math.round(denom.amount * currentExchangeRate)}
                     onChange={(e) => handleFieldChange(denom.id, 'priceBDT', parseFloat(e.target.value) || 0)}
                     placeholder="120"
                     required

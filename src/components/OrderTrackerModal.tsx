@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Order, CurrencyCode, UserProfile } from '../types';
 import { formatCurrency } from '../lib/currency';
+import { PaymentLogo } from './payment/PaymentLogos';
 import { Search, Clock, CheckCircle2, AlertCircle, X, Copy, Zap, ShieldCheck } from 'lucide-react';
 
 interface OrderTrackerModalProps {
@@ -150,7 +151,10 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 </div>
                 <div>
                   <span className="text-zenov-muted block text-[10px] uppercase tracking-wide">Payment Method:</span>
-                  <span className="text-zenov-text text-sm block">{searchedOrder.paymentMethod}</span>
+                  <span className="text-zenov-text text-sm flex items-center gap-1.5 mt-0.5">
+                    <PaymentLogo method={searchedOrder.paymentMethod} className="w-4 h-4 rounded shrink-0 shadow-sm" />
+                    <span>{searchedOrder.paymentMethod}</span>
+                  </span>
                 </div>
                 <div>
                   <span className="text-zenov-muted block text-[10px] uppercase tracking-wide">Total Paid:</span>

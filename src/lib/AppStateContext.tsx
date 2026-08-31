@@ -15,7 +15,9 @@ import {
   WalletTransaction,
   HeroBanner,
   BlogArticle,
+  SiteSettings,
 } from '../types';
+import { DEFAULT_SITE_SETTINGS } from '@/data/siteSettings';
 import {
   INITIAL_PRODUCTS,
   INITIAL_CATEGORIES,
@@ -81,12 +83,14 @@ interface AppState {
   orders: Order[];
   walletTransactions: WalletTransaction[];
   tickets: SupportTicket[];
+  siteSettings: SiteSettings;
   authLoading: boolean;
   productsLoading: boolean;
   adminToast: AdminToast | null;
 }
 
 interface AppActions {
+  updateSiteSettings: (settings: Partial<SiteSettings>) => Promise<{ success: boolean; message?: string }>;
   setSelectedCategory: (c: CategoryType | 'all') => void;
   setSelectedCurrency: (c: CurrencyCode) => void;
   addToCart: (item: CartItem) => void;
@@ -192,6 +196,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
   const [tickets, setTickets] = useState<SupportTicket[]>(INITIAL_TICKETS);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS);
 
   const [isMounted, setIsMounted] = useState(false);
   const [isDbConnected, setIsDbConnected] = useState(true);
@@ -222,6 +227,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const storedOrders = localStorage.getItem('zenov_v3_orders');
       const storedTransactions = localStorage.getItem('zenov_v3_transactions');
       const storedTickets = localStorage.getItem('zenov_v3_tickets');
+      const storedSettings = localStorage.getItem('zenov_v3_settings');
 
       if (storedProducts) {
         const parsed = JSON.parse(storedProducts);
@@ -239,6 +245,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       if (storedOrders) setOrders(JSON.parse(storedOrders));
       if (storedTransactions) setWalletTransactions(JSON.parse(storedTransactions));
       if (storedTickets) setTickets(JSON.parse(storedTickets));
+      if (storedSettings) setSiteSettings(JSON.parse(storedSettings));
     } catch (e) {
       console.error('Error loading initial cache', e);
     }
@@ -259,7 +266,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       fetch('/api/products', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
       fetch('/api/orders', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
       fetch('/api/tickets', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
-    ]).then(([pRes, oRes, tRes]) => {
+      fetch('/api/categories', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+      fetch('/api/settings', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+    ]).then(([pRes, oRes, tRes, cRes, sRes]) => {
       clearTimeout(timeoutId);
       if (pRes.status === 'fulfilled' && pRes.value?.success && Array.isArray(pRes.value.products)) {
         setProducts(pRes.value.products);
@@ -269,6 +278,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }
       if (tRes.status === 'fulfilled' && tRes.value?.success && Array.isArray(tRes.value.tickets)) {
         setTickets(tRes.value.tickets);
+      }
+      if (cRes.status === 'fulfilled' && cRes.value?.success && Array.isArray(cRes.value.categories)) {
+        setCategories(cRes.value.categories);
+      }
+      if (sRes.status === 'fulfilled' && sRes.value?.success && sRes.value.settings) {
+        setSiteSettings(sRes.value.settings);
       }
     }).catch((err) => {
       console.warn('Background sync warning:', err);
@@ -408,6 +423,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (!isMounted) return;
     safeSetItem('zenov_v3_tickets', tickets);
   }, [tickets, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    safeSetItem('zenov_v3_settings', siteSettings);
+  }, [siteSettings, isMounted]);
 
   const addToCart = (item: CartItem) => setCartItems((p) => [...p, item]);
 
@@ -869,16 +889,41 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setProducts((p) => p.filter((x) => x.id !== id));
   };
 
-  const addCategory = (c: CategoryItem) => {
+  const addCategory = async (c: CategoryItem) => {
     setCategories((prev) => [c, ...prev]);
+    try {
+      await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(c),
+      });
+    } catch (err) {
+      console.warn('Failed to sync category to backend API:', err);
+    }
   };
 
-  const updateCategory = (c: CategoryItem) => {
+  const updateCategory = async (c: CategoryItem) => {
     setCategories((prev) => prev.map((x) => (x.id === c.id ? c : x)));
+    try {
+      await fetch(`/api/categories/${c.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(c),
+      });
+    } catch (err) {
+      console.warn('Failed to sync category update to backend API:', err);
+    }
   };
 
-  const deleteCategory = (id: string) => {
+  const deleteCategory = async (id: string) => {
     setCategories((prev) => prev.filter((x) => x.id !== id));
+    try {
+      await fetch(`/api/categories/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (err) {
+      console.warn('Failed to sync category deletion to backend API:', err);
+    }
   };
 
   const addUnit = (u: UnitItem) => {
@@ -997,11 +1042,35 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return { success, message };
   };
 
-  const addBanner = (b: HeroBanner) => setHeroBanners((prev) => [b, ...prev]);
+  const addBanner = async (b: HeroBanner) => {
+    setHeroBanners((prev) => [b, ...prev]);
+    try {
+      await fetch('/api/banners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(b),
+      });
+    } catch (err) {
+      console.warn('Failed to sync banner to API:', err);
+    }
+  };
+
   const updateBanner = (updatedB: HeroBanner) => setHeroBanners((prev) => prev.map((x) => x.id === updatedB.id ? updatedB : x));
   const deleteBanner = (id: string) => setHeroBanners((prev) => prev.filter((x) => x.id !== id));
 
-  const addBlog = (b: BlogArticle) => setBlogArticles((prev) => [b, ...prev]);
+  const addBlog = async (b: BlogArticle) => {
+    setBlogArticles((prev) => [b, ...prev]);
+    try {
+      await fetch('/api/blogs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(b),
+      });
+    } catch (err) {
+      console.warn('Failed to sync blog to API:', err);
+    }
+  };
+
   const updateBlog = (updatedB: BlogArticle) => setBlogArticles((prev) => prev.map((x) => x.id === updatedB.id ? updatedB : x));
   const deleteBlog = (id: string) => setBlogArticles((prev) => prev.filter((x) => x.id !== id));
 
@@ -1064,6 +1133,43 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           : t
       )
     );
+  };
+
+  const updateSiteSettings = async (partial: Partial<SiteSettings>): Promise<{ success: boolean; message?: string }> => {
+    const nextSettings: SiteSettings = {
+      ...siteSettings,
+      ...partial,
+      socialLinks: {
+        ...siteSettings.socialLinks,
+        ...(partial.socialLinks || {}),
+      },
+      updatedAt: new Date().toISOString(),
+    };
+
+    setSiteSettings(nextSettings);
+
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nextSettings),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.settings) {
+          setSiteSettings(data.settings);
+        }
+        showAdminToast('success', 'Site & Footer settings saved successfully!');
+        return { success: true, message: 'Settings saved.' };
+      } else {
+        showAdminToast('error', data.message || 'Failed to save settings to server.');
+        return { success: false, message: data.message };
+      }
+    } catch (err: any) {
+      console.warn('Network error saving settings, saved locally:', err);
+      showAdminToast('info', 'Settings updated and saved to local storage.');
+      return { success: true, message: 'Saved locally.' };
+    }
   };
 
   const signInWithGoogle = async (redirectTo = '/') => {
@@ -1180,8 +1286,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     orders,
     walletTransactions,
     tickets,
+    siteSettings,
     productsLoading,
     adminToast,
+    updateSiteSettings,
     setSelectedCategory,
     setSelectedCurrency,
     addToCart,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/lib/AppStateContext';
 import { formatCurrency } from '@/lib/currency';
@@ -12,6 +12,7 @@ import { UnitManager } from '@/components/admin/UnitManager';
 import { AdminToast } from '@/components/admin/AdminToast';
 import { CreateOrderModal } from '@/components/admin/CreateOrderModal';
 import { OrderDetailsModal } from '@/components/admin/OrderDetailsModal';
+import { PaymentLogo } from '@/components/payment/PaymentLogos';
 import { ZenovLogo } from '@/components/ZenovLogo';
 import {
   ResponsiveContainer,
@@ -58,6 +59,7 @@ import {
   ChevronDown,
   FolderPlus,
   Layers3,
+  Database,
   Bookmark,
   Coins,
   Menu,
@@ -66,9 +68,25 @@ import {
   Copy,
   Eye,
   Filter,
+  Settings,
+  MapPin,
+  Globe,
+  Phone,
+  Mail,
+  Save,
+  Share2,
 } from 'lucide-react';
+import {
+  FaFacebookF,
+  FaYoutube,
+  FaTelegram,
+  FaDiscord,
+  FaWhatsapp,
+  FaInstagram,
+  FaTwitter,
+} from 'react-icons/fa';
 
-type AdminTab = 'overview' | 'products' | 'orders' | 'users' | 'cms' | 'tickets' | 'security';
+type AdminTab = 'overview' | 'products' | 'orders' | 'users' | 'cms' | 'tickets' | 'security' | 'settings';
 
 const CHART_COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
 
@@ -111,6 +129,8 @@ export default function AdminDashboardPage() {
     deleteBlog,
     adminReplyTicket,
     updateTicketStatus,
+    siteSettings,
+    updateSiteSettings,
     authLoading,
     adminToast,
     dismissAdminToast,
@@ -157,6 +177,54 @@ export default function AdminDashboardPage() {
   const [ticketReply, setTicketReply] = useState('');
   const [ticketSearch, setTicketSearch] = useState('');
   const [isViewingChat, setIsViewingChat] = useState(false);
+
+  // --- Site Settings Form State ---
+  const [settingsForm, setSettingsForm] = useState(siteSettings);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  useEffect(() => {
+    if (siteSettings) {
+      setSettingsForm(siteSettings);
+    }
+  }, [siteSettings]);
+
+  // --- Live Backend Telemetry & Schema State ---
+  const [backendHealth, setBackendHealth] = useState<{ status: string; latencyMs: number } | null>(null);
+  const [serverAnalytics, setServerAnalytics] = useState<any>(null);
+  const [databaseSchema, setDatabaseSchema] = useState<any>(null);
+  const [isRefreshingAnalytics, setIsRefreshingAnalytics] = useState(false);
+
+  // Fetch live backend metrics & schema on mount and on demand
+  const refreshLiveTelemetry = useCallback(async () => {
+    setIsRefreshingAnalytics(true);
+    try {
+      const [healthRes, analyticsRes, schemaRes] = await Promise.allSettled([
+        fetch('/api/health', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+        fetch('/api/admin/analytics', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+        fetch('/api/admin/database/schema', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
+      ]);
+
+      if (healthRes.status === 'fulfilled' && healthRes.value?.backend) {
+        setBackendHealth(healthRes.value.backend);
+      }
+      if (analyticsRes.status === 'fulfilled' && analyticsRes.value?.analytics) {
+        setServerAnalytics(analyticsRes.value.analytics);
+      }
+      if (schemaRes.status === 'fulfilled' && schemaRes.value?.schema) {
+        setDatabaseSchema(schemaRes.value.schema);
+      }
+    } catch (err) {
+      console.warn('Telemetry fetch warning:', err);
+    } finally {
+      setIsRefreshingAnalytics(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshLiveTelemetry();
+    const interval = setInterval(refreshLiveTelemetry, 30000); // 30s auto-refresh
+    return () => clearInterval(interval);
+  }, [refreshLiveTelemetry]);
 
 
   // --- Dynamic Analytics ---
@@ -518,19 +586,24 @@ export default function AdminDashboardPage() {
     setTicketReply('');
   };
 
+  const liveTotalRevenue = serverAnalytics?.totalRevenue ?? analyticsData.totalRevenue;
+  const liveTotalOrders = serverAnalytics?.totalOrdersCount ?? orders.length;
+  const liveTotalProducts = serverAnalytics?.activeProductsCount ?? products.length;
+  const liveTotalGamers = serverAnalytics?.registeredUsersCount ?? users.length;
+
   const kpiCards = [
     {
-      label: 'Calculated Revenue',
-      value: formatCurrency(analyticsData.totalRevenue, selectedCurrency),
-      delta: '+14.6% All time',
+      label: 'Live Revenue',
+      value: formatCurrency(liveTotalRevenue, selectedCurrency),
+      delta: serverAnalytics ? 'Live Synced' : '+14.6% All time',
       deltaUp: true,
       Icon: DollarSign,
       accent: 'from-zenov-success/15 to-zenov-success/5',
       iconColor: 'text-zenov-success',
     },
     {
-      label: 'Fulfillment Queue',
-      value: orders.length.toString(),
+      label: 'Live Orders',
+      value: liveTotalOrders.toString(),
       delta: `${analyticsData.pendingOrders} Processing`,
       deltaUp: true,
       Icon: ShoppingBag,
@@ -538,8 +611,8 @@ export default function AdminDashboardPage() {
       iconColor: 'text-zenov-primary',
     },
     {
-      label: 'SKU Inventory',
-      value: products.length.toString(),
+      label: 'Active SKUs',
+      value: liveTotalProducts.toString(),
       delta: '100% Operational',
       deltaUp: true,
       Icon: Package,
@@ -548,7 +621,7 @@ export default function AdminDashboardPage() {
     },
     {
       label: 'Registered Gamers',
-      value: users.length.toString(),
+      value: liveTotalGamers.toString(),
       delta: `Active Admin: ${user.name}`,
       deltaUp: true,
       Icon: Users,
@@ -789,6 +862,21 @@ export default function AdminDashboardPage() {
         <ShieldCheck className="w-4 h-4 shrink-0" />
         <span className="flex-1 text-left">Security</span>
       </button>
+
+      {/* ── SETTINGS ── */}
+      <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zenov-text-muted/50">Settings</p>
+
+      <button
+        onClick={() => { setActiveTab('settings'); onItemClick?.(); }}
+        className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-colors ${
+          activeTab === 'settings'
+            ? 'active-item bg-zenov-primary/15 text-zenov-primary border-l-2 border-zenov-primary pl-[10px]'
+            : 'text-zenov-text-secondary hover:bg-zenov-surface/60 hover:text-zenov-text'
+        }`}
+      >
+        <Settings className="w-4 h-4 shrink-0" />
+        <span className="flex-1 text-left">Footer &amp; Site Settings</span>
+      </button>
     </nav>
   );
 
@@ -919,13 +1007,27 @@ export default function AdminDashboardPage() {
         {/* Clean Admin Header Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zenov-border/60">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2.5 py-0.5 rounded-full bg-zenov-primary-soft text-zenov-primary text-[10px] font-mono font-bold uppercase tracking-wider border border-zenov-primary-border/30">
                 Zenov Root Control
               </span>
-              <span className="text-[11px] text-zenov-success flex items-center gap-1 font-semibold">
-                <span className="w-2 h-2 rounded-full bg-zenov-success animate-pulse" /> Live Telemetry Stream
-              </span>
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zenov-surface border border-zenov-border text-[10px] font-mono">
+                <span className={`w-2 h-2 rounded-full ${backendHealth?.status === 'ONLINE' ? 'bg-zenov-success animate-pulse' : 'bg-amber-400'}`} />
+                <span className="text-zenov-text-secondary">
+                  API: <strong className={backendHealth?.status === 'ONLINE' ? 'text-zenov-success' : 'text-amber-400'}>{backendHealth?.status || 'CONNECTING'}</strong>
+                </span>
+                {backendHealth?.latencyMs ? (
+                  <span className="text-zenov-text-muted">({backendHealth.latencyMs}ms)</span>
+                ) : null}
+              </div>
+              <button
+                onClick={refreshLiveTelemetry}
+                disabled={isRefreshingAnalytics}
+                className="p-1 rounded-lg hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-primary transition-all text-xs"
+                title="Refresh Live API Telemetry"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingAnalytics ? 'animate-spin text-zenov-primary' : ''}`} />
+              </button>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-zenov-text tracking-tight capitalize mt-1">
               {activeTab === 'overview' && '📊 Store Analytics & Revenue Control'}
@@ -1886,8 +1988,9 @@ export default function AdminDashboardPage() {
                             {/* 4. Payment & TrxID */}
                             <td className="p-4 max-w-[200px]">
                               <div className="flex items-center gap-1.5">
-                                <span className="px-2 py-0.5 rounded-md bg-zenov-surface border border-zenov-border font-bold text-xs text-zenov-text">
-                                  {o.paymentMethod}
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zenov-surface border border-zenov-border font-bold text-xs text-zenov-text">
+                                  <PaymentLogo method={o.paymentMethod} className="w-4 h-4 rounded shrink-0 shadow-sm" />
+                                  <span>{o.paymentMethod}</span>
                                 </span>
                               </div>
                               {o.senderNumber && (
@@ -2116,7 +2219,10 @@ export default function AdminDashboardPage() {
                         <div className="flex justify-between items-center">
                           <span className="text-zenov-text-muted">Gateway / TrxID:</span>
                           <div className="text-right">
-                            <span className="text-zenov-text font-bold">{o.paymentMethod}</span>
+                            <span className="text-zenov-text font-bold inline-flex items-center gap-1.5 justify-end">
+                              <PaymentLogo method={o.paymentMethod} className="w-4 h-4 rounded shrink-0 shadow-sm" />
+                              <span>{o.paymentMethod}</span>
+                            </span>
                             {o.transactionId && (
                               <div className="flex items-center justify-end gap-1 text-[10px] font-mono text-sky-400 font-bold">
                                 <span>{o.transactionId}</span>
@@ -2413,11 +2519,14 @@ export default function AdminDashboardPage() {
                         <input name="ctaText" defaultValue={editingBanner?.ctaText || 'RECHARGE NOW'} className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
                     </div>
-                    <div>
-                      <label className="text-[10px] font-bold uppercase block mb-1">Graphic URL (Unsplash/Imgur)</label>
-                      <input name="image" defaultValue={editingBanner?.image || ''} required placeholder="https://..." className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
+                    <div className="pt-1">
+                      <ImageDropzone
+                        initialValue={editingBanner?.image || ''}
+                        name="image"
+                        label="Banner Hero Graphic (Drag & Drop or Direct URL)"
+                      />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 pt-2">
                       <button type="submit" className="px-5 py-2 rounded-xl bg-zenov-primary text-white text-xs font-bold uppercase">Save Banner</button>
                       <button type="button" onClick={() => { setEditingBanner(null); setIsAddingBanner(false); }} className="px-5 py-2 rounded-xl bg-zenov-surface border border-zenov-border text-xs text-zenov-text-secondary">Cancel</button>
                     </div>
@@ -2484,10 +2593,13 @@ export default function AdminDashboardPage() {
                         <label className="text-[10px] font-bold uppercase block mb-1">Tags (Comma-separated)</label>
                         <input name="tags" defaultValue={editingBlog?.tags?.join(', ') || ''} placeholder="Free Fire, Diamonds, Event" className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
                       </div>
-                      <div>
-                        <label className="text-[10px] font-bold uppercase block mb-1">Image URL</label>
-                        <input name="image" defaultValue={editingBlog?.image || ''} required placeholder="https://..." className="w-full px-3 py-2 bg-zenov-surface border border-zenov-border rounded-lg text-xs" />
-                      </div>
+                    </div>
+                    <div className="pt-1">
+                      <ImageDropzone
+                        initialValue={editingBlog?.image || ''}
+                        name="image"
+                        label="Article Cover Graphic (Drag & Drop or Direct URL)"
+                      />
                     </div>
                     <div>
                       <label className="text-[10px] font-bold uppercase block mb-1">Blog Excerpt (Brief description)</label>
@@ -2700,21 +2812,480 @@ export default function AdminDashboardPage() {
 
         {/* Compliance / Security Tab */}
         {activeTab === 'security' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-2xl p-5 bg-zenov-card border border-zenov-success/30 bg-gradient-to-br from-zenov-success/5 to-transparent">
-              <Check className="w-9 h-9 text-zenov-success mb-3" />
-              <h3 className="text-base font-black text-zenov-text mb-2">PCI-DSS Tokenization Gateways</h3>
-              <p className="text-xs text-zenov-text-secondary leading-relaxed">
-                Full bank-grade card numbers never transit through local servers. API triggers with bKash / Nagad operate strictly via secured webhook signatures. Last audit: Q3 2026.
-              </p>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="rounded-2xl p-5 bg-zenov-card border border-zenov-success/30 bg-gradient-to-br from-zenov-success/5 to-transparent">
+                <Check className="w-9 h-9 text-zenov-success mb-3" />
+                <h3 className="text-base font-black text-zenov-text mb-2">PCI-DSS Tokenization Gateways</h3>
+                <p className="text-xs text-zenov-text-secondary leading-relaxed">
+                  Full bank-grade card numbers never transit through local servers. API triggers with bKash / Nagad operate strictly via secured webhook signatures. Last audit: Q3 2026.
+                </p>
+              </div>
+              <div className="rounded-2xl p-5 bg-zenov-card border border-zenov-border">
+                <ShieldCheck className="w-9 h-9 text-zenov-primary mb-3" />
+                <h3 className="text-base font-black text-zenov-text mb-2">WAF Rate-Limiter Policies</h3>
+                <p className="text-xs text-zenov-text-secondary leading-relaxed">
+                  Cloudflare enterprise level shield parameters are initialized. API request thresholds set to max 120 calls/min per client IP address. System alerts logged directly to telemetry stream.
+                </p>
+              </div>
             </div>
-            <div className="rounded-2xl p-5 bg-zenov-card border border-zenov-border">
-              <ShieldCheck className="w-9 h-9 text-zenov-primary mb-3" />
-              <h3 className="text-base font-black text-zenov-text mb-2">WAF Rate-Limiter Policies</h3>
-              <p className="text-xs text-zenov-text-secondary leading-relaxed">
-                Cloudflare enterprise level shield parameters are initialized. API request thresholds set to max 120 calls/min per client IP address. System alerts logged directly to telemetry stream.
-              </p>
+
+            {/* Live Database Schema Card */}
+            <div className="rounded-2xl p-5 bg-zenov-card border border-zenov-border space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <Database className="w-5 h-5 text-zenov-primary" />
+                  <div>
+                    <h3 className="text-sm font-black text-zenov-text">Live Database Schema & Connectivity</h3>
+                    <p className="text-[11px] text-zenov-text-muted">
+                      Engine: <span className="font-mono text-zenov-text font-bold">{databaseSchema?.databaseEngine || 'PostgreSQL / Supabase'}</span> • Status: <span className="font-mono text-zenov-success font-bold">{databaseSchema?.connectionStatus || 'CONNECTED'}</span>
+                    </p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-zenov-surface border border-zenov-border text-[10px] font-mono text-zenov-text-muted">
+                  {databaseSchema?.tables?.length || 5} Tables Managed
+                </span>
+              </div>
+
+              {databaseSchema?.tables && Array.isArray(databaseSchema.tables) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                  {databaseSchema.tables.map((table: any, idx: number) => (
+                    <div key={idx} className="p-3.5 rounded-xl bg-zenov-surface/40 border border-zenov-border space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-xs text-zenov-primary flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5" />
+                          {table.name}
+                        </span>
+                        {table.rowCount !== undefined && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-zenov-card border border-zenov-border text-zenov-text-secondary">
+                            {table.rowCount} rows
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-zenov-text-muted line-clamp-2">
+                        {table.description || 'Database entity collection'}
+                      </p>
+                      {table.columns && (
+                        <div className="text-[9px] font-mono text-zenov-text-muted/70 truncate pt-1 border-t border-zenov-border/40">
+                          Cols: {table.columns.slice(0, 4).join(', ')}...
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          </div>
+        )}
+
+        {/* Site & Footer Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            {/* Header banner */}
+            <div className="rounded-2xl p-6 bg-gradient-to-r from-zenov-primary/20 via-zenov-surface to-zenov-card border border-zenov-primary-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-zenov-primary/20 text-zenov-primary border border-zenov-primary/30">
+                  Global Configuration
+                </span>
+                <h2 className="text-xl font-black text-white mt-2 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-zenov-primary" /> Footer &amp; Contact Settings
+                </h2>
+                <p className="text-xs text-zenov-text-secondary mt-1">
+                  Manage social profile links, WhatsApp number, direct customer support channels, office address, and copyright text in real time.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSavingSettings(true);
+                    try {
+                      await updateSiteSettings(settingsForm);
+                    } finally {
+                      setIsSavingSettings(false);
+                    }
+                  }}
+                  disabled={isSavingSettings}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-zenov-primary to-cyan-500 hover:from-zenov-primary-hover hover:to-cyan-400 text-white text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-zenov-primary/20 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  {isSavingSettings ? 'Saving...' : 'Save Settings'}
+                </button>
+              </div>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setIsSavingSettings(true);
+                try {
+                  await updateSiteSettings(settingsForm);
+                } finally {
+                  setIsSavingSettings(false);
+                }
+              }}
+              className="space-y-6"
+            >
+              {/* 1. Social Media URLs */}
+              <div className="p-6 rounded-2xl bg-zenov-card border border-zenov-border shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-zenov-border/60 pb-3">
+                  <div>
+                    <h3 className="text-sm font-black text-white flex items-center gap-2">
+                      <Share2 className="w-4 h-4 text-cyan-400" /> Social Media Channels
+                    </h3>
+                    <p className="text-xs text-zenov-text-muted mt-0.5">
+                      Social profile URLs rendered in the footer. Leave empty to hide any icon.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono text-zenov-primary px-2 py-0.5 rounded bg-zenov-primary/10 border border-zenov-primary/30">
+                    Live Synced
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Facebook */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <FaFacebookF className="w-3.5 h-3.5 text-blue-400" /> Facebook Page URL
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://facebook.com/zenovgames"
+                      value={settingsForm?.socialLinks?.facebook || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          socialLinks: { ...(prev.socialLinks || {}), facebook: e.target.value },
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* YouTube */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <FaYoutube className="w-3.5 h-3.5 text-red-500" /> YouTube Channel URL
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://youtube.com/@zenovgames"
+                      value={settingsForm?.socialLinks?.youtube || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          socialLinks: { ...(prev.socialLinks || {}), youtube: e.target.value },
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Telegram */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <FaTelegram className="w-3.5 h-3.5 text-sky-400" /> Telegram Channel / Group
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://t.me/zenovgames"
+                      value={settingsForm?.socialLinks?.telegram || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          socialLinks: { ...(prev.socialLinks || {}), telegram: e.target.value },
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Discord */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <FaDiscord className="w-3.5 h-3.5 text-indigo-400" /> Discord Server Invite
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://discord.gg/zenov"
+                      value={settingsForm?.socialLinks?.discord || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          socialLinks: { ...(prev.socialLinks || {}), discord: e.target.value },
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Instagram */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <FaInstagram className="w-3.5 h-3.5 text-pink-400" /> Instagram Profile
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://instagram.com/zenovgames"
+                      value={settingsForm?.socialLinks?.instagram || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          socialLinks: { ...(prev.socialLinks || {}), instagram: e.target.value },
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Twitter / X */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <FaTwitter className="w-3.5 h-3.5 text-sky-400" /> Twitter / X Profile
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://twitter.com/zenovgames"
+                      value={settingsForm?.socialLinks?.twitter || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          socialLinks: { ...(prev.socialLinks || {}), twitter: e.target.value },
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. WhatsApp & Direct Support Contacts */}
+              <div className="p-6 rounded-2xl bg-zenov-card border border-zenov-border shadow-sm space-y-4">
+                <div className="border-b border-zenov-border/60 pb-3">
+                  <h3 className="text-sm font-black text-white flex items-center gap-2">
+                    <FaWhatsapp className="w-4 h-4 text-emerald-400" /> WhatsApp &amp; Customer Support
+                  </h3>
+                  <p className="text-xs text-zenov-text-muted mt-0.5">
+                    Direct instant support contacts displayed across footer and order verification screens.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* WhatsApp Number */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <FaWhatsapp className="w-3.5 h-3.5 text-emerald-400" /> WhatsApp Mobile Number (With Country Code)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="8801300529836"
+                      value={settingsForm?.whatsappNumber || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const clean = val.replace(/[^\d]/g, '');
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          whatsappNumber: val,
+                          whatsappLink: clean ? `https://wa.me/${clean}` : '',
+                        }));
+                      }}
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none font-mono transition-all"
+                    />
+                    <span className="text-[10px] text-zenov-text-muted mt-1 block">
+                      Auto-generates: <span className="font-mono text-emerald-400">{settingsForm?.whatsappLink || 'https://wa.me/...'}</span>
+                    </span>
+                  </div>
+
+                  {/* Direct WhatsApp Link Override (Optional) */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <Globe className="w-3.5 h-3.5 text-cyan-400" /> Custom WhatsApp Direct Link (Optional Override)
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://wa.me/8801300529836"
+                      value={settingsForm?.whatsappLink || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          whatsappLink: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none font-mono transition-all"
+                    />
+                  </div>
+
+                  {/* Support Phone */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <Phone className="w-3.5 h-3.5 text-cyan-400" /> Support Hotline / Telephone
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="+880 1300-529836"
+                      value={settingsForm?.supportPhone || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          supportPhone: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none font-mono transition-all"
+                    />
+                  </div>
+
+                  {/* Support Email */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5 mb-1.5">
+                      <Mail className="w-3.5 h-3.5 text-amber-400" /> Official Support Email
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Siddikpers@gmail.com"
+                      value={settingsForm?.supportEmail || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          supportEmail: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none font-mono transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Address & Bio Information */}
+              <div className="p-6 rounded-2xl bg-zenov-card border border-zenov-border shadow-sm space-y-4">
+                <div className="border-b border-zenov-border/60 pb-3">
+                  <h3 className="text-sm font-black text-white flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-rose-400" /> Office Address &amp; About Text
+                  </h3>
+                  <p className="text-xs text-zenov-text-muted mt-0.5">
+                    Physical location, footer brand introduction bio, and legal copyright line.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Site Name & Office Address */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1.5">
+                        Brand / Store Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="ZENOV Games"
+                        value={settingsForm?.siteName || ''}
+                        onChange={(e) =>
+                          setSettingsForm((prev) => ({
+                            ...prev,
+                            siteName: e.target.value,
+                          }))
+                        }
+                        className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1.5">
+                        Physical Office Address / City
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Chattogram, Bangladesh"
+                        value={settingsForm?.address || ''}
+                        onChange={(e) =>
+                          setSettingsForm((prev) => ({
+                            ...prev,
+                            address: e.target.value,
+                          }))
+                        }
+                        className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Brand About Text */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1.5">
+                      Footer Brand Bio / Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Your trusted digital gaming store in Bangladesh. PSN, Steam, Xbox Gift Cards, PS Plus & instant game top-ups — delivered in seconds."
+                      value={settingsForm?.aboutText || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          aboutText: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl p-3 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Copyright Notice */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1.5">
+                      Copyright Notice
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="All Rights Reserved. Game logos & trademarks belong to their respective publishers. ZENOV is an authorized reseller."
+                      value={settingsForm?.copyrightText || ''}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          copyrightText: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Live Preview Box */}
+              <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                  <Eye className="w-4 h-4" /> Live Footer Contact Preview
+                </h4>
+                <div className="p-4 rounded-xl bg-slate-900 border border-white/10 text-xs space-y-2 text-slate-300">
+                  <div className="flex flex-wrap gap-4 text-xs">
+                    <span className="inline-flex items-center gap-1 text-cyan-400 font-mono">
+                      <Phone className="w-3.5 h-3.5" /> {settingsForm?.supportPhone || 'No Phone'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-amber-400">
+                      <Mail className="w-3.5 h-3.5" /> {settingsForm?.supportEmail || 'No Email'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-emerald-400 font-mono">
+                      <FaWhatsapp className="w-3.5 h-3.5" /> WhatsApp: {settingsForm?.whatsappNumber || 'None'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-slate-400">
+                      <MapPin className="w-3.5 h-3.5 text-rose-400" /> {settingsForm?.address || 'No Address'}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <span>© {new Date().getFullYear()} {settingsForm?.siteName} — {settingsForm?.address}</span>
+                    <span className="text-[10px] text-emerald-400 font-mono">Changes apply to whole site instantly</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={isSavingSettings}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-zenov-primary to-cyan-500 hover:from-zenov-primary-hover hover:to-cyan-400 text-white text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-zenov-primary/20 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  {isSavingSettings ? 'Saving Settings...' : 'Save All Settings'}
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </main>
