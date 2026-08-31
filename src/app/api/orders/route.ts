@@ -159,15 +159,48 @@ export async function POST(request: Request) {
       adminNotes: body.notes || body.adminNotes || '',
     };
 
+    // Accurate USD & BDT calculations
+    let calculatedUSD = Number(body.totalUSD) || 0;
+    let calculatedBDT = 0;
+
+    if (Array.isArray(body.items) && body.items.length > 0) {
+      let sumUSD = 0;
+      let sumBDT = 0;
+      body.items.forEach((it: any) => {
+        const qty = Math.max(1, Number(it.quantity) || 1);
+        const uUSD = Number(it.denomination?.amount) || Number(it.amount) || Number(it.price) || 0;
+        const uBDT =
+          it.denomination?.priceBDT !== undefined && Number(it.denomination.priceBDT) > 0
+            ? Number(it.denomination.priceBDT)
+            : it.priceBDT !== undefined && Number(it.priceBDT) > 0
+            ? Number(it.priceBDT)
+            : Math.round(uUSD * 120);
+        sumUSD += uUSD * qty;
+        sumBDT += uBDT * qty;
+      });
+      if (!calculatedUSD) calculatedUSD = Number(sumUSD.toFixed(2));
+      calculatedBDT = sumBDT;
+    }
+
+    if (!calculatedBDT) {
+      calculatedBDT = Math.round(calculatedUSD * 120);
+    }
+
+    const currency = body.currency || 'BDT';
+    const paidAmountCurrency =
+      currency === 'BDT'
+        ? (Number(body.paidAmountCurrency) && Number(body.paidAmountCurrency) > 10 ? Number(body.paidAmountCurrency) : calculatedBDT)
+        : (Number(body.paidAmountCurrency) || calculatedUSD);
+
     const dbOrder = {
       id,
       orderNumber,
       userId: body.userId || 'guest',
       userEmail,
       items: body.items || [],
-      totalUSD: Number(body.totalUSD) || 0,
-      currency: body.currency || 'BDT',
-      paidAmountCurrency: Number(body.paidAmountCurrency) || Number(body.totalUSD) || 0,
+      totalUSD: calculatedUSD,
+      currency,
+      paidAmountCurrency,
       paymentMethod: body.paymentMethod || 'bKash',
       paymentStatus: body.paymentStatus || 'Pending Verification',
       fulfillmentStatus: body.fulfillmentStatus || 'Processing',

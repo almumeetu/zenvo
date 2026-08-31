@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { sendOrderNotificationEmail } from '@/lib/resend';
 
 import { getAuthHeaders } from '@/lib/api-auth';
 
@@ -114,6 +115,14 @@ export async function PUT(
         return NextResponse.json({ success: false, order: null, message: altResult.error.message }, { status: 400 });
       }
       data = altResult.data;
+    }
+
+    if (data && (data.fulfillmentStatus === 'Delivered' || body.fulfillmentStatus === 'Delivered' || body.status === 'Delivered')) {
+      try {
+        await sendOrderNotificationEmail(data);
+      } catch (mailErr: any) {
+        console.warn('[API /orders/[id] PUT] Failed to send status update email:', mailErr?.message || mailErr);
+      }
     }
 
     return NextResponse.json({ success: true, order: data });

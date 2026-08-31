@@ -20,6 +20,10 @@ import {
   FileText,
   Calendar,
   Globe,
+  Send,
+  Eye,
+  RefreshCw,
+  Sparkles,
 } from 'lucide-react';
 import { PaymentLogo } from '@/components/payment/PaymentLogos';
 
@@ -43,6 +47,9 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   onUpdateStatus,
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [emailStatusMessage, setEmailStatusMessage] = useState<{ text: string; success: boolean } | null>(null);
 
   if (!isOpen || !order) return null;
 
@@ -54,6 +61,52 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   };
 
   const isGuest = order.userId === 'guest' || !order.userId || order.userId === '';
+
+  // Calculate real dual prices
+  const totalUSD = Number(order.totalUSD) || 0;
+  const totalBDT =
+    order.currency === 'BDT' && Number(order.paidAmountCurrency) > 10
+      ? Number(order.paidAmountCurrency)
+      : (order.items || []).reduce((acc, it) => {
+          const qty = Math.max(1, it.quantity || 1);
+          const uUSD = Number(it.denomination?.amount) || 0;
+          const bdt =
+            it.denomination?.priceBDT !== undefined && Number(it.denomination.priceBDT) > 0
+              ? Number(it.denomination.priceBDT)
+              : Math.round(uUSD * 120);
+          return acc + bdt * qty;
+        }, 0) || Math.round(totalUSD * 120);
+
+  const handleResendEmail = async () => {
+    setIsResending(true);
+    setEmailStatusMessage(null);
+    try {
+      const res = await fetch('/api/email/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEmailStatusMessage({
+          text: data.message || `Invoice email sent to ${order.userEmail}!`,
+          success: true,
+        });
+      } else {
+        setEmailStatusMessage({
+          text: data.message || 'Failed to dispatch email.',
+          success: false,
+        });
+      }
+    } catch (err: any) {
+      setEmailStatusMessage({
+        text: err?.message || 'Network error while sending email.',
+        success: false,
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -91,344 +144,469 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-4.5 border-b border-zenov-border bg-zenov-surface/90 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg font-black text-zenov-text font-mono">
-                  {order.orderNumber}
-                </span>
-                <button
-                  onClick={() => copyToClipboard(order.orderNumber, 'orderNumber')}
-                  className="p-1 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-zenov-text transition-all"
-                  title="Copy Order #"
-                >
-                  {copiedKey === 'orderNumber' ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fadeIn">
+        <div className="relative w-full max-w-2xl max-h-[90vh] bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="px-6 py-4.5 border-b border-zenov-border bg-zenov-surface/90 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-base sm:text-lg font-black text-zenov-text font-mono">
+                    {order.orderNumber}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(order.orderNumber, 'orderNumber')}
+                    className="p-1 rounded-md bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-zenov-text transition-all"
+                    title="Copy Order #"
+                  >
+                    {copiedKey === 'orderNumber' ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                  {isGuest ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                      👤 Guest
+                    </span>
                   ) : (
-                    <Copy className="w-3.5 h-3.5" />
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/15 border border-blue-500/30 text-blue-300">
+                      👑 Member
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-zenov-text-muted mt-0.5 flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3" />
+                  <span>{new Date(order.createdAt).toLocaleString('en-US', { timeZone: 'Asia/Dhaka' })} (BST)</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              {getStatusBadge(order.fulfillmentStatus)}
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-zenov-text hover:border-zenov-primary transition-all"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Email Alert Banner */}
+          {emailStatusMessage && (
+            <div
+              className={`px-6 py-2.5 text-xs font-bold flex items-center justify-between border-b ${
+                emailStatusMessage.success
+                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                  : 'bg-red-500/15 text-red-300 border-red-500/30'
+              }`}
+            >
+              <span>{emailStatusMessage.text}</span>
+              <button
+                onClick={() => setEmailStatusMessage(null)}
+                className="text-zenov-text-muted hover:text-zenov-text"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="p-6 overflow-y-auto space-y-5 text-sm">
+            {/* Action Bar for Email Preview & Resend */}
+            <div className="p-3 rounded-xl bg-zenov-surface/80 border border-zenov-border flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 text-xs text-zenov-text-secondary">
+                <Mail className="w-4 h-4 text-sky-400" />
+                <span>Email Invoice & Tax Receipt</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowEmailPreview(true)}
+                  className="px-3 py-1.5 rounded-lg bg-zenov-card border border-zenov-border hover:border-sky-500/50 hover:bg-sky-500/10 text-sky-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  Preview Email
+                </button>
+                <button
+                  onClick={handleResendEmail}
+                  disabled={isResending}
+                  className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-black flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  {isResending ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      Resend Email
+                    </>
                   )}
                 </button>
-                {isGuest ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300">
-                    👤 Guest
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/15 border border-blue-500/30 text-blue-300">
-                    👑 Member
-                  </span>
+              </div>
+            </div>
+
+            {/* Destination & Game Section */}
+            <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-zenov-primary flex items-center gap-1.5">
+                  <Gamepad2 className="w-4 h-4" /> Game & Destination UID
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
+                      Player ID / UID
+                    </span>
+                    <span className="text-sm font-mono font-black text-zenov-text">
+                      {order.playerId || 'N/A'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(order.playerId, 'playerId')}
+                    className="px-2.5 py-1 rounded-md bg-zenov-surface border border-zenov-border hover:border-zenov-primary text-xs font-bold flex items-center gap-1 transition-all"
+                  >
+                    {copiedKey === 'playerId' ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {order.serverId && (
+                  <div className="p-3 rounded-lg bg-zenov-card border border-zenov-border/70">
+                    <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
+                      Server / Zone ID
+                    </span>
+                    <span className="text-sm font-mono font-bold text-zenov-text">
+                      {order.serverId}
+                    </span>
+                  </div>
                 )}
               </div>
-              <p className="text-[11px] text-zenov-text-muted mt-0.5 flex items-center gap-1.5">
-                <Calendar className="w-3 h-3" />
-                <span>{new Date(order.createdAt).toLocaleString()}</span>
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            {getStatusBadge(order.fulfillmentStatus)}
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-zenov-text hover:border-zenov-primary transition-all"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+              {/* Items List */}
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-bold text-zenov-text-muted uppercase">
+                  Order Items ({order.items.length})
+                </span>
+                <div className="space-y-2">
+                  {order.items.map((item, idx) => {
+                    const qty = Math.max(1, item?.quantity || 1);
+                    const unitUSD = Number(item?.denomination?.amount ?? (item as any)?.price ?? 0);
+                    const itemUSD = unitUSD * qty;
+                    const unitBDT =
+                      item?.denomination?.priceBDT !== undefined && Number(item?.denomination?.priceBDT) > 0
+                        ? Number(item?.denomination?.priceBDT)
+                        : Math.round(unitUSD * 120);
+                    const itemBDT = unitBDT * qty;
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto space-y-5 text-sm">
-          {/* Destination & Game Section */}
-          <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-zenov-primary flex items-center gap-1.5">
-                <Gamepad2 className="w-4 h-4" /> Game & Destination UID
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                    Player ID / UID
-                  </span>
-                  <span className="text-sm font-mono font-black text-zenov-text">
-                    {order.playerId || 'N/A'}
-                  </span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(order.playerId, 'playerId')}
-                  className="px-2.5 py-1 rounded-md bg-zenov-surface border border-zenov-border hover:border-zenov-primary text-xs font-bold flex items-center gap-1 transition-all"
-                >
-                  {copiedKey === 'playerId' ? (
-                    <>
-                      <Check className="w-3 h-3 text-emerald-400" />
-                      <span className="text-emerald-400">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {order.serverId && (
-                <div className="p-3 rounded-lg bg-zenov-card border border-zenov-border/70">
-                  <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                    Server / Zone ID
-                  </span>
-                  <span className="text-sm font-mono font-bold text-zenov-text">
-                    {order.serverId}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Items List */}
-            <div className="space-y-2 pt-1">
-              <span className="text-[11px] font-bold text-zenov-text-muted uppercase">
-                Order Items ({order.items.length})
-              </span>
-              <div className="space-y-2">
-                {order.items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-zenov-card border border-zenov-border/80 flex items-center justify-between gap-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      {item?.productImage && (
-                        <img
-                          src={item.productImage}
-                          alt={item.productTitle || ''}
-                          className="w-10 h-10 rounded-lg object-cover bg-zenov-surface"
-                        />
-                      )}
-                      <div>
-                        <p className="font-bold text-zenov-text leading-tight">{item?.productTitle || 'Product'}</p>
-                        <p className="text-xs text-zenov-text-secondary">
-                          {item?.denomination?.name || item?.denomination?.label || (item as any)?.packageName || 'Standard Package'} × {item?.quantity || 1}
-                        </p>
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl bg-zenov-card border border-zenov-border/80 flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          {item?.productImage && (
+                            <img
+                              src={item.productImage}
+                              alt={item.productTitle || ''}
+                              className="w-10 h-10 rounded-lg object-cover bg-zenov-surface shrink-0"
+                            />
+                          )}
+                          <div>
+                            <p className="font-bold text-zenov-text leading-tight">{item?.productTitle || 'Product'}</p>
+                            <p className="text-xs text-zenov-text-secondary">
+                              {item?.denomination?.name || item?.denomination?.label || (item as any)?.packageName || 'Standard Package'} × {qty}
+                            </p>
+                            <p className="text-[10px] text-zenov-text-muted">
+                              Unit: ৳{unitBDT.toLocaleString()} <span className="text-zenov-text-muted/60">($${unitUSD.toFixed(2)})</span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-mono font-black text-emerald-400 text-sm">
+                            ৳{itemBDT.toLocaleString()} BDT
+                          </p>
+                          <p className="text-[11px] font-mono text-zenov-text-muted">
+                            (${itemUSD.toFixed(2)} USD)
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-mono font-black text-zenov-success">
-                        {formatCurrency((item?.denomination?.amount ?? (item as any)?.price ?? 0) * (item?.quantity || 1), selectedCurrency)}
-                      </p>
-                      <p className="text-[10px] font-mono text-zenov-text-muted">
-                        ৳{((item?.denomination?.priceBDT || Math.round((item?.denomination?.amount ?? (item as any)?.price ?? 0) * 120))) * (item?.quantity || 1)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Customer & Contact Details */}
-          <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-zenov-primary flex items-center gap-1.5">
-              <User className="w-4 h-4" /> Customer Contact Info
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                    Customer Name
-                  </span>
-                  <span className="font-bold text-zenov-text">{order.customerName || 'Gamer'}</span>
-                </div>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
-                <div className="min-w-0 pr-2">
-                  <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                    Email Address
-                  </span>
-                  <span className="font-mono font-medium text-zenov-text truncate block">
-                    {order.userEmail}
-                  </span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(order.userEmail, 'email')}
-                  className="shrink-0 p-1.5 rounded bg-zenov-surface border border-zenov-border hover:border-zenov-primary transition-all"
-                >
-                  {copiedKey === 'email' ? (
-                    <Check className="w-3 h-3 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3 h-3" />
-                  )}
-                </button>
-              </div>
-
-              {order.customerPhone && (
+            {/* Customer & Contact Details */}
+            <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-zenov-primary flex items-center gap-1.5">
+                <User className="w-4 h-4" /> Customer Contact Info
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                      Phone Number
+                      Customer Name
                     </span>
-                    <span className="font-mono font-bold text-emerald-400">
-                      {order.customerPhone}
+                    <span className="font-bold text-zenov-text">{order.customerName || 'Gamer'}</span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
+                  <div className="min-w-0 pr-2">
+                    <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
+                      Email Address
+                    </span>
+                    <span className="font-mono font-medium text-zenov-text truncate block">
+                      {order.userEmail}
                     </span>
                   </div>
                   <button
-                    onClick={() => copyToClipboard(order.customerPhone || '', 'phone')}
-                    className="p-1.5 rounded bg-zenov-surface border border-zenov-border hover:border-zenov-primary transition-all"
-                  >
-                    {copiedKey === 'phone' ? (
-                      <Check className="w-3 h-3 text-emerald-400" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                </div>
-              )}
-
-              {order.ipAddress && (
-                <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70">
-                  <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                    Client IP Address
-                  </span>
-                  <span className="font-mono text-zenov-text-muted">{order.ipAddress}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Payment & Gateway Breakdown */}
-          <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-zenov-primary flex items-center gap-1.5">
-              <CreditCard className="w-4 h-4" /> Payment Verification
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70">
-                <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                  Gateway
-                </span>
-                <span className="font-black text-zenov-text text-sm flex items-center gap-1.5 mt-0.5">
-                  <PaymentLogo method={order.paymentMethod} className="w-5 h-5 rounded-md shrink-0 shadow-sm" />
-                  <span>{order.paymentMethod}</span>
-                </span>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
-                <div className="min-w-0 pr-2">
-                  <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                    Transaction ID
-                  </span>
-                  <span className="font-mono font-black text-sky-400 truncate block">
-                    {order.transactionId || 'N/A'}
-                  </span>
-                </div>
-                {order.transactionId && (
-                  <button
-                    onClick={() => copyToClipboard(order.transactionId, 'trxId')}
+                    onClick={() => copyToClipboard(order.userEmail, 'email')}
                     className="shrink-0 p-1.5 rounded bg-zenov-surface border border-zenov-border hover:border-zenov-primary transition-all"
                   >
-                    {copiedKey === 'trxId' ? (
+                    {copiedKey === 'email' ? (
                       <Check className="w-3 h-3 text-emerald-400" />
                     ) : (
                       <Copy className="w-3 h-3" />
                     )}
                   </button>
+                </div>
+
+                {order.customerPhone && (
+                  <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
+                        Phone Number
+                      </span>
+                      <span className="font-mono font-bold text-emerald-400">
+                        {order.customerPhone}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(order.customerPhone || '', 'phone')}
+                      className="p-1.5 rounded bg-zenov-surface border border-zenov-border hover:border-zenov-primary transition-all"
+                    >
+                      {copiedKey === 'phone' ? (
+                        <Check className="w-3 h-3 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {order.ipAddress && (
+                  <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70">
+                    <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
+                      Client IP Address
+                    </span>
+                    <span className="font-mono text-zenov-text-muted">{order.ipAddress}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Payment & Gateway Breakdown */}
+            <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-zenov-primary flex items-center gap-1.5">
+                <CreditCard className="w-4 h-4" /> Payment Verification & Dual Real Price
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70">
+                  <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
+                    Gateway
+                  </span>
+                  <span className="font-black text-zenov-text text-sm flex items-center gap-1.5 mt-0.5">
+                    <PaymentLogo method={order.paymentMethod} className="w-5 h-5 rounded-md shrink-0 shadow-sm" />
+                    <span>{order.paymentMethod}</span>
+                  </span>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70 flex items-center justify-between">
+                  <div className="min-w-0 pr-2">
+                    <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
+                      Transaction ID
+                    </span>
+                    <span className="font-mono font-black text-sky-400 truncate block">
+                      {order.transactionId || 'N/A'}
+                    </span>
+                  </div>
+                  {order.transactionId && (
+                    <button
+                      onClick={() => copyToClipboard(order.transactionId, 'trxId')}
+                      className="shrink-0 p-1.5 rounded bg-zenov-surface border border-zenov-border hover:border-zenov-primary transition-all"
+                    >
+                      {copiedKey === 'trxId' ? (
+                        <Check className="w-3 h-3 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {order.senderNumber && (
+                  <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70">
+                    <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
+                      Sender Number
+                    </span>
+                    <span className="font-mono font-bold text-amber-400">{order.senderNumber}</span>
+                  </div>
                 )}
               </div>
 
-              {order.senderNumber && (
-                <div className="p-2.5 rounded-lg bg-zenov-card border border-zenov-border/70">
-                  <span className="text-[10px] uppercase font-bold text-zenov-text-muted block">
-                    Sender Number
+              {/* Total Real Price Box */}
+              <div className="p-4 rounded-xl bg-zenov-card border border-zenov-border/80 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-black text-zenov-text-muted uppercase tracking-wider">
+                    Total Real Price:
                   </span>
-                  <span className="font-mono font-bold text-amber-400">{order.senderNumber}</span>
+                  <p className="text-[10px] text-zenov-text-secondary mt-0.5">
+                    Calculated accurately with 1 USD ≈ ৳120 / custom package pricing
+                  </p>
                 </div>
+                <div className="text-right">
+                  <div className="text-lg font-black font-mono text-emerald-400">
+                    ৳{totalBDT.toLocaleString()} BDT
+                  </div>
+                  <div className="text-xs font-mono text-sky-300 font-bold">
+                    (${totalUSD.toFixed(2)} USD)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Admin Notes */}
+            {order.notes && (
+              <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border space-y-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" /> Order Notes / Delivery Codes
+                </span>
+                <p className="text-xs text-zenov-text bg-zenov-card p-3 rounded-lg border border-zenov-border font-mono whitespace-pre-wrap">
+                  {order.notes}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer Actions */}
+          <div className="p-4.5 border-t border-zenov-border bg-zenov-surface/90 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-zenov-text-muted uppercase">Set Status:</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {order.fulfillmentStatus !== 'Delivered' && (
+                <button
+                  onClick={() => {
+                    onUpdateStatus(order.id, 'Delivered', 'Paid');
+                    onClose();
+                  }}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Approve & Deliver
+                </button>
               )}
-            </div>
 
-            <div className="p-3 rounded-xl bg-zenov-card border border-zenov-border/80 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-bold text-zenov-text-muted uppercase">
-                  Total Paid Amount:
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="text-base font-black font-mono text-zenov-success">
-                  {formatCurrency(order.totalUSD, order.currency as any)}
-                </span>
-              </div>
-            </div>
-          </div>
+              {order.fulfillmentStatus !== 'Processing' && (
+                <button
+                  onClick={() => {
+                    onUpdateStatus(order.id, 'Processing', 'Paid');
+                    onClose();
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs uppercase tracking-wider transition-all"
+                >
+                  Mark Processing
+                </button>
+              )}
 
-          {/* Admin Notes */}
-          {order.notes && (
-            <div className="p-4 rounded-xl bg-zenov-surface/60 border border-zenov-border space-y-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-zenov-text-muted flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5" /> Order Notes / Codes
-              </span>
-              <p className="text-xs text-zenov-text bg-zenov-card p-3 rounded-lg border border-zenov-border font-mono whitespace-pre-wrap">
-                {order.notes}
-              </p>
-            </div>
-          )}
-        </div>
+              {order.fulfillmentStatus !== 'Refunded' && (
+                <button
+                  onClick={() => {
+                    onUpdateStatus(order.id, 'Refunded', 'Failed');
+                    onClose();
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-red-600/20 hover:bg-red-600 border border-red-500/40 text-red-300 hover:text-white font-bold text-xs uppercase tracking-wider transition-all"
+                >
+                  Reject & Refund
+                </button>
+              )}
 
-        {/* Footer Actions */}
-        <div className="p-4.5 border-t border-zenov-border bg-zenov-surface/90 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-zenov-text-muted uppercase">Set Status:</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {order.fulfillmentStatus !== 'Delivered' && (
               <button
-                onClick={() => {
-                  onUpdateStatus(order.id, 'Delivered', 'Paid');
-                  onClose();
-                }}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl bg-zenov-card border border-zenov-border text-zenov-text-secondary hover:text-zenov-text font-bold text-xs uppercase tracking-wider transition-all"
               >
-                <CheckCircle2 className="w-4 h-4" /> Approve & Deliver
+                Close
               </button>
-            )}
-
-            {order.fulfillmentStatus !== 'Processing' && (
-              <button
-                onClick={() => {
-                  onUpdateStatus(order.id, 'Processing', 'Paid');
-                  onClose();
-                }}
-                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs uppercase tracking-wider transition-all"
-              >
-                Mark Processing
-              </button>
-            )}
-
-            {order.fulfillmentStatus !== 'Refunded' && (
-              <button
-                onClick={() => {
-                  onUpdateStatus(order.id, 'Refunded', 'Failed');
-                  onClose();
-                }}
-                className="px-3.5 py-2 rounded-xl bg-red-600/20 hover:bg-red-600 border border-red-500/40 text-red-300 hover:text-white font-bold text-xs uppercase tracking-wider transition-all"
-              >
-                Reject & Refund
-              </button>
-            )}
-
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-zenov-card border border-zenov-border text-zenov-text-secondary hover:text-zenov-text font-bold text-xs uppercase tracking-wider transition-all"
-            >
-              Close
-            </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Live HTML Email Preview Modal */}
+      {showEmailPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-3xl h-[92vh] bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-zenov-border bg-zenov-surface/90 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase text-zenov-text">
+                    Email Invoice Preview #{order.orderNumber}
+                  </h3>
+                  <p className="text-[11px] text-zenov-text-secondary">
+                    Recipient: {order.userEmail || 'Customer'} • Dual Real Prices (USD & BDT)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/api/email/preview?orderId=${encodeURIComponent(order.id || order.orderNumber)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-xl bg-zenov-surface border border-zenov-border text-sky-400 hover:bg-sky-500/20 text-xs font-bold flex items-center gap-1 transition-all"
+                  title="Open in new window"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <button
+                  onClick={() => setShowEmailPreview(false)}
+                  className="p-2 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-muted hover:text-zenov-text hover:border-zenov-primary transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 w-full bg-[#030712] overflow-hidden">
+              <iframe
+                src={`/api/email/preview?orderId=${encodeURIComponent(order.id || order.orderNumber)}`}
+                className="w-full h-full border-0"
+                title="Email Preview"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

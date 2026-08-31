@@ -452,7 +452,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     paymentMethod: PaymentMethod,
     customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
   ) => {
-    const totalUSD = item.denomination.amount * item.quantity;
+    const qty = Math.max(1, item.quantity || 1);
+    const unitUSD = Number(item.denomination.amount) || 0;
+    const totalUSD = Number((unitUSD * qty).toFixed(2));
+    const unitBDT =
+      item.denomination.priceBDT !== undefined && Number(item.denomination.priceBDT) > 0
+        ? Number(item.denomination.priceBDT)
+        : Math.round(unitUSD * 120);
+    const totalBDT = unitBDT * qty;
+    const paidAmountCurrency = selectedCurrency === 'BDT' ? totalBDT : totalUSD;
+
     const orderNumber = 'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
     const transactionId = customerInfo?.trxId?.trim() || ('TX-' + Math.random().toString(36).slice(2, 10).toUpperCase());
     const senderNumber = customerInfo?.senderNumber?.trim() || customerInfo?.phone || '';
@@ -473,7 +482,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       items: [item],
       totalUSD,
       currency: selectedCurrency,
-      paidAmountCurrency: totalUSD,
+      paidAmountCurrency,
       paymentMethod,
       paymentStatus: isManualVerification ? 'Pending Verification' : 'Paid',
       fulfillmentStatus: isManualVerification ? 'Pending Verification' : 'Processing',
@@ -520,7 +529,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   ) => {
     if (cartItems.length === 0) return { success: false, message: 'Your cart is empty' };
 
-    const totalUSD = cartItems.reduce((s, it) => s + it.denomination.amount * it.quantity, 0);
+    const totalUSD = Number(
+      cartItems.reduce((s, it) => s + (Number(it.denomination.amount) || 0) * Math.max(1, it.quantity || 1), 0).toFixed(2)
+    );
+    const totalBDT = cartItems.reduce((s, it) => {
+      const qty = Math.max(1, it.quantity || 1);
+      const uUSD = Number(it.denomination.amount) || 0;
+      const bdt =
+        it.denomination.priceBDT !== undefined && Number(it.denomination.priceBDT) > 0
+          ? Number(it.denomination.priceBDT)
+          : Math.round(uUSD * 120);
+      return s + bdt * qty;
+    }, 0);
+    const paidAmountCurrency = selectedCurrency === 'BDT' ? totalBDT : totalUSD;
+
     const orderNumber = 'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
     const transactionId = customerInfo?.trxId?.trim() || ('TX-' + Math.random().toString(36).slice(2, 10).toUpperCase());
     const senderNumber = customerInfo?.senderNumber?.trim() || customerInfo?.phone || '';
@@ -541,7 +563,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       items: [...cartItems],
       totalUSD,
       currency: selectedCurrency,
-      paidAmountCurrency: totalUSD,
+      paidAmountCurrency,
       paymentMethod,
       paymentStatus: isManualVerification ? 'Pending Verification' : 'Paid',
       fulfillmentStatus: isManualVerification ? 'Pending Verification' : 'Processing',
@@ -584,6 +606,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       orderData.transactionId?.trim() ||
       'TX-' + Math.random().toString(36).slice(2, 10).toUpperCase();
 
+    const calcUSD =
+      Number(orderData.totalUSD) ||
+      Number(
+        (orderData.items || []).reduce(
+          (s, it) => s + (Number(it.denomination?.amount) || 0) * Math.max(1, it.quantity || 1),
+          0
+        ).toFixed(2)
+      );
+
+    const calcBDT =
+      (orderData.items || []).reduce((s, it) => {
+        const qty = Math.max(1, it.quantity || 1);
+        const uUSD = Number(it.denomination?.amount) || 0;
+        const bdt =
+          it.denomination?.priceBDT !== undefined && Number(it.denomination.priceBDT) > 0
+            ? Number(it.denomination.priceBDT)
+            : Math.round(uUSD * 120);
+        return s + bdt * qty;
+      }, 0) || Math.round(calcUSD * 120);
+
+    const currency = orderData.currency || selectedCurrency;
+    const paidAmountCurrency =
+      Number(orderData.paidAmountCurrency) || (currency === 'BDT' ? calcBDT : calcUSD);
+
     const newOrder: Order = {
       id,
       orderNumber,
@@ -593,9 +639,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       customerPhone: orderData.customerPhone || '',
       senderNumber: orderData.senderNumber || '',
       items: orderData.items || [],
-      totalUSD: Number(orderData.totalUSD) || 0,
-      currency: orderData.currency || selectedCurrency,
-      paidAmountCurrency: Number(orderData.paidAmountCurrency) || Number(orderData.totalUSD) || 0,
+      totalUSD: calcUSD,
+      currency,
+      paidAmountCurrency,
       paymentMethod: orderData.paymentMethod || 'bKash',
       paymentStatus: orderData.paymentStatus || 'Paid',
       fulfillmentStatus: orderData.fulfillmentStatus || 'Delivered',

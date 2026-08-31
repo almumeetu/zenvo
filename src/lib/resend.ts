@@ -1,7 +1,7 @@
 /**
  * Resend Email Notification Service for ZENOV Gaming Store
  * Sends high-end, professional transactional HTML emails for:
- * 1. Customer Order Confirmation & Tax Invoice Receipts
+ * 1. Customer Order Confirmation & Tax Invoice Receipts (with real USD $ and BDT ৳ prices)
  * 2. Admin Order Dispatch & Verification Alerts
  * 3. Support Inquiries & Helpdesk Tickets
  *
@@ -11,10 +11,13 @@
  *   ADMIN_NOTIFICATION_EMAIL  — Admin inbox to receive order/ticket alerts
  */
 
+import { DEFAULT_SITE_SETTINGS } from '@/data/siteSettings';
+
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const ADMIN_NOTIFICATION_EMAIL =
   process.env.ADMIN_NOTIFICATION_EMAIL ||
   process.env.RESEND_TO_EMAIL ||
+  DEFAULT_SITE_SETTINGS.supportEmail ||
   'zenovgamesbd@gmail.com';
 const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'ZENOV Gaming <onboarding@resend.dev>';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://zenvo-gaming.vercel.app';
@@ -107,15 +110,15 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
 }
 
 /**
- * Format order date in a human-friendly format
+ * Format order date in a human-friendly format (Bangladesh Standard Time BST / UTC+6)
  */
-function formatOrderDate(dateInput?: string | Date): { formattedDate: string; formattedTime: string } {
+export function formatOrderDate(dateInput?: string | Date): { formattedDate: string; formattedTime: string } {
   try {
     const d = dateInput ? new Date(dateInput) : new Date();
     if (isNaN(d.getTime())) throw new Error('Invalid date');
 
     const formattedDate = d.toLocaleDateString('en-US', {
-      weekday: 'short',
+      weekday: 'long',
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -140,13 +143,48 @@ function formatOrderDate(dateInput?: string | Date): { formattedDate: string; fo
   }
 }
 
+export interface ParsedOrderItem {
+  title: string;
+  packageName: string;
+  quantity: number;
+  unitPriceUSD: number;
+  unitPriceBDT: number;
+  totalPriceUSD: number;
+  totalPriceBDT: number;
+  image?: string;
+  playerId?: string;
+  serverId?: string;
+}
+
+export interface ParsedOrderDetails {
+  orderNum: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  senderNumber: string;
+  playerId: string;
+  serverId: string;
+  paymentMethod: string;
+  transactionId: string;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  ipAddress: string;
+  adminNotes: string;
+  formattedDate: string;
+  formattedTime: string;
+  items: ParsedOrderItem[];
+  totalUSD: number;
+  totalBDT: number;
+  currency: string;
+}
+
 /**
- * Generates an ultra-professional, responsive HTML invoice and order receipt email
+ * Parses and sanitizes order data ensuring 100% accurate USD and BDT calculations
  */
-export async function sendOrderNotificationEmail(order: any) {
+export function parseOrderData(order: any): ParsedOrderDetails {
   const orderNum = order.orderNumber || order.id || 'ZNG-' + Date.now().toString().slice(-6);
   const customerEmail = (order.customerEmail || order.userEmail || '').trim();
-  const customerName = order.customerName || order.userName || 'Valued Gamer';
+  const customerName = order.customerName || order.userName || (order.userId === 'guest' ? 'Guest Gamer' : 'Valued Gamer');
   const customerPhone = order.customerPhone || order.phone || '';
   const senderNumber = order.senderNumber || '';
   const playerId = order.playerId || order.items?.[0]?.playerId || 'N/A';
@@ -157,84 +195,172 @@ export async function sendOrderNotificationEmail(order: any) {
   const fulfillmentStatus = order.fulfillmentStatus || 'Processing';
   const ipAddress = order.ipAddress || '';
 
+  // Extract clean admin notes/redeem codes
+  let adminNotes = '';
+  if (typeof order.notes === 'string' && order.notes.trim()) {
+    try {
+      if (order.notes.startsWith('{') && order.notes.endsWith('}')) {
+        const parsed = JSON.parse(order.notes);
+        adminNotes = parsed.adminNotes || parsed.notes || '';
+      } else {
+        adminNotes = order.notes;
+      }
+    } catch {
+      adminNotes = order.notes;
+    }
+  } else if (order.adminNotes) {
+    adminNotes = String(order.adminNotes);
+  }
+
   const { formattedDate, formattedTime } = formatOrderDate(order.createdAt);
 
-  // Parse items
-  const items: Array<{
-    title: string;
-    packageName: string;
-    quantity: number;
-    amountUSD: number;
-    priceBDT: number;
-    image?: string;
-  }> = [];
+  const items: ParsedOrderItem[] = [];
 
   if (Array.isArray(order.items) && order.items.length > 0) {
     order.items.forEach((item: any) => {
       const denom = item.denomination || {};
-      const amountUSD = Number(denom.amount) || Number(item.amount) || 0;
-      const priceBDT = Number(denom.priceBDT) || Math.round(amountUSD * 120) || 0;
+      const qty = Math.max(1, Number(item.quantity) || 1);
+
+      // Base unit price in USD
+      const unitPriceUSD = Number(denom.amount) || Number(item.amount) || Number(item.price) || 0;
+
+      // Real unit price in BDT (from denom.priceBDT or exact USD*120 conversion)
+      const unitPriceBDT =
+        denom.priceBDT !== undefined && Number(denom.priceBDT) > 0
+          ? Number(denom.priceBDT)
+          : item.priceBDT !== undefined && Number(item.priceBDT) > 0
+          ? Number(item.priceBDT)
+          : Math.round(unitPriceUSD * 120);
+
+      const totalPriceUSD = Number((unitPriceUSD * qty).toFixed(2));
+      const totalPriceBDT = unitPriceBDT * qty;
+
       items.push({
-        title: item.productTitle || item.title || 'Game Package',
-        packageName: denom.name || item.packageName || 'Standard Top-Up',
-        quantity: Number(item.quantity) || 1,
-        amountUSD,
-        priceBDT,
+        title: item.productTitle || item.title || 'Game Digital Top-Up',
+        packageName: denom.name || denom.label || item.packageName || 'Standard Top-Up Package',
+        quantity: qty,
+        unitPriceUSD,
+        unitPriceBDT,
+        totalPriceUSD,
+        totalPriceBDT,
         image: item.productImage || item.image || '',
+        playerId: item.playerId || undefined,
+        serverId: item.serverId || undefined,
       });
     });
   } else {
     // Single item fallback
-    const amountUSD = Number(order.totalUSD) || Number(order.amount) || 0;
-    const priceBDT = Number(order.paidAmountCurrency) || Number(order.priceBDT) || Math.round(amountUSD * 120);
+    const qty = Math.max(1, Number(order.quantity) || 1);
+    const unitPriceUSD = Number(order.totalUSD) || Number(order.amount) || 0;
+    const unitPriceBDT =
+      Number(order.paidAmountCurrency) && order.currency === 'BDT'
+        ? Number(order.paidAmountCurrency)
+        : Number(order.priceBDT) || Math.round(unitPriceUSD * 120);
+
     items.push({
       title: order.productTitle || 'Digital Top-Up',
       packageName: order.denominationName || order.denomination?.name || 'Standard Package',
-      quantity: Number(order.quantity) || 1,
-      amountUSD,
-      priceBDT,
+      quantity: qty,
+      unitPriceUSD,
+      unitPriceBDT,
+      totalPriceUSD: Number((unitPriceUSD * qty).toFixed(2)),
+      totalPriceBDT: unitPriceBDT * qty,
     });
   }
 
-  // Calculate totals
-  const totalUSD = Number(order.totalUSD) || items.reduce((acc, i) => acc + i.amountUSD * i.quantity, 0);
-  const totalBDT = Number(order.paidAmountCurrency) || items.reduce((acc, i) => acc + i.priceBDT * i.quantity, 0);
+  // Calculate grand totals
+  const sumItemsUSD = items.reduce((acc, i) => acc + i.totalPriceUSD, 0);
+  const sumItemsBDT = items.reduce((acc, i) => acc + i.totalPriceBDT, 0);
 
-  const subject = `🎮 Order Confirmation & Invoice #${orderNum} - ZENOV Gaming`;
+  const totalUSD = Number(order.totalUSD) > 0 ? Number(order.totalUSD) : Number(sumItemsUSD.toFixed(2));
+  const totalBDT =
+    sumItemsBDT > 0
+      ? sumItemsBDT
+      : order.currency === 'BDT' && Number(order.paidAmountCurrency) > 0
+      ? Number(order.paidAmountCurrency)
+      : Math.round(totalUSD * 120);
 
-  // Status colors
-  const isPaid = paymentStatus === 'Paid';
-  const payBadgeBg = isPaid ? '#064e3b' : '#451a03';
-  const payBadgeBorder = isPaid ? '#059669' : '#d97706';
-  const payBadgeText = isPaid ? '#34d399' : '#fbbf24';
+  return {
+    orderNum,
+    customerName,
+    customerEmail,
+    customerPhone,
+    senderNumber,
+    playerId,
+    serverId,
+    paymentMethod,
+    transactionId,
+    paymentStatus,
+    fulfillmentStatus,
+    ipAddress,
+    adminNotes,
+    formattedDate,
+    formattedTime,
+    items,
+    totalUSD: Number(totalUSD.toFixed(2)),
+    totalBDT: Math.round(totalBDT),
+    currency: order.currency || 'BDT',
+  };
+}
 
-  const isDelivered = fulfillmentStatus === 'Delivered';
-  const fulBadgeBg = isDelivered ? '#064e3b' : '#1e3a8a';
-  const fulBadgeBorder = isDelivered ? '#059669' : '#3b82f6';
-  const fulBadgeText = isDelivered ? '#34d399' : '#60a5fa';
+/**
+ * Generates an ultra-premium, dark-themed, responsive HTML invoice and order receipt email
+ * with complete real data and dual Dollar ($ USD) and BDT (৳) pricing.
+ */
+export function generateOrderEmailHtml(order: any): string {
+  const data = parseOrderData(order);
 
-  // Build items rows HTML
-  const itemsHtml = items
+  const isPaid = data.paymentStatus === 'Paid';
+  const isDelivered = data.fulfillmentStatus === 'Delivered';
+  const isProcessing = data.fulfillmentStatus === 'Processing';
+
+  // Status Badges Styling
+  const payBadge = isPaid
+    ? { bg: '#064e3b', border: '#059669', text: '#34d399', label: 'PAID & VERIFIED' }
+    : { bg: '#451a03', border: '#d97706', text: '#fbbf24', label: 'PAYMENT VERIFICATION PENDING' };
+
+  const fulBadge = isDelivered
+    ? { bg: '#064e3b', border: '#059669', text: '#34d399', label: 'DELIVERED TO IN-GAME UID' }
+    : isProcessing
+    ? { bg: '#172554', border: '#2563eb', text: '#60a5fa', label: 'PROCESSING DELIVERY' }
+    : { bg: '#3b0764', border: '#7e22ce', text: '#c084fc', label: 'PENDING VERIFICATION' };
+
+  // Items Table HTML Rows
+  const itemsHtml = data.items
     .map(
       (item, idx) => `
-      <tr style="border-bottom: 1px solid #1e293b;">
-        <td style="padding: 14px 12px; font-size: 13px; color: #f8fafc; vertical-align: middle;">
-          <div style="font-weight: 700; font-size: 14px; color: #ffffff; margin-bottom: 2px;">
+      <tr style="border-bottom: 1px solid #1e293b; background-color: ${idx % 2 === 0 ? '#0f172a' : '#0b1120'};">
+        <td style="padding: 16px 14px; font-size: 13px; color: #f8fafc; vertical-align: middle;">
+          <div style="font-weight: 800; font-size: 14px; color: #ffffff; margin-bottom: 3px; letter-spacing: -0.2px;">
             ${item.title}
           </div>
-          <div style="font-size: 12px; color: #94a3b8; font-weight: 500;">
-            Package: <span style="color: #38bdf8; font-weight: 600;">${item.packageName}</span>
+          <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">
+            Package: <span style="color: #38bdf8; font-weight: 700;">${item.packageName}</span>
+          </div>
+          ${
+            item.playerId
+              ? `<div style="font-size: 11px; color: #64748b; font-family: monospace;">UID: <strong style="color: #cbd5e1;">${item.playerId}</strong>${
+                  item.serverId ? ` • Server: <strong style="color: #cbd5e1;">${item.serverId}</strong>` : ''
+                }</div>`
+              : ''
+          }
+          <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+            Rate: <span style="color: #10b981; font-weight: 600; font-family: monospace;">৳${item.unitPriceBDT.toLocaleString()}</span>
+            <span style="color: #475569;"> / </span>
+            <span style="color: #94a3b8; font-family: monospace;">$${item.unitPriceUSD.toFixed(2)} USD</span>
           </div>
         </td>
-        <td style="padding: 14px 12px; font-size: 13px; color: #cbd5e1; text-align: center; vertical-align: middle; font-weight: 600;">
-          ${item.quantity}x
+        <td style="padding: 16px 14px; font-size: 13px; color: #f8fafc; text-align: center; vertical-align: middle; font-weight: 800; font-family: monospace;">
+          <span style="display: inline-block; padding: 4px 10px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; color: #38bdf8;">
+            ${item.quantity}x
+          </span>
         </td>
-        <td style="padding: 14px 12px; font-size: 13px; color: #f8fafc; text-align: right; vertical-align: middle;">
-          <div style="font-weight: 800; font-family: monospace; color: #10b981; font-size: 14px;">
-            ৳${(item.priceBDT * item.quantity).toLocaleString()}
+        <td style="padding: 16px 14px; font-size: 13px; color: #f8fafc; text-align: right; vertical-align: middle;">
+          <div style="font-weight: 900; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; color: #34d399; font-size: 15px;">
+            ৳${item.totalPriceBDT.toLocaleString()} BDT
           </div>
-          <div style="font-size: 11px; color: #64748b; font-family: monospace;">
-            ($${(item.amountUSD * item.quantity).toFixed(2)} USD)
+          <div style="font-size: 11px; color: #94a3b8; font-family: monospace; margin-top: 2px; font-weight: 600;">
+            ($${item.totalPriceUSD.toFixed(2)} USD)
           </div>
         </td>
       </tr>
@@ -242,14 +368,14 @@ export async function sendOrderNotificationEmail(order: any) {
     )
     .join('');
 
-  const html = `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>${subject}</title>
+  <title>🎮 Order Confirmation & Tax Invoice #${data.orderNum} - ZENOV Gaming</title>
   <!--[if mso]>
   <style type="text/css">
     body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
@@ -258,22 +384,26 @@ export async function sendOrderNotificationEmail(order: any) {
 </head>
 <body style="margin: 0; padding: 0; background-color: #030712; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9; -webkit-font-smoothing: antialiased;">
   <div style="background-color: #030712; padding: 24px 12px;">
+    
     <!-- Main Card Container -->
-    <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; background-color: #0b0f19; border: 1px solid #1e293b; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7); margin: 0 auto;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; background-color: #0b0f19; border: 1px solid #1e293b; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85); margin: 0 auto;">
       
       <!-- Brand Header Banner -->
       <tr>
-        <td style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%); padding: 32px 24px; text-align: center; border-bottom: 2px solid #3b82f6;">
+        <td style="background: linear-gradient(135deg, #090d16 0%, #0f172a 40%, #1e3a8a 100%); padding: 36px 24px; text-align: center; border-bottom: 2px solid #2563eb; position: relative;">
           <table align="center" border="0" cellpadding="0" cellspacing="0">
             <tr>
               <td style="text-align: center;">
-                <div style="display: inline-block; padding: 8px 16px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; margin-bottom: 12px;">
-                  <span style="font-size: 20px; font-weight: 900; letter-spacing: 3px; color: #ffffff; text-transform: uppercase;">
+                <div style="display: inline-block; padding: 8px 18px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
+                  <span style="font-size: 22px; font-weight: 900; letter-spacing: 3px; color: #ffffff; text-transform: uppercase;">
                     ⚡ ZENOV GAMING
                   </span>
                 </div>
-                <div style="font-size: 12px; font-weight: 700; color: #93c5fd; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;">
+                <div style="font-size: 12px; font-weight: 800; color: #93c5fd; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 4px;">
                   Official Order Receipt & Tax Invoice
+                </div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 4px; font-weight: 600;">
+                  Automated Digital Delivery Hub • Dhaka, Bangladesh
                 </div>
               </td>
             </tr>
@@ -281,17 +411,17 @@ export async function sendOrderNotificationEmail(order: any) {
         </td>
       </tr>
 
-      <!-- Greeting & Order Status Badge -->
+      <!-- Greeting & Confirmation -->
       <tr>
         <td style="padding: 28px 24px 16px 24px;">
           <table width="100%" border="0" cellpadding="0" cellspacing="0">
             <tr>
               <td>
-                <h2 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 800; color: #ffffff;">
-                  Thank you for your order, <span style="color: #38bdf8;">${customerName}</span>! 👋
+                <h2 style="margin: 0 0 6px 0; font-size: 19px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px;">
+                  Thank you for your order, <span style="color: #38bdf8;">${data.customerName}</span>! 👋
                 </h2>
-                <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">
-                  Your digital gaming top-up request has been registered and is being processed by our automated delivery system.
+                <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.6;">
+                  Your digital top-up order has been successfully recorded in our automated delivery system. Below is your complete transaction receipt with real item breakdown and prices.
                 </p>
               </td>
             </tr>
@@ -299,44 +429,44 @@ export async function sendOrderNotificationEmail(order: any) {
         </td>
       </tr>
 
-      <!-- Order Meta Highlights Card -->
+      <!-- Order Meta Highlights Card (2x2 Grid) -->
       <tr>
         <td style="padding: 0 24px 20px 24px;">
-          <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a; border: 1px solid #334155; border-radius: 14px; overflow: hidden;">
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden;">
             <tr>
               <td style="padding: 16px; width: 50%; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b;">
-                <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">
-                  Invoice / Order #
+                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 1px; display: block; margin-bottom: 4px;">
+                  Order / Invoice Number
                 </span>
-                <span style="font-size: 13px; font-weight: 800; font-family: monospace; color: #38bdf8;">
-                  ${orderNum}
+                <span style="font-size: 15px; font-weight: 900; font-family: monospace; color: #38bdf8;">
+                  ${data.orderNum}
                 </span>
               </td>
               <td style="padding: 16px; width: 50%; border-bottom: 1px solid #1e293b;">
-                <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">
+                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 1px; display: block; margin-bottom: 4px;">
                   Order Date & Time
                 </span>
                 <span style="font-size: 12px; font-weight: 700; color: #f8fafc;">
-                  ${formattedDate}<br/>
-                  <span style="font-size: 11px; color: #94a3b8; font-weight: 500;">${formattedTime}</span>
+                  ${data.formattedDate}<br/>
+                  <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">${data.formattedTime}</span>
                 </span>
               </td>
             </tr>
             <tr>
               <td style="padding: 16px; width: 50%; border-right: 1px solid #1e293b;">
-                <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">
+                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 1px; display: block; margin-bottom: 6px;">
                   Payment Status
                 </span>
-                <span style="display: inline-block; padding: 4px 10px; background-color: ${payBadgeBg}; border: 1px solid ${payBadgeBorder}; color: ${payBadgeText}; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
-                  ${paymentStatus}
+                <span style="display: inline-block; padding: 4px 10px; background-color: ${payBadge.bg}; border: 1px solid ${payBadge.border}; color: ${payBadge.text}; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                  ${data.paymentStatus}
                 </span>
               </td>
               <td style="padding: 16px; width: 50%;">
-                <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">
+                <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 1px; display: block; margin-bottom: 6px;">
                   Fulfillment Status
                 </span>
-                <span style="display: inline-block; padding: 4px 10px; background-color: ${fulBadgeBg}; border: 1px solid ${fulBadgeBorder}; color: ${fulBadgeText}; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
-                  ${fulfillmentStatus}
+                <span style="display: inline-block; padding: 4px 10px; background-color: ${fulBadge.bg}; border: 1px solid ${fulBadge.border}; color: ${fulBadge.text}; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                  ${data.fulfillmentStatus}
                 </span>
               </td>
             </tr>
@@ -344,30 +474,30 @@ export async function sendOrderNotificationEmail(order: any) {
         </td>
       </tr>
 
-      <!-- In-Game Destination Card (Highlighted) -->
+      <!-- In-Game Account Destination & Player UID Card -->
       <tr>
         <td style="padding: 0 24px 20px 24px;">
-          <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1px solid #2563eb; border-radius: 14px; padding: 16px;">
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid #2563eb; border-radius: 16px; padding: 18px;">
             <tr>
               <td>
-                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #60a5fa; letter-spacing: 1px; margin-bottom: 8px;">
-                  🎮 In-Game Account Destination
+                <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; color: #60a5fa; letter-spacing: 1.2px; margin-bottom: 10px;">
+                  🎮 In-Game Account / Digital Delivery Destination
                 </div>
                 <table width="100%" border="0" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="padding: 4px 0; font-size: 12px; color: #cbd5e1;">
-                      <strong style="color: #94a3b8;">Player ID / UID:</strong>
-                      <span style="font-family: monospace; font-size: 14px; font-weight: 800; color: #ffffff; background: #0f172a; padding: 3px 8px; border-radius: 6px; border: 1px solid #334155; margin-left: 6px;">
-                        ${playerId}
+                    <td style="padding: 4px 0; font-size: 13px; color: #cbd5e1;">
+                      <strong style="color: #94a3b8; font-size: 12px; text-transform: uppercase;">Player ID / UID:</strong>
+                      <span style="font-family: monospace; font-size: 15px; font-weight: 900; color: #ffffff; background: #070c18; padding: 4px 10px; border-radius: 8px; border: 1px solid #3b82f6; margin-left: 8px; letter-spacing: 0.5px;">
+                        ${data.playerId}
                       </span>
                     </td>
                     ${
-                      serverId
+                      data.serverId
                         ? `
-                    <td style="padding: 4px 0; font-size: 12px; color: #cbd5e1; text-align: right;">
-                      <strong style="color: #94a3b8;">Server / Zone:</strong>
-                      <span style="font-family: monospace; font-size: 13px; font-weight: 700; color: #f8fafc; background: #0f172a; padding: 3px 8px; border-radius: 6px; border: 1px solid #334155; margin-left: 6px;">
-                        ${serverId}
+                    <td style="padding: 4px 0; font-size: 13px; color: #cbd5e1; text-align: right;">
+                      <strong style="color: #94a3b8; font-size: 12px; text-transform: uppercase;">Server / Zone:</strong>
+                      <span style="font-family: monospace; font-size: 14px; font-weight: 800; color: #38bdf8; background: #070c18; padding: 4px 10px; border-radius: 8px; border: 1px solid #334155; margin-left: 6px;">
+                        ${data.serverId}
                       </span>
                     </td>`
                         : ''
@@ -380,23 +510,60 @@ export async function sendOrderNotificationEmail(order: any) {
         </td>
       </tr>
 
-      <!-- Itemized Receipt Table -->
+      <!-- Customer Contact Details Box -->
       <tr>
         <td style="padding: 0 24px 20px 24px;">
-          <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 10px;">
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 8px;">
+            👤 Customer Information
+          </div>
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 14px; padding: 14px;">
+            <tr>
+              <td style="padding: 5px 0; font-size: 12px; color: #94a3b8; width: 35%;">Customer Name:</td>
+              <td style="padding: 5px 0; font-size: 12px; color: #ffffff; font-weight: 700;">${data.customerName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 5px 0; font-size: 12px; color: #94a3b8;">Email Address:</td>
+              <td style="padding: 5px 0; font-size: 12px; color: #38bdf8; font-family: monospace; font-weight: 600;">${data.customerEmail || 'N/A'}</td>
+            </tr>
+            ${
+              data.customerPhone
+                ? `
+            <tr>
+              <td style="padding: 5px 0; font-size: 12px; color: #94a3b8;">Phone / WhatsApp:</td>
+              <td style="padding: 5px 0; font-size: 12px; color: #34d399; font-family: monospace; font-weight: 700;">${data.customerPhone}</td>
+            </tr>`
+                : ''
+            }
+            ${
+              data.ipAddress
+                ? `
+            <tr>
+              <td style="padding: 5px 0; font-size: 12px; color: #64748b;">Client IP:</td>
+              <td style="padding: 5px 0; font-size: 11px; color: #64748b; font-family: monospace;">${data.ipAddress}</td>
+            </tr>`
+                : ''
+            }
+          </table>
+        </td>
+      </tr>
+
+      <!-- Itemized Products Table -->
+      <tr>
+        <td style="padding: 0 24px 20px 24px;">
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 8px;">
             📦 Items & Package Breakdown
           </div>
-          <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 14px; overflow: hidden; border-collapse: collapse;">
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; border-collapse: collapse;">
             <thead>
               <tr style="background-color: #1e293b; border-bottom: 1px solid #334155;">
-                <th style="padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px;">
-                  Product / Package
+                <th style="padding: 12px 14px; text-align: left; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px;">
+                  Product / Package Description
                 </th>
-                <th style="padding: 10px 12px; text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px; width: 60px;">
+                <th style="padding: 12px 14px; text-align: center; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; width: 65px;">
                   Qty
                 </th>
-                <th style="padding: 10px 12px; text-align: right; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px; width: 120px;">
-                  Subtotal
+                <th style="padding: 12px 14px; text-align: right; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; width: 140px;">
+                  Subtotal Price
                 </th>
               </tr>
             </thead>
@@ -404,17 +571,34 @@ export async function sendOrderNotificationEmail(order: any) {
               ${itemsHtml}
             </tbody>
             <tfoot>
-              <!-- Grand Total Row -->
-              <tr style="background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);">
-                <td colspan="2" style="padding: 16px 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #ffffff; letter-spacing: 0.5px;">
-                  Total Amount Paid:
+              <!-- Subtotals -->
+              <tr style="border-top: 1px solid #334155; background-color: #0f172a;">
+                <td colspan="2" style="padding: 10px 14px; font-size: 12px; color: #94a3b8; text-align: right;">
+                  Items Subtotal:
                 </td>
-                <td style="padding: 16px 12px; text-align: right;">
-                  <div style="font-size: 18px; font-weight: 900; font-family: monospace; color: #34d399;">
-                    ৳${totalBDT.toLocaleString()}
+                <td style="padding: 10px 14px; font-size: 12px; color: #f8fafc; font-family: monospace; font-weight: 700; text-align: right;">
+                  ৳${data.totalBDT.toLocaleString()} BDT <span style="color: #64748b; font-size: 11px;">($${data.totalUSD.toFixed(2)})</span>
+                </td>
+              </tr>
+              <tr style="background-color: #0f172a;">
+                <td colspan="2" style="padding: 6px 14px; font-size: 12px; color: #94a3b8; text-align: right;">
+                  Instant Digital Delivery Fee:
+                </td>
+                <td style="padding: 6px 14px; font-size: 12px; color: #34d399; font-weight: 700; text-align: right;">
+                  FREE (৳0.00)
+                </td>
+              </tr>
+              <!-- Grand Total Row -->
+              <tr style="background: linear-gradient(90deg, #090d16 0%, #1e293b 100%); border-top: 2px solid #2563eb;">
+                <td colspan="2" style="padding: 18px 14px; font-size: 13px; font-weight: 900; text-transform: uppercase; color: #ffffff; letter-spacing: 1px;">
+                  Total Real Price:
+                </td>
+                <td style="padding: 18px 14px; text-align: right;">
+                  <div style="font-size: 20px; font-weight: 900; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; color: #34d399; letter-spacing: -0.5px;">
+                    ৳${data.totalBDT.toLocaleString()} BDT
                   </div>
-                  <div style="font-size: 11px; color: #94a3b8; font-family: monospace; font-weight: 600;">
-                    ($${totalUSD.toFixed(2)} USD)
+                  <div style="font-size: 12px; color: #38bdf8; font-family: monospace; font-weight: 700; margin-top: 3px;">
+                    ($${data.totalUSD.toFixed(2)} USD)
                   </div>
                 </td>
               </tr>
@@ -423,57 +607,79 @@ export async function sendOrderNotificationEmail(order: any) {
         </td>
       </tr>
 
-      <!-- Payment & Transaction Details -->
+      <!-- Payment & Transaction Verification Details -->
       <tr>
-        <td style="padding: 0 24px 24px 24px;">
-          <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 10px;">
+        <td style="padding: 0 24px 20px 24px;">
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; margin-bottom: 8px;">
             💳 Payment & Transaction Verification
           </div>
           <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a; border: 1px solid #1e293b; border-radius: 14px; padding: 14px;">
             <tr>
-              <td style="padding: 6px 0; font-size: 12px; color: #94a3b8; width: 40%;">Payment Method:</td>
-              <td style="padding: 6px 0; font-size: 12px; color: #f8fafc; font-weight: 700;">${paymentMethod}</td>
+              <td style="padding: 6px 0; font-size: 12px; color: #94a3b8; width: 38%;">Payment Gateway / Method:</td>
+              <td style="padding: 6px 0; font-size: 13px; color: #f8fafc; font-weight: 800;">${data.paymentMethod}</td>
             </tr>
             ${
-              senderNumber
+              data.senderNumber
                 ? `
             <tr>
               <td style="padding: 6px 0; font-size: 12px; color: #94a3b8;">Sender Account / Mobile:</td>
-              <td style="padding: 6px 0; font-size: 12px; color: #fbbf24; font-family: monospace; font-weight: 700;">${senderNumber}</td>
+              <td style="padding: 6px 0; font-size: 13px; color: #fbbf24; font-family: monospace; font-weight: 800;">${data.senderNumber}</td>
             </tr>`
                 : ''
             }
             <tr>
               <td style="padding: 6px 0; font-size: 12px; color: #94a3b8;">Transaction ID (TrxID):</td>
-              <td style="padding: 6px 0; font-size: 13px; color: #38bdf8; font-family: monospace; font-weight: 800;">${transactionId}</td>
+              <td style="padding: 6px 0; font-size: 13px; color: #38bdf8; font-family: monospace; font-weight: 900;">${data.transactionId}</td>
             </tr>
-            ${
-              customerPhone
-                ? `
             <tr>
-              <td style="padding: 6px 0; font-size: 12px; color: #94a3b8;">Customer Contact:</td>
-              <td style="padding: 6px 0; font-size: 12px; color: #f8fafc; font-family: monospace;">${customerPhone}</td>
-            </tr>`
-                : ''
-            }
+              <td style="padding: 6px 0; font-size: 12px; color: #94a3b8;">Payment Verification:</td>
+              <td style="padding: 6px 0; font-size: 12px; color: ${isPaid ? '#34d399' : '#fbbf24'}; font-weight: 700;">
+                ${isPaid ? '✅ Verified & Completed' : '⏳ Pending Admin Verification'}
+              </td>
+            </tr>
           </table>
         </td>
       </tr>
 
+      ${
+        data.adminNotes
+          ? `
+      <!-- Admin Notes / Delivery PINs -->
+      <tr>
+        <td style="padding: 0 24px 20px 24px;">
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 1px; margin-bottom: 8px;">
+            🔐 Delivery Voucher Codes & Notes
+          </div>
+          <div style="background-color: #070c18; border: 1px dashed #38bdf8; border-radius: 12px; padding: 14px; font-family: monospace; font-size: 13px; color: #34d399; font-weight: 700; line-height: 1.5; white-space: pre-wrap;">
+${data.adminNotes}
+          </div>
+        </td>
+      </tr>`
+          : ''
+      }
+
       <!-- Live Order Tracking Button CTA -->
       <tr>
-        <td style="padding: 0 24px 28px 24px; text-align: center;">
+        <td style="padding: 0 24px 24px 24px; text-align: center;">
           <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
-              <td align="center" style="border-radius: 12px; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);">
-                <a href="${APP_URL}/orders/track?orderId=${encodeURIComponent(orderNum)}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 13px; font-weight: 800; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; border-radius: 12px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);">
+              <td align="center" style="border-radius: 14px; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);">
+                <a href="${APP_URL}/orders/track?q=${encodeURIComponent(data.orderNum)}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 13px; font-weight: 900; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 1.2px; border-radius: 14px; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);">
                   🔍 Track Live Order Status
+                </a>
+              </td>
+              <td style="width: 12px;"></td>
+              <td align="center" style="border-radius: 14px; background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);">
+                <a href="${DEFAULT_SITE_SETTINGS.whatsappLink || 'https://wa.me/8801300529836'}?text=${encodeURIComponent(
+    `Hi ZENOV Gaming, I have an inquiry regarding my order #${data.orderNum} (UID: ${data.playerId})`
+  )}" target="_blank" style="display: inline-block; padding: 14px 24px; font-size: 13px; font-weight: 900; color: #ffffff; text-decoration: none; text-transform: uppercase; letter-spacing: 1.2px; border-radius: 14px; box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);">
+                  💬 WhatsApp Support
                 </a>
               </td>
             </tr>
           </table>
           <p style="margin: 12px 0 0 0; font-size: 11px; color: #64748b;">
-            Need help with your top-up? Reply directly to this email or contact support.
+            Have questions about your top-up? You can reply directly to this email or contact support.
           </p>
         </td>
       </tr>
@@ -481,8 +687,8 @@ export async function sendOrderNotificationEmail(order: any) {
       <!-- Security / Guarantee Notice -->
       <tr>
         <td style="padding: 0 24px 24px 24px;">
-          <div style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 12px; text-align: center;">
-            <p style="margin: 0; font-size: 11px; color: #34d399; font-weight: 600; line-height: 1.4;">
+          <div style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 12px 16px; text-align: center;">
+            <p style="margin: 0; font-size: 11px; color: #34d399; font-weight: 700; line-height: 1.5;">
               🛡️ 100% Genuine Digital Delivery Guarantee • SSL 256-bit Encrypted Transaction
             </p>
           </div>
@@ -492,16 +698,16 @@ export async function sendOrderNotificationEmail(order: any) {
       <!-- Footer -->
       <tr>
         <td style="background-color: #060913; padding: 24px; text-align: center; border-top: 1px solid #1e293b;">
-          <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #e2e8f0; letter-spacing: 1px; text-transform: uppercase;">
-            ZENOV Gaming Store
+          <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 900; color: #ffffff; letter-spacing: 1.5px; text-transform: uppercase;">
+            ZENOV GAMING STORE
           </p>
-          <p style="margin: 0 0 10px 0; font-size: 11px; color: #64748b; line-height: 1.5;">
+          <p style="margin: 0 0 10px 0; font-size: 11px; color: #64748b; line-height: 1.6;">
             Official Gaming Top-Up & Digital Prepaid Gift Cards Catalog<br/>
-            Dhaka, Bangladesh • Fast Automated Delivery Desk
+            Support Helpline: <strong style="color: #94a3b8;">${DEFAULT_SITE_SETTINGS.supportPhone}</strong> • Email: <strong style="color: #94a3b8;">${DEFAULT_SITE_SETTINGS.supportEmail}</strong>
           </p>
-          <p style="margin: 0; font-size: 10px; color: #475569;">
-            This is an automated transaction invoice. Please keep this receipt for your records.<br/>
-            Recipient: ${customerEmail || ADMIN_NOTIFICATION_EMAIL || 'Customer'}
+          <p style="margin: 0; font-size: 10px; color: #475569; line-height: 1.4;">
+            This is an automated official tax invoice and order dispatch receipt.<br/>
+            Recipient: ${data.customerEmail || ADMIN_NOTIFICATION_EMAIL}
           </p>
         </td>
       </tr>
@@ -511,12 +717,22 @@ export async function sendOrderNotificationEmail(order: any) {
 </body>
 </html>
   `;
+}
+
+/**
+ * Sends an order confirmation and tax invoice notification email
+ */
+export async function sendOrderNotificationEmail(order: any) {
+  const data = parseOrderData(order);
+  const html = generateOrderEmailHtml(order);
+
+  const subject = `🎮 Order Confirmation & Invoice #${data.orderNum} (৳${data.totalBDT.toLocaleString()} / $${data.totalUSD.toFixed(2)}) - ZENOV Gaming`;
 
   // Determine recipients
   const recipients: string[] = [];
 
-  if (customerEmail && customerEmail.includes('@') && !customerEmail.endsWith('@zenovgames.com')) {
-    recipients.push(customerEmail);
+  if (data.customerEmail && data.customerEmail.includes('@') && !data.customerEmail.endsWith('@zenovgames.com')) {
+    recipients.push(data.customerEmail);
   }
 
   if (ADMIN_NOTIFICATION_EMAIL && ADMIN_NOTIFICATION_EMAIL.includes('@')) {
@@ -526,8 +742,8 @@ export async function sendOrderNotificationEmail(order: any) {
   }
 
   if (recipients.length === 0) {
-    if (customerEmail && customerEmail.includes('@')) {
-      recipients.push(customerEmail);
+    if (data.customerEmail && data.customerEmail.includes('@')) {
+      recipients.push(data.customerEmail);
     } else if (ADMIN_NOTIFICATION_EMAIL) {
       recipients.push(ADMIN_NOTIFICATION_EMAIL);
     }
@@ -541,17 +757,17 @@ export async function sendOrderNotificationEmail(order: any) {
 }
 
 /**
- * Sends a notification email when a user submits a contact or support inquiry
+ * Generates clean HTML for customer support inquiries
  */
-export async function sendContactUsEmail(ticket: any) {
-  const ticketNum = ticket.ticketNumber || ticket.id || 'TICK-' + Date.now().toString().slice(-4);
+export function generateTicketEmailHtml(ticket: any): string {
+  const ticketNum = ticket.ticketNumber || ticket.id || 'TCK-' + Date.now().toString().slice(-4);
   const subject = `💬 Support Inquiry #${ticketNum} - ${ticket.subject || 'Support Ticket'} [ZENOV Helpdesk]`;
   const messageText =
     ticket.message || (ticket.messages && ticket.messages[0]?.message) || 'No message content provided';
 
   const { formattedDate, formattedTime } = formatOrderDate(ticket.createdAt);
 
-  const html = `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -624,6 +840,15 @@ ${messageText}
 </body>
 </html>
   `;
+}
+
+/**
+ * Sends a notification email when a user submits a contact or support inquiry
+ */
+export async function sendContactUsEmail(ticket: any) {
+  const ticketNum = ticket.ticketNumber || ticket.id || 'TICK-' + Date.now().toString().slice(-4);
+  const subject = `💬 Support Inquiry #${ticketNum} - ${ticket.subject || 'Support Ticket'} [ZENOV Helpdesk]`;
+  const html = generateTicketEmailHtml(ticket);
 
   const recipients: string[] = [];
   if (ADMIN_NOTIFICATION_EMAIL && ADMIN_NOTIFICATION_EMAIL.includes('@')) {
