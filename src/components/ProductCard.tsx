@@ -73,6 +73,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       quantity: 1,
       playerId: 'INSTANT_TOPUP',
       serverId: '',
+      productType: product.productType || 'virtual',
     };
 
     if (onAddToCart) {
@@ -129,6 +130,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Minimal Clean Top Badges */}
         <div className="absolute top-1.5 left-1.5 flex items-center gap-1 z-10">
+          {product.productType === 'physical' && (
+            <span className="px-1.5 py-0.5 rounded-full bg-sky-500 text-white text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black uppercase shadow-xs leading-none">
+              Physical
+            </span>
+          )}
           {(product.discountPercent || hasDiscount) ? (
             <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white text-[7.5px] min-[380px]:text-[8.5px] sm:text-[9px] font-black leading-none shadow-xs">
               -{product.discountPercent || Math.round((1 - minPrice / originalMin) * 100)}%

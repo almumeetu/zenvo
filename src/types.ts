@@ -37,6 +37,7 @@ export interface Product {
   id: string;
   title: string;
   category: CategoryType;
+  productType?: 'physical' | 'virtual';
   unitId?: string;
   unitName?: string;
   image: string;
@@ -78,6 +79,12 @@ export interface CartItem {
   quantity: number;
   playerId: string;
   serverId?: string;
+  productType?: 'physical' | 'virtual';
+  deliveryAddress?: string;
+  deliveryCity?: string;
+  deliveryPostCode?: string;
+  shippingFeeUSD?: number;
+  shippingFeeBDT?: number;
 }
 
 export interface WalletTransaction {
@@ -114,6 +121,9 @@ export interface Order {
   updatedAt: string;
   transactionId: string;
   notes?: string;
+  deliveryAddress?: string;
+  deliveryCity?: string;
+  deliveryPostCode?: string;
 }
 
 export interface UserProfile {
@@ -195,5 +205,7 @@ export interface SiteSettings {
   aboutText: string;
   copyrightText: string;
   socialLinks: SocialLinks;
+  physicalDeliveryFeeBDT?: number;
+  physicalDeliveryEnabled?: boolean;
   updatedAt?: string;
 }

@@ -99,6 +99,7 @@ export const QuickTopUpModal: React.FC<QuickTopUpModalProps> = ({
       quantity: 1,
       playerId,
       serverId,
+      productType: product.productType || 'virtual',
     };
 
     const res = await onDirectCheckout(cartItem, selectedPayment);

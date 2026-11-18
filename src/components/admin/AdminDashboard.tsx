@@ -67,6 +67,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [newProdCategory, setNewProdCategory] = useState<'game-topup' | 'social-topup' | 'gift-card' | 'subscription'>('game-topup');
   const [newProdImage, setNewProdImage] = useState('');
   const [newProdPrice, setNewProdPrice] = useState('1.00');
+  const [newProdType, setNewProdType] = useState<'physical' | 'virtual'>('virtual');
 
   useEffect(() => {
     fetch('/api/admin/analytics')
@@ -92,6 +93,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       id: `prod_${Date.now()}`,
       title: newProdTitle,
       category: newProdCategory,
+      productType: newProdType,
       image: newProdImage || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=600',
       publisher: 'Zenvo Publishing',
       region: 'Global',
@@ -319,8 +321,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onSubmit={handleCreateProductSubmit}
                   className="bg-zenov-card border border-zenov-primary-border/40 rounded-2xl p-5 space-y-4"
                 >
-                  <h4 className="font-bold text-zenov-primary uppercase">ADD NEW GAME / GIFT CARD TOP-UP</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <h4 className="font-bold text-zenov-primary uppercase">ADD NEW PRODUCT</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div>
                       <label className="text-zenov-muted text-xs block mb-1 font-medium">Title</label>
                       <input
@@ -331,6 +333,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         className="w-full bg-zenov-bg border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary-border rounded-xl px-3 py-2.5 text-sm text-zenov-text focus:outline-none transition-all"
                         required
                       />
+                    </div>
+                    <div>
+                      <label className="text-zenov-muted text-xs block mb-1 font-medium">Product Type</label>
+                      <select
+                        value={newProdType}
+                        onChange={(e) => setNewProdType(e.target.value as 'physical' | 'virtual')}
+                        className="w-full bg-zenov-bg border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary-border rounded-xl px-3 py-2.5 text-sm text-zenov-text focus:outline-none transition-all"
+                      >
+                        <option value="virtual">Virtual / Digital</option>
+                        <option value="physical">Physical / Delivery</option>
+                      </select>
                     </div>
                     <div>
                       <label className="text-zenov-muted text-xs block mb-1 font-medium">Category</label>

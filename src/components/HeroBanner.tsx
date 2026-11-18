@@ -25,6 +25,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
   const imageRef = useRef<HTMLImageElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const activeBanner = banners[currentIndex] || banners[0];
 
@@ -139,6 +140,28 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
     startTimer();
   };
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartRef.current || banners.length < 2) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    touchStartRef.current = null;
+
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+    if (deltaX < 0) {
+      nextSlide();
+    } else {
+      prevSlide();
+    }
+  };
+
   // Split title into words for word-level animation
   const titleWords = activeBanner.title.split(' ');
 
@@ -151,7 +174,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners, onSelectGame })
         ref={bannerRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative h-[200px] sm:h-[340px] lg:h-[410px] rounded-2xl overflow-hidden bg-slate-950/90 border border-cyan-500/30 hover:border-cyan-400/60 transition-all duration-500 group shadow-2xl shadow-cyan-950/30 hover:shadow-[0_0_35px_rgba(6,182,212,0.2)] flex flex-col justify-center"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={() => {
+          touchStartRef.current = null;
+        }}
+        className="relative h-[200px] sm:h-[340px] lg:h-[410px] rounded-2xl overflow-hidden bg-slate-950/90 border border-cyan-500/30 hover:border-cyan-400/60 transition-all duration-500 group shadow-2xl shadow-cyan-950/30 hover:shadow-[0_0_35px_rgba(6,182,212,0.2)] flex flex-col justify-center touch-pan-y"
       >
         {/* Conic neon laser edge trace */}
         <div className="absolute inset-0 rounded-2xl pointer-events-none overflow-hidden opacity-40 group-hover:opacity-80 transition-opacity">

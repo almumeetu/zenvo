@@ -71,6 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
   const logoRef = useRef<HTMLAnchorElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const mobileMenuToggleRef = useRef<HTMLButtonElement>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -85,6 +86,33 @@ export const Header: React.FC<HeaderProps> = ({
     setIsProfileMenuOpen(false);
     setIsCurrencyMenuOpen(false);
   }, [pathname]);
+
+  // Keep the page behind the mobile menu from scrolling and support Escape to close it.
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        mobileMenuToggleRef.current?.focus();
+      }
+    };
+    const handleResize = () => {
+      if (window.matchMedia('(min-width: 1024px)').matches) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isMobileMenuOpen]);
 
   // Scroll: update header style + progress bar with requestAnimationFrame & state diffing
   useEffect(() => {
@@ -235,7 +263,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Main Navigation Bar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="relative z-50 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo */}
           <Link
             ref={logoRef}
@@ -347,12 +375,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Currency Switcher */}
             <div className="relative" ref={currencyRef}>
               <button
                 onClick={() => setIsCurrencyMenuOpen((v) => !v)}
-                className="px-2.5 py-2 rounded-lg bg-zenov-surface/60 border border-zenov-border hover:border-zenov-border-hover text-xs font-bold text-zenov-primary flex items-center gap-1.5 transition-all"
+                className="px-1.5 sm:px-2.5 py-2 rounded-lg bg-zenov-surface/60 border border-zenov-border hover:border-zenov-border-hover text-xs font-bold text-zenov-primary flex items-center gap-1 sm:gap-1.5 transition-all"
                 aria-label="Select currency"
               >
                 {selectedCurrency}
@@ -387,7 +415,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Cart */}
             <Link
               href="/cart"
-              className="p-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/50 text-zenov-text-secondary hover:text-zenov-primary transition-all duration-200 relative"
+              className="p-2 sm:p-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border hover:border-zenov-primary-border hover:bg-zenov-primary-soft/50 text-zenov-text-secondary hover:text-zenov-primary transition-all duration-200 relative"
               aria-label="View cart"
             >
               <ShoppingBag className="w-[18px] h-[18px]" />
@@ -483,7 +511,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center gap-1.5">
                 <Link
                   href="/auth/login"
-                  className="px-3.5 py-1.5 rounded-xl border border-zenov-border hover:border-zenov-primary-border/60 hover:bg-zenov-surface text-xs font-bold text-zenov-text-secondary transition-all"
+                  className="hidden sm:block px-3.5 py-1.5 rounded-xl border border-zenov-border hover:border-zenov-primary-border/60 hover:bg-zenov-surface text-xs font-bold text-zenov-text-secondary transition-all"
                 >
                   Login
                 </Link>
@@ -498,9 +526,13 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Mobile Menu Toggle */}
             <button
+              ref={mobileMenuToggleRef}
+              type="button"
               onClick={() => setIsMobileMenuOpen((v) => !v)}
               className="lg:hidden p-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:border-zenov-border-hover transition-all"
-              aria-label="Toggle menu"
+              aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -508,7 +540,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile Search */}
-        <div className="md:hidden px-4 pb-3">
+        <div className="relative z-50 md:hidden px-3 sm:px-4 pb-3">
           <div className="relative rounded-xl bg-zenov-surface/60 border border-zenov-border focus-within:border-zenov-primary-border focus-within:ring-2 focus-within:ring-zenov-primary/20 focus-within:bg-zenov-surface transition-all shadow-md">
             <Search className="w-4 h-4 text-zenov-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -528,41 +560,83 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
+        {/* Mobile menu backdrop and panel are removed from flow so the page stays in place. */}
+        <button
+          type="button"
+          aria-label="Close navigation menu"
+          aria-hidden={!isMobileMenuOpen}
+          tabIndex={-1}
+          onClick={() => {
+            setIsMobileMenuOpen(false);
+            mobileMenuToggleRef.current?.focus();
+          }}
+          className={`lg:hidden absolute inset-x-0 top-full z-40 h-[calc(100dvh-7rem)] bg-slate-950/65 backdrop-blur-[2px] transition-opacity duration-300 ${
+            isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        />
+
         {/* Mobile Menu Panel */}
         <div
-          className={`lg:hidden border-t border-zenov-border bg-zenov-bg/95 backdrop-blur-2xl overflow-hidden transition-all duration-300 ease-out ${
-            isMobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          id="mobile-navigation"
+          aria-hidden={!isMobileMenuOpen}
+          inert={!isMobileMenuOpen}
+          className={`lg:hidden border-t border-zenov-border bg-zenov-bg/95 backdrop-blur-2xl transition-all duration-300 ease-out ${
+            isMobileMenuOpen
+              ? 'absolute top-full inset-x-0 z-50 max-h-[calc(100dvh-7.5rem)] overflow-x-hidden overflow-y-auto overscroll-contain opacity-100 translate-y-0 shadow-2xl shadow-black/50'
+              : 'absolute top-full inset-x-0 z-50 max-h-0 overflow-hidden opacity-0 -translate-y-2 pointer-events-none'
           }`}
         >
-          <nav className="max-w-7xl mx-auto px-4 pt-3.5 pb-5 flex flex-col gap-1.5">
-            {NAV_ITEMS.map((item) => {
-              const active = isActive(item.href);
-              const Icon = navIcons[item.label] || Sparkles;
-              return (
-                <Link
-                  key={item.label + item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center justify-between border ${
-                    active
-                      ? 'text-zenov-primary bg-zenov-primary-soft/80 border-zenov-primary-border/30'
-                      : 'text-zenov-text-secondary border-transparent hover:text-zenov-text hover:bg-zenov-surface/70'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-[18px] h-[18px] ${active ? 'text-zenov-primary' : 'text-zenov-text-muted'}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {active ? (
-                    <span className="w-1.5 h-1.5 rounded-full bg-zenov-primary shadow-primary" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-zenov-text-muted/65" />
-                  )}
-                </Link>
-              );
-            })}
+          <div className="pointer-events-none absolute -top-20 -right-10 h-44 w-44 rounded-full bg-blue-500/10 blur-3xl" />
+          <nav className="relative max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 pb-5">
+            <div className="mb-3 flex items-center justify-between gap-3 px-1">
+              <div>
+                <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-zenov-primary">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Explore ZENOV
+                </p>
+                <p className="mt-1 text-xs text-zenov-text-muted">Your next game top-up is a tap away.</p>
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-zenov-success-border bg-zenov-success-soft px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-zenov-success">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-zenov-success opacity-70" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-zenov-success" />
+                </span>
+                24/7 Live
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {NAV_ITEMS.map((item) => {
+                const active = isActive(item.href);
+                const Icon = navIcons[item.label] || Sparkles;
+                return (
+                  <Link
+                    key={item.label + item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`group min-h-[66px] px-3 py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-between gap-2 border ${
+                      active
+                        ? 'text-zenov-primary bg-gradient-to-br from-zenov-primary-soft to-zenov-surface/80 border-zenov-primary-border/40 shadow-primary'
+                        : 'text-zenov-text-secondary bg-zenov-surface/45 border-zenov-border/70 hover:text-zenov-text hover:bg-zenov-surface'
+                    }`}
+                  >
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${active ? 'border-zenov-primary-border/40 bg-zenov-primary/10' : 'border-zenov-border bg-zenov-bg/60 group-hover:border-zenov-border-hover'}`}>
+                        <Icon className={`w-[17px] h-[17px] ${active ? 'text-zenov-primary' : 'text-zenov-text-muted group-hover:text-zenov-text-secondary'}`} />
+                      </span>
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {active ? (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-zenov-primary shadow-primary" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-zenov-text-muted/65 transition-transform group-hover:translate-x-0.5 group-hover:text-zenov-primary" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
             {/* Mobile Auth and Cart */}
-            <div className="border-t border-zenov-border/60 mt-3 pt-3.5 space-y-3">
+            <div className="border-t border-zenov-border/60 mt-4 pt-3.5 space-y-3">
               {user.email ? (
                 <>
                   <div className="flex items-center justify-between p-3.5 bg-gradient-to-r from-zenov-surface to-zenov-surface/30 rounded-2xl border border-zenov-border/70 shadow-sm">

@@ -226,6 +226,7 @@ export default function TopUpPage() {
       quantity,
       playerId: requiresPlayerId ? playerId.trim() : (customerEmail.trim() || 'GIFT_CARD_ORDER'),
       serverId: requiresPlayerId ? serverId.trim() : '',
+      productType: product.productType || 'virtual',
     } as any;
     const result = await directCheckout(item, paymentMethod, {
       name: customerName.trim() || user?.name || 'Gamer',

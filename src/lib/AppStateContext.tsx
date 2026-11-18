@@ -100,11 +100,11 @@ interface AppActions {
   directCheckout: (
     item: CartItem,
     paymentMethod: PaymentMethod,
-    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
+    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string; address?: string; city?: string; postCode?: string }
   ) => Promise<{ success: boolean; orderNumber?: string; message?: string }>;
   placeOrder: (
     paymentMethod: PaymentMethod,
-    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
+    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string; address?: string; city?: string; postCode?: string; shippingFeeUSD?: number; shippingFeeBDT?: number }
   ) => Promise<{ success: boolean; orderNumber?: string; message?: string }>;
   depositWallet: (amountUSD: number, method: string, reference: string) => Promise<{ success: boolean; message: string }>;
   searchOrder: (orderId: string) => Promise<Order | null>;
@@ -450,8 +450,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const directCheckout = async (
     item: CartItem,
     paymentMethod: PaymentMethod,
-    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
+    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string; address?: string; city?: string; postCode?: string }
   ) => {
+    if (item.productType === 'physical') {
+      return { success: false, message: 'Physical products must be placed through the cart with a delivery address.' };
+    }
     const qty = Math.max(1, item.quantity || 1);
     const unitUSD = Number(item.denomination.amount) || 0;
     const totalUSD = Number((unitUSD * qty).toFixed(2));
@@ -491,6 +494,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       playerId: item.playerId || 'PLAYER_GUEST',
       serverId: item.serverId || '',
       transactionId,
+      deliveryAddress: customerInfo?.address?.trim() || item.deliveryAddress || '',
+      deliveryCity: customerInfo?.city?.trim() || item.deliveryCity || '',
+      deliveryPostCode: customerInfo?.postCode?.trim() || item.deliveryPostCode || '',
     } as unknown as Order;
 
     let finalOrder = newOrder;
@@ -525,7 +531,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const placeOrder = async (
     paymentMethod: PaymentMethod,
-    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string }
+    customerInfo?: { name?: string; email?: string; phone?: string; senderNumber?: string; trxId?: string; address?: string; city?: string; postCode?: string; shippingFeeUSD?: number; shippingFeeBDT?: number }
   ) => {
     if (cartItems.length === 0) return { success: false, message: 'Your cart is empty' };
 
@@ -541,7 +547,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           : Math.round(uUSD * 120);
       return s + bdt * qty;
     }, 0);
-    const paidAmountCurrency = selectedCurrency === 'BDT' ? totalBDT : totalUSD;
+    const shippingFeeUSD = Math.max(0, Number(customerInfo?.shippingFeeUSD) || 0);
+    const shippingFeeBDT = Math.max(0, Number(customerInfo?.shippingFeeBDT) || 0);
+    const totalWithShippingUSD = Number((totalUSD + shippingFeeUSD).toFixed(2));
+    const paidAmountCurrency = selectedCurrency === 'BDT'
+      ? totalBDT + shippingFeeBDT
+      : totalWithShippingUSD;
 
     const orderNumber = 'ZNG-' + Math.floor(100000 + Math.random() * 900000) + '-' + Date.now().toString().slice(-3);
     const transactionId = customerInfo?.trxId?.trim() || ('TX-' + Math.random().toString(36).slice(2, 10).toUpperCase());
@@ -561,7 +572,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       customerPhone,
       senderNumber,
       items: [...cartItems],
-      totalUSD,
+      totalUSD: totalWithShippingUSD,
       currency: selectedCurrency,
       paidAmountCurrency,
       paymentMethod,
@@ -572,6 +583,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       playerId: cartItems[0]?.playerId || 'PLAYER_GUEST',
       serverId: cartItems[0]?.serverId || '',
       transactionId,
+      shippingFeeUSD,
+      shippingFeeBDT,
+      deliveryAddress: customerInfo?.address?.trim() || '',
+      deliveryCity: customerInfo?.city?.trim() || '',
+      deliveryPostCode: customerInfo?.postCode?.trim() || '',
     } as unknown as Order;
 
     let finalOrder = newOrder;

@@ -16,6 +16,7 @@ const ProductSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   title: { type: String, required: true },
   category: { type: String, required: true },
+  productType: { type: String, enum: ['physical', 'virtual'], default: 'virtual' },
   image: { type: String, required: true },
   bannerImage: String,
   publisher: String,

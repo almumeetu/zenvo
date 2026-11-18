@@ -26,6 +26,8 @@ import {
   RotateCcw,
   Sparkles,
   ArrowRight,
+  MapPin,
+  Building2,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import ManualPaymentBox from '@/components/payment/ManualPaymentBox';
@@ -40,6 +42,8 @@ export default function CartPage() {
     clearCart,
     placeOrder,
     user,
+    products,
+    siteSettings,
   } = useApp();
   const router = useRouter();
 
@@ -49,8 +53,21 @@ export default function CartPage() {
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [senderNumber, setSenderNumber] = useState('');
   const [trxId, setTrxId] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryPostCode, setDeliveryPostCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successOrder, setSuccessOrder] = useState<{ orderNumber: string; message: string } | null>(null);
+
+  const hasPhysicalItems = cartItems.some((item) => {
+    const product = products.find((p) => p.id === item.productId);
+    return item.productType === 'physical' || product?.productType === 'physical';
+  });
+  const physicalDeliveryFeeBDT =
+    hasPhysicalItems && siteSettings.physicalDeliveryEnabled
+      ? Math.max(0, Number(siteSettings.physicalDeliveryFeeBDT) || 0)
+      : 0;
+  const physicalDeliveryFeeUSD = physicalDeliveryFeeBDT / 120;
 
   useEffect(() => {
     if (user?.name && !customerName) setCustomerName(user.name);
@@ -64,7 +81,7 @@ export default function CartPage() {
     0
   );
   const serviceFee = subtotal * 0.015;
-  const total = Math.max(0, subtotal + serviceFee);
+  const total = Math.max(0, subtotal + serviceFee + physicalDeliveryFeeUSD);
 
   const fireConfetti = () => {
     const end = Date.now() + 1200;
@@ -78,9 +95,23 @@ export default function CartPage() {
 
   const onCheckout = async () => {
     if (cartItems.length === 0) return;
+    if (hasPhysicalItems && (!siteSettings.physicalDeliveryEnabled || physicalDeliveryFeeBDT <= 0)) {
+      alert('Physical delivery charge has not been configured. Please contact admin before placing this order.');
+      return;
+    }
     if (!customerEmail.trim()) {
       alert('Please provide your email address for instant order delivery & receipt.');
       return;
+    }
+    if (hasPhysicalItems) {
+      if (!customerPhone.trim()) {
+        alert('Physical product delivery requires a valid phone number.');
+        return;
+      }
+      if (!deliveryAddress.trim() || !deliveryCity.trim() || !deliveryPostCode.trim()) {
+        alert('Please complete the full delivery address before placing a physical product order.');
+        return;
+      }
     }
     if (!trxId.trim()) {
       alert(`Please send ${paymentMethod} payment and provide the Transaction ID (TrxID).`);
@@ -93,6 +124,11 @@ export default function CartPage() {
       phone: customerPhone.trim() || user?.phone || '',
       senderNumber: senderNumber.trim() || customerPhone.trim(),
       trxId: trxId.trim(),
+      address: deliveryAddress.trim(),
+      city: deliveryCity.trim(),
+      postCode: deliveryPostCode.trim(),
+      shippingFeeUSD: physicalDeliveryFeeUSD,
+      shippingFeeBDT: physicalDeliveryFeeBDT,
     });
     setSubmitting(false);
     if (res.success && res.orderNumber) {
@@ -248,6 +284,13 @@ export default function CartPage() {
                               <Tag className="w-2.5 h-2.5" />
                               {item.denomination?.label || item.denomination?.name || (item as any).packageName || 'Package'}
                             </span>
+                            {(item.productType === 'physical' ||
+                              products.find((p) => p.id === item.productId)?.productType === 'physical') && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-500/15 text-sky-400 border border-sky-500/25 text-[9px] sm:text-[10px] font-bold">
+                                <MapPin className="w-2.5 h-2.5" />
+                                Physical delivery
+                              </span>
+                            )}
                             {item.playerId && (
                               <span className="text-[9.5px] sm:text-[10px] font-mono text-zenov-text-muted truncate">
                                 ID: {item.playerId}
@@ -337,7 +380,7 @@ export default function CartPage() {
                   <User className="w-4 h-4 text-zenov-primary" /> Delivery & Customer Information
                 </h3>
                 <span className="text-[9.5px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  Instant Automated Delivery
+                  {hasPhysicalItems ? 'Delivery Address Required' : 'Instant Automated Delivery'}
                 </span>
               </div>
 
@@ -390,6 +433,66 @@ export default function CartPage() {
                     />
                   </div>
                 </div>
+
+                {hasPhysicalItems && (
+                  <div className="pt-3 border-t border-zenov-border/70 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-zenov-primary" />
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-zenov-text">
+                        Physical Delivery Address
+                      </h4>
+                      <span className="ml-auto text-[9px] font-bold text-amber-400">Required</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5">
+                      <div className="sm:col-span-2">
+                        <label className="text-[9.5px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
+                          Full Address *
+                        </label>
+                        <div className="relative">
+                          <MapPin className="w-3.5 h-3.5 text-zenov-text-muted absolute left-3 top-3" />
+                          <textarea
+                            value={deliveryAddress}
+                            onChange={(e) => setDeliveryAddress(e.target.value)}
+                            placeholder="House, road, area, district"
+                            rows={2}
+                            required
+                            className="w-full pl-9 pr-3 py-2 rounded-xl resize-none bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-1 focus:ring-zenov-primary-border text-xs sm:text-sm text-zenov-text outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[9.5px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
+                          City / District *
+                        </label>
+                        <div className="relative">
+                          <Building2 className="w-3.5 h-3.5 text-zenov-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            value={deliveryCity}
+                            onChange={(e) => setDeliveryCity(e.target.value)}
+                            placeholder="Dhaka"
+                            required
+                            className="w-full pl-9 pr-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-1 focus:ring-zenov-primary-border text-xs sm:text-sm text-zenov-text outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[9.5px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1">
+                          Postal Code *
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={deliveryPostCode}
+                          onChange={(e) => setDeliveryPostCode(e.target.value)}
+                          placeholder="1207"
+                          required
+                          className="w-full px-3 py-2 rounded-xl bg-zenov-surface border border-zenov-border focus:border-zenov-primary-border focus:ring-1 focus:ring-zenov-primary-border text-xs sm:text-sm text-zenov-text outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -462,9 +565,15 @@ export default function CartPage() {
                   <div className="flex justify-between text-zenov-text-secondary">
                     <span className="flex items-center gap-1">
                       <span>Delivery Fee</span>
-                      <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold uppercase">FREE</span>
+                      {hasPhysicalItems ? (
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-sky-500/20 text-sky-400 font-bold uppercase">Physical</span>
+                      ) : (
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold uppercase">FREE</span>
+                      )}
                     </span>
-                    <span className="font-mono font-bold text-emerald-400">$0.00</span>
+                    <span className={`font-mono font-bold ${hasPhysicalItems ? 'text-sky-400' : 'text-emerald-400'}`}>
+                      {formatCurrency(physicalDeliveryFeeUSD, selectedCurrency)}
+                    </span>
                   </div>
 
                   <div className="flex justify-between text-zenov-text-secondary">
@@ -491,7 +600,18 @@ export default function CartPage() {
                 <div className="p-5 pt-0 space-y-2.5">
                   <button
                     onClick={onCheckout}
-                    disabled={submitting || !trxId.trim() || total <= 0}
+                    disabled={
+                      submitting ||
+                      !trxId.trim() ||
+                      total <= 0 ||
+                      (hasPhysicalItems &&
+                        (!siteSettings.physicalDeliveryEnabled || physicalDeliveryFeeBDT <= 0)) ||
+                      (hasPhysicalItems &&
+                        (!customerPhone.trim() ||
+                          !deliveryAddress.trim() ||
+                          !deliveryCity.trim() ||
+                          !deliveryPostCode.trim()))
+                    }
                     className="w-full py-3.5 px-4 rounded-xl bg-zenov-primary hover:bg-zenov-primary-hover text-white text-xs sm:text-sm font-black uppercase tracking-wider shadow-lg shadow-zenov-primary/25 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {submitting ? (

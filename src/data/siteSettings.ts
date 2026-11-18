@@ -21,4 +21,6 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     instagram: '',
     twitter: '',
   },
+  physicalDeliveryFeeBDT: 0,
+  physicalDeliveryEnabled: false,
 };

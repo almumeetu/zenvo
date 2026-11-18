@@ -3205,6 +3205,33 @@ export default function AdminDashboardPage() {
                         className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
                       />
                     </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-zenov-text-muted block mb-1.5">
+                        Physical Delivery Charge (BDT)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="100"
+                        value={settingsForm?.physicalDeliveryFeeBDT ?? 0}
+                        onChange={(e) =>
+                          setSettingsForm((prev) => {
+                            const fee = Math.max(0, Number(e.target.value) || 0);
+                            return {
+                              ...prev,
+                              physicalDeliveryFeeBDT: fee,
+                              physicalDeliveryEnabled: fee > 0,
+                            };
+                          })
+                        }
+                        className="w-full bg-zenov-surface border border-zenov-border focus:border-zenov-primary focus:ring-2 focus:ring-zenov-primary/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
+                      />
+                      <span className="text-[10px] text-zenov-text-muted mt-1 block">
+                        Set 0 to disable physical product checkout.
+                      </span>
+                    </div>
                   </div>
 
                   {/* Brand About Text */}

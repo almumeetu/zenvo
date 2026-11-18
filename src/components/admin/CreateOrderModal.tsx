@@ -108,6 +108,7 @@ export const CreateOrderModal: React.FC<CreateOrderModalProps> = ({
       quantity,
       playerId: playerId.trim(),
       serverId: serverId.trim() || undefined,
+      productType: currentProduct.productType || 'virtual',
     };
 
     const orderPayload: Partial<Order> = {

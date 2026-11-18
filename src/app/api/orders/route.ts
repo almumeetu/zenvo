@@ -30,6 +30,14 @@ function parseOrderNotes(rawOrder: any) {
         if (parsed.customerPhone) customerPhone = parsed.customerPhone;
         if (parsed.senderNumber) senderNumber = parsed.senderNumber;
         if (parsed.ipAddress) ipAddress = parsed.ipAddress;
+          rawOrder.shippingAddress = {
+            address: parsed.deliveryAddress || '',
+            city: parsed.deliveryCity || '',
+            postCode: parsed.deliveryPostCode || '',
+          };
+          if (parsed.deliveryAddress) rawOrder.deliveryAddress = parsed.deliveryAddress;
+          if (parsed.deliveryCity) rawOrder.deliveryCity = parsed.deliveryCity;
+          if (parsed.deliveryPostCode) rawOrder.deliveryPostCode = parsed.deliveryPostCode;
         cleanNotes = parsed.adminNotes || parsed.notes || '';
       }
     } catch {
@@ -116,6 +124,18 @@ export async function POST(request: Request) {
     body = {};
   }
   const clientIp = getClientIp(request);
+  const hasPhysicalItem = Array.isArray(body.items)
+    ? body.items.some((item: any) => item.productType === 'physical')
+    : body.productType === 'physical';
+  const shippingFeeBDT = Math.max(0, Number(body.shippingFeeBDT) || 0);
+  const shippingFeeUSD = Math.max(0, Number(body.shippingFeeUSD) || 0);
+
+  if (hasPhysicalItem && shippingFeeBDT <= 0 && shippingFeeUSD <= 0) {
+    return NextResponse.json(
+      { success: false, message: 'Physical delivery charge is required before placing this order.' },
+      { status: 400 }
+    );
+  }
 
   try {
     console.log(`[API /orders POST] Sending order #${body.orderNumber || 'new'} to Primary API: ${API_BASE_URL}/orders`);
@@ -167,6 +187,9 @@ export async function POST(request: Request) {
       customerPhone,
       senderNumber,
       ipAddress: clientIp,
+      deliveryAddress: body.deliveryAddress || '',
+      deliveryCity: body.deliveryCity || '',
+      deliveryPostCode: body.deliveryPostCode || '',
       adminNotes: body.notes || body.adminNotes || '',
     };
 
@@ -218,6 +241,13 @@ export async function POST(request: Request) {
       playerId,
       serverId,
       transactionId,
+      shippingAddress: {
+        address: body.deliveryAddress || '',
+        city: body.deliveryCity || '',
+        postCode: body.deliveryPostCode || '',
+      },
+      shippingFeeUSD: Number(body.shippingFeeUSD) || 0,
+      shippingFeeBDT: Number(body.shippingFeeBDT) || 0,
       notes: JSON.stringify(metaObj),
       createdAt: body.createdAt || new Date().toISOString(),
       updatedAt: body.updatedAt || new Date().toISOString(),
