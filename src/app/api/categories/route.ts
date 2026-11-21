@@ -31,7 +31,7 @@ export async function GET() {
       }
     }
   } catch (err: any) {
-    console.warn('[API Proxy /categories GET] Primary API error, using static fallback:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   // Fallback default categories
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       }
     }
   } catch (err: any) {
-    console.warn('[API Proxy /categories POST] Primary API error:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   // Fallback return optimistic category

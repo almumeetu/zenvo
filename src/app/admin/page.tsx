@@ -129,6 +129,7 @@ export default function AdminDashboardPage() {
     deleteBlog,
     adminReplyTicket,
     updateTicketStatus,
+    refreshTickets,
     siteSettings,
     updateSiteSettings,
     authLoading,
@@ -177,6 +178,15 @@ export default function AdminDashboardPage() {
   const [ticketReply, setTicketReply] = useState('');
   const [ticketSearch, setTicketSearch] = useState('');
   const [isViewingChat, setIsViewingChat] = useState(false);
+  const [isRefreshingTickets, setIsRefreshingTickets] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== 'tickets') return;
+    const interval = setInterval(() => {
+      refreshTickets();
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [activeTab, refreshTickets]);
 
   // --- Site Settings Form State ---
   const [settingsForm, setSettingsForm] = useState(siteSettings);
@@ -1012,11 +1022,14 @@ export default function AdminDashboardPage() {
                 Zenov Root Control
               </span>
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zenov-surface border border-zenov-border text-[10px] font-mono">
-                <span className={`w-2 h-2 rounded-full ${backendHealth?.status === 'ONLINE' ? 'bg-zenov-success animate-pulse' : 'bg-amber-400'}`} />
+                <span className={`w-2 h-2 rounded-full ${backendHealth?.status === 'ONLINE' ? 'bg-zenov-success animate-pulse' : backendHealth?.status === 'OFFLINE' ? 'bg-zenov-success animate-pulse' : 'bg-zenov-primary animate-pulse'}`} />
                 <span className="text-zenov-text-secondary">
-                  API: <strong className={backendHealth?.status === 'ONLINE' ? 'text-zenov-success' : 'text-amber-400'}>{backendHealth?.status || 'CONNECTING'}</strong>
+                  {backendHealth?.status === 'OFFLINE'
+                    ? <><strong className="text-zenov-success">Supabase Mode</strong></>
+                    : <><strong className={backendHealth?.status === 'ONLINE' ? 'text-zenov-success' : 'text-zenov-primary'}>{backendHealth?.status || 'CONNECTING'}</strong></>
+                  }
                 </span>
-                {backendHealth?.latencyMs ? (
+                {backendHealth?.status === 'ONLINE' && backendHealth?.latencyMs ? (
                   <span className="text-zenov-text-muted">({backendHealth.latencyMs}ms)</span>
                 ) : null}
               </div>
@@ -2664,14 +2677,28 @@ export default function AdminDashboardPage() {
             
             {/* Left: Tickets List Panel (hidden on mobile if chat is active) */}
             <div className={`lg:col-span-2 space-y-4 ${isViewingChat ? 'hidden lg:block' : 'block'}`}>
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-zenov-card border border-zenov-border">
-                <Search className="w-4 h-4 text-zenov-text-muted shrink-0" />
-                <input
-                  value={ticketSearch}
-                  onChange={(e) => setTicketSearch(e.target.value)}
-                  placeholder="Search ticket number or subject..."
-                  className="w-full bg-transparent text-xs text-zenov-text focus:outline-none"
-                />
+              <div className="flex items-center gap-2">
+                <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-zenov-card border border-zenov-border">
+                  <Search className="w-4 h-4 text-zenov-text-muted shrink-0" />
+                  <input
+                    value={ticketSearch}
+                    onChange={(e) => setTicketSearch(e.target.value)}
+                    placeholder="Search ticket number or subject..."
+                    className="w-full bg-transparent text-xs text-zenov-text focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsRefreshingTickets(true);
+                    await refreshTickets();
+                    setTimeout(() => setIsRefreshingTickets(false), 500);
+                  }}
+                  title="Refresh Live Helpdesk Chats"
+                  className="p-2.5 rounded-xl bg-zenov-card border border-zenov-border hover:border-zenov-primary text-zenov-text-secondary hover:text-zenov-primary transition-all cursor-pointer"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isRefreshingTickets ? 'animate-spin text-zenov-primary' : ''}`} />
+                </button>
               </div>
 
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">

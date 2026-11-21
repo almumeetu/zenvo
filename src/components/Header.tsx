@@ -169,12 +169,12 @@ export const Header: React.FC<HeaderProps> = ({
     return () => ctx.revert();
   }, []);
 
-  // Close dropdowns on outside click
+  // Close dropdowns on outside click or touch
   const currencyRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    const handler = (e: MouseEvent | TouchEvent) => {
       if (currencyRef.current && !currencyRef.current.contains(e.target as Node)) {
         setIsCurrencyMenuOpen(false);
       }
@@ -183,7 +183,11 @@ export const Header: React.FC<HeaderProps> = ({
       }
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
   }, []);
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -330,7 +334,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Search Dropdown */}
             {isSearchFocused && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#111826] bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden z-50">
                 <div className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zenov-primary bg-zenov-primary-soft/40 flex justify-between items-center border-b border-zenov-border">
                   <span>Quick Results</span>
                   <Sparkles className="w-3 h-3" />
@@ -379,7 +383,12 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Currency Switcher */}
             <div className="relative" ref={currencyRef}>
               <button
-                onClick={() => setIsCurrencyMenuOpen((v) => !v)}
+                type="button"
+                onClick={() => {
+                  setIsCurrencyMenuOpen((v) => !v);
+                  setIsProfileMenuOpen(false);
+                  setIsMobileMenuOpen(false);
+                }}
                 className="px-1.5 sm:px-2.5 py-2 rounded-lg bg-zenov-surface/60 border border-zenov-border hover:border-zenov-border-hover text-xs font-bold text-zenov-primary flex items-center gap-1 sm:gap-1.5 transition-all"
                 aria-label="Select currency"
               >
@@ -388,10 +397,11 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
 
               {isCurrencyMenuOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-zenov-card border border-zenov-border rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-40 bg-[#111826] bg-zenov-card border border-zenov-border rounded-xl shadow-2xl py-1.5 z-50 overflow-hidden">
                   {CURRENCIES.map((c) => (
                     <button
                       key={c.code}
+                      type="button"
                       onClick={() => {
                         onSelectCurrency(c.code);
                         setIsCurrencyMenuOpen(false);
@@ -402,8 +412,8 @@ export const Header: React.FC<HeaderProps> = ({
                           : 'text-zenov-text-secondary'
                       }`}
                     >
-                      <span>{c.code}</span>
-                      <span className="text-zenov-text-muted">{c.symbol}</span>
+                      <span className="font-semibold">{c.code}</span>
+                      <span className="text-zenov-text-muted font-mono">{c.symbol}</span>
                     </button>
                   ))}
                 </div>
@@ -430,7 +440,12 @@ export const Header: React.FC<HeaderProps> = ({
             {user.email ? (
               <div className="relative" ref={profileRef}>
                 <button
-                  onClick={() => setIsProfileMenuOpen((v) => !v)}
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen((v) => !v);
+                    setIsCurrencyMenuOpen(false);
+                    setIsMobileMenuOpen(false);
+                  }}
                   className="flex items-center gap-2 p-1.5 pl-1.5 pr-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border hover:border-zenov-border-hover transition-all"
                   aria-label="Open profile menu"
                 >
@@ -446,7 +461,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
 
                 {isProfileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden z-50">
+                  <div className="absolute right-0 mt-2 w-64 bg-[#111826] bg-zenov-card border border-zenov-border rounded-2xl shadow-2xl overflow-hidden z-50">
                     {/* Profile header */}
                     <div className="p-4 bg-gradient-to-br from-zenov-primary-soft to-zenov-surface border-b border-zenov-border">
                       <div className="flex items-center gap-3">
@@ -528,7 +543,11 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               ref={mobileMenuToggleRef}
               type="button"
-              onClick={() => setIsMobileMenuOpen((v) => !v)}
+              onClick={() => {
+                setIsMobileMenuOpen((v) => !v);
+                setIsCurrencyMenuOpen(false);
+                setIsProfileMenuOpen(false);
+              }}
               className="lg:hidden p-2.5 rounded-xl bg-zenov-surface/60 border border-zenov-border text-zenov-text-secondary hover:text-zenov-text hover:border-zenov-border-hover transition-all"
               aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={isMobileMenuOpen}
@@ -540,7 +559,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile Search */}
-        <div className="relative z-50 md:hidden px-3 sm:px-4 pb-3">
+        <div className="relative z-10 md:hidden px-3 sm:px-4 pb-3">
           <div className="relative rounded-xl bg-zenov-surface/60 border border-zenov-border focus-within:border-zenov-primary-border focus-within:ring-2 focus-within:ring-zenov-primary/20 focus-within:bg-zenov-surface transition-all shadow-md">
             <Search className="w-4 h-4 text-zenov-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input

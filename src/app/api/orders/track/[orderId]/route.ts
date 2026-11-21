@@ -10,7 +10,11 @@ export async function GET(
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   const { orderId } = await params;
-  const cleanId = orderId?.trim() || '';
+  const cleanId = (orderId || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+
+  if (!cleanId) {
+    return NextResponse.json({ success: false, order: null, message: 'Invalid order tracking query' }, { status: 400 });
+  }
 
   try {
     const apiRes = await fetch(`${API_BASE_URL}/orders/track/${encodeURIComponent(cleanId)}`, {
@@ -25,7 +29,7 @@ export async function GET(
       }
     }
   } catch (err: any) {
-    console.warn(`[API Proxy /orders/track/${cleanId} GET] Primary API error, checking Supabase fallback:`, err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   // Supabase fallback

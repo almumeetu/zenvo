@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
-import { getAuthHeaders } from '@/lib/api-auth';
+import { getAuthHeaders, verifyAdminRequest } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase-server';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +15,14 @@ export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 export async function GET(request: Request) {
+  const adminCheck = await verifyAdminRequest(request);
+  if (!adminCheck.isAdmin) {
+    return NextResponse.json(
+      { success: false, message: 'Admin authentication required.' },
+      { status: 403 }
+    );
+  }
+
   // 1. Fetch live metrics directly from deployed NestJS API
   try {
     const apiRes = await fetch(`${API_BASE_URL}/admin/analytics`, {
@@ -29,7 +37,7 @@ export async function GET(request: Request) {
       }
     }
   } catch (err: any) {
-    console.warn('[API Proxy /admin/analytics GET] Primary API server error, calculating from Supabase fallback:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   // 2. Resilient fallback: Compute analytics from Supabase

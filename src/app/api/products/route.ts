@@ -32,7 +32,7 @@ export async function GET() {
     }
   } catch (err: any) {
     clearTimeout(timeoutId);
-    console.warn('[API Proxy /products GET] Primary API server warning (falling back):', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       }
     }
   } catch (err: any) {
-    console.warn('[API Proxy /products POST] Primary API error, using Supabase fallback:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   // 2. Fallback to Supabase insert

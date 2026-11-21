@@ -9,14 +9,25 @@ import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { sendContactUsEmail } from '@/lib/resend';
+import { getAuthHeaders, verifyAdminRequest, getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-import { getAuthHeaders } from '@/lib/api-auth';
-
 export async function GET(request: Request) {
+  // Authorization check: Admin sees all tickets; Authenticated user sees only their own tickets
+  const adminCheck = await verifyAdminRequest(request);
+  const authUser = adminCheck.isAdmin ? adminCheck.user : await getAuthenticatedUser(request);
+
+  if (!adminCheck.isAdmin && !authUser) {
+    return NextResponse.json({ success: true, tickets: [] });
+  }
+
   try {
-    const apiRes = await fetch(`${API_BASE_URL}/tickets`, {
+    const endpoint = adminCheck.isAdmin
+      ? `${API_BASE_URL}/tickets`
+      : `${API_BASE_URL}/tickets/my-tickets`;
+
+    const apiRes = await fetch(endpoint, {
       cache: 'no-store',
       headers: getAuthHeaders(request),
     });
@@ -28,7 +39,7 @@ export async function GET(request: Request) {
       }
     }
   } catch (err: any) {
-    console.warn('[API Proxy /tickets GET] Primary API error, using Supabase fallback:', err?.message || err);
+    // Primary API unavailable — using Supabase fallback
   }
 
   try {
@@ -36,10 +47,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, tickets: [] });
     }
 
-    const { data: tickets, error } = await supabaseAdmin
-      .from('tickets')
-      .select('*')
-      .order('updatedAt', { ascending: false });
+    let query = supabaseAdmin.from('tickets').select('*');
+    if (!adminCheck.isAdmin && authUser?.id) {
+      query = query.eq('userId', authUser.id);
+    }
+
+    const { data: tickets, error } = await query.order('updatedAt', { ascending: false });
 
     if (error) {
       return NextResponse.json({ success: true, tickets: [] });
@@ -73,7 +86,7 @@ export async function POST(request: Request) {
       }
     }
   } catch (err: any) {
-    console.warn('[API Proxy /tickets POST] Primary API error, using Supabase fallback:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   try {

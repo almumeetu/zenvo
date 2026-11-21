@@ -39,7 +39,7 @@ export async function PUT(
       }
     }
   } catch (err: any) {
-    console.warn(`[API Proxy /tickets/${id} PUT] Primary API error, using Supabase fallback:`, err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   try {
@@ -90,7 +90,7 @@ export async function POST(
       }
     }
   } catch (err: any) {
-    console.warn(`[API Proxy /tickets/${id}/reply POST] Primary API error, using Supabase fallback:`, err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   return NextResponse.json({ success: true, message: 'Reply sent' });

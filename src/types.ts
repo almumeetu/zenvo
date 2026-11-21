@@ -144,12 +144,14 @@ export interface SupportTicket {
   ticketNumber: string;
   userId: string;
   userEmail: string;
+  userName?: string;
   subject: string;
-  category: 'Top-Up Issue' | 'Payment Delay' | 'Wallet Top-Up' | 'General Query';
-  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+  category: 'Top-Up Issue' | 'Payment Delay' | 'Wallet Top-Up' | 'General Query' | string;
+  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed' | string;
   priority: 'Low' | 'Medium' | 'High' | 'Urgent';
   messages: {
     id: string;
+    ticketId?: string;
     sender: 'user' | 'support' | 'ai';
     senderName: string;
     message: string;

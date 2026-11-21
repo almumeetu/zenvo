@@ -10,6 +10,7 @@
 import { NextResponse } from 'next/server';
 import { generateOrderEmailHtml } from '@/lib/resend';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { verifyAdminRequest } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,15 +79,19 @@ export async function GET(request: Request) {
 
     let orderData = SAMPLE_ORDER;
 
+    // Security: Only authorized admins may preview real customer order invoices from DB
     if (orderId && supabaseAdmin) {
-      const { data: dbOrder } = await supabaseAdmin
-        .from('orders')
-        .select('*')
-        .or(`id.eq.${orderId},orderNumber.eq.${orderId}`)
-        .maybeSingle();
+      const adminCheck = await verifyAdminRequest(request);
+      if (adminCheck.isAdmin) {
+        const { data: dbOrder } = await supabaseAdmin
+          .from('orders')
+          .select('*')
+          .or(`id.eq.${orderId},orderNumber.eq.${orderId}`)
+          .maybeSingle();
 
-      if (dbOrder) {
-        orderData = dbOrder;
+        if (dbOrder) {
+          orderData = dbOrder;
+        }
       }
     }
 

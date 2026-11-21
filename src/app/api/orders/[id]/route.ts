@@ -10,7 +10,7 @@ import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { sendOrderNotificationEmail } from '@/lib/resend';
 
-import { getAuthHeaders } from '@/lib/api-auth';
+import { getAuthHeaders, verifyAdminRequest } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -39,6 +39,15 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Authorization: Only admin can update order parameters / fulfillment status
+  const adminCheck = await verifyAdminRequest(request);
+  if (!adminCheck.isAdmin) {
+    return NextResponse.json(
+      { success: false, message: 'Admin authentication required to modify orders.' },
+      { status: 403 }
+    );
+  }
+
   const { id } = await params;
   let body: any;
   try {
@@ -66,7 +75,7 @@ export async function PUT(
       }
     }
   } catch (err: any) {
-    console.warn(`[API Proxy /orders/${id} PUT] Primary API error, using Supabase fallback:`, err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   // 2. Fallback to direct Supabase update

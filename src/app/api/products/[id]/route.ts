@@ -7,8 +7,7 @@
 import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
-
-import { getAuthHeaders } from '@/lib/api-auth';
+import { getAuthHeaders, verifyAdminRequest } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +15,14 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const adminCheck = await verifyAdminRequest(request);
+  if (!adminCheck.isAdmin) {
+    return NextResponse.json(
+      { success: false, product: null, message: 'Admin authentication required.' },
+      { status: 403 }
+    );
+  }
+
   const { id } = await params;
   let body: any;
   try {
@@ -38,7 +45,7 @@ export async function PUT(
       }
     }
   } catch (err: any) {
-    console.warn(`[API Proxy /products/${id} PUT] Primary API error, using Supabase fallback:`, err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   try {
@@ -67,6 +74,14 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const adminCheck = await verifyAdminRequest(request);
+  if (!adminCheck.isAdmin) {
+    return NextResponse.json(
+      { success: false, message: 'Admin authentication required.' },
+      { status: 403 }
+    );
+  }
+
   const { id } = await params;
 
   try {
@@ -82,7 +97,7 @@ export async function DELETE(
       }
     }
   } catch (err: any) {
-    console.warn(`[API Proxy /products/${id} DELETE] Primary API error, using Supabase fallback:`, err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   try {

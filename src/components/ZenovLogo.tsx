@@ -23,6 +23,8 @@ export const ZenovLogo: React.FC<ZenovLogoProps> = ({
     sm: {
       box: 'w-7 h-7 sm:w-8 sm:h-8',
       icon: 'w-4 h-4',
+      boxPx: 32,
+      iconPx: 16,
       title: 'text-sm sm:text-base',
       subtitle: 'text-[7px] sm:text-[7.5px]',
       spark: 'w-1 h-1',
@@ -30,6 +32,8 @@ export const ZenovLogo: React.FC<ZenovLogoProps> = ({
     md: {
       box: 'w-9 h-9 sm:w-10 sm:h-10',
       icon: 'w-5 h-5',
+      boxPx: 40,
+      iconPx: 20,
       title: 'text-[17px] sm:text-lg',
       subtitle: 'text-[8.5px] sm:text-[9px]',
       spark: 'w-1.5 h-1.5',
@@ -37,6 +41,8 @@ export const ZenovLogo: React.FC<ZenovLogoProps> = ({
     lg: {
       box: 'w-11 h-11 sm:w-12 sm:h-12',
       icon: 'w-6 h-6',
+      boxPx: 48,
+      iconPx: 24,
       title: 'text-xl sm:text-2xl',
       subtitle: 'text-[10px] sm:text-[11px]',
       spark: 'w-2 h-2',
@@ -44,6 +50,8 @@ export const ZenovLogo: React.FC<ZenovLogoProps> = ({
     xl: {
       box: 'w-14 h-14 sm:w-16 sm:h-16',
       icon: 'w-8 h-8',
+      boxPx: 64,
+      iconPx: 32,
       title: 'text-2xl sm:text-3xl',
       subtitle: 'text-xs sm:text-sm',
       spark: 'w-2.5 h-2.5',
@@ -53,7 +61,10 @@ export const ZenovLogo: React.FC<ZenovLogoProps> = ({
   const content = (
     <div className={`group/logo inline-flex items-center gap-2.5 sm:gap-3 select-none ${className}`}>
       {/* ── HIGH-TECH ANIMATED LOGO ICON EMBLEM ── */}
-      <div className={`relative ${dimensions.box} shrink-0 flex items-center justify-center`}>
+      <div
+        className={`relative ${dimensions.box} shrink-0 flex items-center justify-center`}
+        style={{ width: dimensions.boxPx, height: dimensions.boxPx, minWidth: dimensions.boxPx, minHeight: dimensions.boxPx }}
+      >
         {/* Outer Pulsing Ambient Neon Aura */}
         <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-400 to-amber-500 opacity-60 blur-md group-hover/logo:opacity-100 group-hover/logo:blur-lg transition-all duration-500 animate-pulse" />
 
@@ -70,8 +81,11 @@ export const ZenovLogo: React.FC<ZenovLogoProps> = ({
           {/* 3D Cyber 'Z' Monogram SVG with Glowing Lightning Slit */}
           <svg
             viewBox="0 0 32 32"
+            width={dimensions.iconPx}
+            height={dimensions.iconPx}
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            style={{ width: dimensions.iconPx, height: dimensions.iconPx, maxWidth: dimensions.iconPx, maxHeight: dimensions.iconPx }}
             className={`${dimensions.icon} relative z-10 transition-transform duration-300 group-hover/logo:scale-110 drop-shadow-[0_2px_10px_rgba(6,182,212,0.7)]`}
           >
             {/* Top Bar of Z */}

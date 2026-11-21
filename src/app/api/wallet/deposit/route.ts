@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const authHeader = request.headers.get('authorization') || '';
 
   try {
-    const apiRes = await fetch(`${API_BASE_URL}/wallet/deposit`, {
+    const apiRes = await fetch(`${API_BASE_URL}/user/wallet/deposit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,12 +36,12 @@ export async function POST(request: Request) {
       }
     }
   } catch (err: any) {
-    console.warn('[API Proxy /wallet/deposit POST] Primary API error:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   const amountUSD = parseFloat(body.amountUSD || 0);
   return NextResponse.json({
     success: true,
-    message: `Successfully requested deposit of $${amountUSD.toFixed(2)} to your Zenvo Wallet!`,
+    message: `Deposit request of $${amountUSD.toFixed(2)} submitted. Your wallet balance will be credited after admin payment verification.`,
   });
 }

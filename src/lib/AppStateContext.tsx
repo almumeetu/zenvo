@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   Product,
@@ -108,8 +108,9 @@ interface AppActions {
   ) => Promise<{ success: boolean; orderNumber?: string; message?: string }>;
   depositWallet: (amountUSD: number, method: string, reference: string) => Promise<{ success: boolean; message: string }>;
   searchOrder: (orderId: string) => Promise<Order | null>;
-  createTicket: (subject: string, category: any, priority: any, message: string) => Promise<void>;
+  createTicket: (subject: string, category: any, priority: any, message: string) => Promise<SupportTicket>;
   replyTicket: (ticketId: string, message: string) => Promise<void>;
+  refreshTickets: () => Promise<SupportTicket[] | null>;
   addProduct: (p: Product) => Promise<void>;
   updateProduct: (p: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
@@ -155,25 +156,70 @@ interface AppActions {
 export const checkIsAdmin = (email?: string): boolean => {
   if (!email) return false;
   const cleanEmail = email.toLowerCase().trim();
-  return cleanEmail.includes('admin') || cleanEmail === 'almumeetu@gmail.com' || cleanEmail === 'zenovgamesbd@gmail.com';
+  const designatedAdmins = [
+    'almumeetu@gmail.com',
+    'zenovgamesbd@gmail.com',
+    'admin@zenov.gg',
+    'admin@zenovgames.com',
+  ];
+  return designatedAdmins.includes(cleanEmail);
 };
 
-const MAX_LOCAL_STORAGE_ITEMS = 200;
+const MAX_LOCAL_STORAGE_ITEMS = 50;
+
+const sanitizeForLocalStorage = (key: string, value: unknown): unknown => {
+  if (key === 'zenov_v3_products' && Array.isArray(value)) {
+    // Strip massive base64 image strings and cap cached products
+    return value.slice(0, MAX_LOCAL_STORAGE_ITEMS).map((p: any) => {
+      if (typeof p?.image === 'string' && p.image.startsWith('data:')) {
+        return { ...p, image: '' };
+      }
+      return p;
+    });
+  }
+  if (Array.isArray(value) && value.length > 100) {
+    return value.slice(-100);
+  }
+  return value;
+};
 
 const safeSetItem = (key: string, value: unknown): void => {
+  if (typeof window === 'undefined') return;
   try {
-    const serialized = JSON.stringify(value);
+    const sanitized = sanitizeForLocalStorage(key, value);
+    const serialized = JSON.stringify(sanitized);
     localStorage.setItem(key, serialized);
-  } catch (e) {
-    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-      const fallback = Array.isArray(value) ? value.slice(-MAX_LOCAL_STORAGE_ITEMS) : value;
+  } catch (e: any) {
+    const isQuotaError =
+      e instanceof DOMException &&
+      (e.name === 'QuotaExceededError' ||
+        e.code === 22 ||
+        e.code === 1014 ||
+        e.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+
+    if (isQuotaError) {
+      console.warn(`[AppStateContext] LocalStorage quota exceeded when storing "${key}". Attempting recovery...`);
       try {
-        localStorage.setItem(key, JSON.stringify(fallback));
+        if (Array.isArray(value)) {
+          const fallback = value.slice(0, 20).map((item: any) => {
+            if (typeof item?.image === 'string' && item.image.startsWith('data:')) {
+              return { ...item, image: '' };
+            }
+            return item;
+          });
+          localStorage.setItem(key, JSON.stringify(fallback));
+          return;
+        }
       } catch (e2) {
-        console.warn(`Failed to save ${key} to localStorage`, e2);
+        try {
+          localStorage.removeItem('zenov_v3_products');
+          localStorage.removeItem('zenov_v3_blogs');
+          localStorage.removeItem('zenov_v3_banners');
+        } catch {}
+        console.warn(`[AppStateContext] Failed to persist "${key}" in localStorage after trimming. Cleaned cache.`, e2);
       }
     } else {
-      console.warn(`Failed to save ${key} to localStorage`, e);
+      console.warn(`[AppStateContext] Error saving "${key}" to localStorage:`, e);
     }
   }
 };
@@ -264,20 +310,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     Promise.allSettled([
       fetch('/api/products', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
-      fetch('/api/orders', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
-      fetch('/api/tickets', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
       fetch('/api/categories', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
       fetch('/api/settings', { signal: controller.signal, cache: 'no-store' }).then((r) => r.ok ? r.json() : null),
-    ]).then(([pRes, oRes, tRes, cRes, sRes]) => {
+    ]).then(([pRes, cRes, sRes]) => {
       clearTimeout(timeoutId);
       if (pRes.status === 'fulfilled' && pRes.value?.success && Array.isArray(pRes.value.products)) {
         setProducts(pRes.value.products);
-      }
-      if (oRes.status === 'fulfilled' && oRes.value?.success && Array.isArray(oRes.value.orders)) {
-        setOrders(oRes.value.orders);
-      }
-      if (tRes.status === 'fulfilled' && tRes.value?.success && Array.isArray(tRes.value.tickets)) {
-        setTickets(tRes.value.tickets);
       }
       if (cRes.status === 'fulfilled' && cRes.value?.success && Array.isArray(cRes.value.categories)) {
         setCategories(cRes.value.categories);
@@ -362,7 +400,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       } else if (event === 'SIGNED_OUT') {
         setUser(GUEST_USER);
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('zenov_v3_user');
+          try {
+            localStorage.removeItem('zenov_v3_user');
+          } catch {}
         }
       }
       setAuthLoading(false);
@@ -376,37 +416,37 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // Save changes to localStorage (only as fallback sync)
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_products', JSON.stringify(products));
+    safeSetItem('zenov_v3_products', products);
   }, [products, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_categories', JSON.stringify(categories));
+    safeSetItem('zenov_v3_categories', categories);
   }, [categories, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_units', JSON.stringify(units));
+    safeSetItem('zenov_v3_units', units);
   }, [units, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_banners', JSON.stringify(heroBanners));
+    safeSetItem('zenov_v3_banners', heroBanners);
   }, [heroBanners, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_blogs', JSON.stringify(blogArticles));
+    safeSetItem('zenov_v3_blogs', blogArticles);
   }, [blogArticles, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_user', JSON.stringify(user));
+    safeSetItem('zenov_v3_user', user);
   }, [user, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
-    localStorage.setItem('zenov_v3_users', JSON.stringify(users));
+    safeSetItem('zenov_v3_users', users);
   }, [users, isMounted]);
 
   useEffect(() => {
@@ -690,9 +730,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return { success: true, orderNumber: finalOrder.orderNumber, order: finalOrder, message: 'Order created successfully!' };
   };
 
-  const refreshOrders = async () => {
+  const getSessionHeaders = useCallback(async (): Promise<Record<string, string>> => {
+    if (!supabase) return {};
     try {
-      const res = await fetch('/api/orders', { cache: 'no-store' });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        return { Authorization: `Bearer ${session.access_token}` };
+      }
+    } catch {}
+    return {};
+  }, []);
+
+  const refreshOrders = useCallback(async (): Promise<Order[]> => {
+    try {
+      const authHeaders = await getSessionHeaders();
+      const res = await fetch('/api/orders', { cache: 'no-store', headers: authHeaders });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.orders)) {
@@ -704,9 +756,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       console.warn('Failed to refresh orders from server:', err);
     }
     return orders;
-  };
+  }, [orders, getSessionHeaders]);
 
-  // Real-time admin order sync: poll /api/orders while the admin panel is open
+  const refreshTickets = useCallback(async (): Promise<SupportTicket[] | null> => {
+    try {
+      const authHeaders = await getSessionHeaders();
+      const res = await fetch('/api/tickets', { cache: 'no-store', headers: authHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.tickets)) {
+          setTickets(data.tickets);
+          return data.tickets;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to refresh tickets from server:', err);
+    }
+    return null;
+  }, [getSessionHeaders]);
+
+  // Real-time admin order & ticket sync: poll /api/orders and /api/tickets while the admin panel is open
   const adminPathname = usePathname();
   useEffect(() => {
     if (adminPathname !== '/admin') return;
@@ -715,11 +784,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     let active = true;
     const sync = async () => {
       if (!active) return;
-      await refreshOrders();
+      await Promise.allSettled([refreshOrders(), refreshTickets()]);
     };
 
     sync();
-    const intervalId = setInterval(sync, 10000);
+    const intervalId = setInterval(sync, 30000);
 
     // Re-sync whenever the tab becomes visible again
     const onVisible = () => {
@@ -738,15 +807,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         document.removeEventListener('visibilitychange', onVisible);
       }
     };
-  }, [adminPathname, user.role, refreshOrders]);
+  }, [adminPathname, user.role, refreshOrders, refreshTickets]);
 
   const depositWallet = async (amountUSD: number, method: string, reference: string) => {
-    const newBal = parseFloat((user.walletBalanceUSD + amountUSD).toFixed(2));
-    setUser((curr) => ({ ...curr, walletBalanceUSD: newBal }));
-    setUsers((prev) =>
-      prev.map((u) => (u.id === user.id ? { ...u, walletBalanceUSD: newBal } : u))
-    );
-
     const tx: WalletTransaction = {
       id: 'tx_' + Date.now(),
       userId: user.id,
@@ -755,12 +818,27 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       type: 'deposit',
       paymentMethod: method,
       reference,
-      status: 'Completed',
+      status: 'Pending',
       createdAt: new Date().toLocaleString(),
     };
 
     setWalletTransactions((p) => [tx, ...p]);
-    return { success: true, message: `Successfully deposited $${amountUSD.toFixed(2)}` };
+
+    try {
+      const authHeaders = await getSessionHeaders();
+      await fetch('/api/wallet/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ amountUSD, paymentMethod: method, reference }),
+      });
+    } catch (e) {
+      console.warn('Wallet deposit notification error:', e);
+    }
+
+    return {
+      success: true,
+      message: `Deposit request for $${amountUSD.toFixed(2)} submitted. Your balance will be credited after admin payment verification.`,
+    };
   };
 
   const searchOrder = async (orderId: string): Promise<Order | null> => {
@@ -792,16 +870,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     category: any,
     priority: any,
     message: string
-  ) => {
+  ): Promise<SupportTicket> => {
     const id = 'tkt_' + Date.now();
     const newTicket: SupportTicket = {
       id,
       ticketNumber: 'TCK-' + Math.floor(10000 + Math.random() * 90000),
-      userId: 'guest',
-      userEmail: user.email,
-      subject,
-      category,
-      priority,
+      userId: user.id || 'guest',
+      userEmail: user.email || 'guest@zenov.gg',
+      userName: user.name || 'Gamer',
+      subject: subject || 'Support Request',
+      category: category || 'General Query',
+      priority: priority || 'Medium',
       status: 'Open',
       createdAt: new Date().toLocaleString(),
       updatedAt: new Date().toLocaleString(),
@@ -810,7 +889,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           id: 'm1_' + Date.now(),
           ticketId: id,
           sender: 'user',
-          senderName: user.name,
+          senderName: user.name || 'Gamer',
           message,
           timestamp: new Date().toLocaleString(),
         } as any,
@@ -819,7 +898,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           ticketId: id,
           sender: 'ai',
           senderName: 'ZENOV Support',
-          message: `Thank you for reaching out! Your ticket has been received and assigned to our support queue. An agent will respond shortly.`,
+          message: `Thank you for reaching out! Your support ticket has been received. Our support agent will assist you here shortly.`,
           timestamp: new Date(Date.now() + 1000).toLocaleString(),
         } as any,
       ],
@@ -838,6 +917,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
 
     setTickets((p) => [newTicket, ...p]);
+    return newTicket;
   };
 
   const replyTicket = async (ticketId: string, message: string) => {
@@ -1330,7 +1410,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
     setUser(GUEST_USER);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('zenov_v3_user');
+      try {
+        localStorage.removeItem('zenov_v3_user');
+      } catch {}
     }
   };
 
@@ -1364,6 +1446,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     searchOrder,
     createTicket,
     replyTicket,
+    refreshTickets,
     addProduct,
     updateProduct,
     deleteProduct,

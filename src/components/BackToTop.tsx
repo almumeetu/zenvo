@@ -52,7 +52,7 @@ export const BackToTop: React.FC = () => {
       onClick={scrollToTop}
       aria-label="Scroll back to top"
       title="Back to Top"
-      className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-50 p-2.5 sm:p-3 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-cyan-400/50 text-cyan-400 hover:text-white hover:border-cyan-300 shadow-xl shadow-cyan-950/50 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all duration-300 active:scale-90 group cursor-pointer"
+      className="fixed bottom-20 right-5 sm:bottom-24 sm:right-7 z-40 p-2.5 sm:p-3 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-cyan-400/50 text-cyan-400 hover:text-white hover:border-cyan-300 shadow-xl shadow-cyan-950/50 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all duration-300 active:scale-90 group cursor-pointer"
     >
       {/* Animated glowing conic border */}
       <span className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-400 to-amber-500 opacity-40 group-hover:opacity-100 blur-[2px] transition-opacity duration-300 pointer-events-none" />

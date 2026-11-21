@@ -21,7 +21,7 @@ export async function GET() {
       return NextResponse.json(data);
     }
   } catch (err: any) {
-    console.warn('[API Proxy /banners GET] Error fetching banners:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   return NextResponse.json({
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       return NextResponse.json(data);
     }
   } catch (err: any) {
-    console.warn('[API Proxy /banners POST] Error saving banner:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   return NextResponse.json({

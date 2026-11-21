@@ -9,7 +9,7 @@ import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { sendOrderNotificationEmail } from '@/lib/resend';
-import { getAuthHeaders } from '@/lib/api-auth';
+import { getAuthHeaders, verifyAdminRequest, getAuthenticatedUser } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -58,8 +58,20 @@ function parseOrderNotes(rawOrder: any) {
 }
 
 export async function GET(request: Request) {
+  // Authorization check: Admins see all orders; authenticated users see only their own orders
+  const adminCheck = await verifyAdminRequest(request);
+  const authUser = adminCheck.isAdmin ? adminCheck.user : await getAuthenticatedUser(request);
+
+  if (!adminCheck.isAdmin && !authUser) {
+    return NextResponse.json({ success: true, orders: [] });
+  }
+
   try {
-    const apiRes = await fetch(`${API_BASE_URL}/orders`, {
+    const endpoint = adminCheck.isAdmin
+      ? `${API_BASE_URL}/orders`
+      : `${API_BASE_URL}/orders/my-orders`;
+
+    const apiRes = await fetch(endpoint, {
       cache: 'no-store',
       headers: getAuthHeaders(request),
     });
@@ -70,22 +82,23 @@ export async function GET(request: Request) {
         return NextResponse.json(data);
       }
     }
-  } catch (err: any) {
-    console.warn('[API Proxy /orders GET] Primary API server error, switching to Supabase fallback:', err?.message || err);
+  } catch {
+    // Primary API unavailable — using Supabase fallback
   }
 
   try {
     if (!supabaseAdmin) {
-      console.warn('[API /orders GET] supabaseAdmin is not initialized. Check SUPABASE_SERVICE_ROLE_KEY.');
       return NextResponse.json({ success: true, orders: [] });
     }
 
-    let { data: orders, error } = await supabaseAdmin
-      .from('orders')
-      .select('*')
-      .order('createdAt', { ascending: false });
+    let query = supabaseAdmin.from('orders').select('*');
+    if (!adminCheck.isAdmin && authUser?.id) {
+      query = query.eq('userId', authUser.id);
+    }
 
-    if (error) {
+    let { data: orders, error } = await query.order('createdAt', { ascending: false });
+
+    if (error && adminCheck.isAdmin) {
       const fallback = await supabaseAdmin.from('orders').select('*');
       orders = fallback.data ?? [];
       error = fallback.error;
@@ -117,6 +130,7 @@ function getClientIp(request: Request): string {
 }
 
 export async function POST(request: Request) {
+  const adminCheck = await verifyAdminRequest(request);
   let body: any;
   try {
     body = await request.json();
@@ -159,10 +173,10 @@ export async function POST(request: Request) {
       }
     } else {
       const errText = await apiRes.text().catch(() => '');
-      console.warn(`[API Proxy /orders POST] Primary API returned status ${apiRes.status}. Details: ${errText}. Switching to Supabase fallback`);
+      // Primary API returned non-OK — using Supabase fallback
     }
   } catch (err: any) {
-    console.warn('[API Proxy /orders POST] Primary API server error, using Supabase fallback:', err?.message || err);
+    // Primary API unavailable — Supabase fallback active
   }
 
   // Fallback save to Supabase + Resend email
@@ -226,6 +240,19 @@ export async function POST(request: Request) {
         ? (Number(body.paidAmountCurrency) && Number(body.paidAmountCurrency) > 10 ? Number(body.paidAmountCurrency) : calculatedBDT)
         : (Number(body.paidAmountCurrency) || calculatedUSD);
 
+    // Security: Unverified clients cannot arbitrarily set Paid or Delivered
+    const initialPaymentStatus = adminCheck.isAdmin
+      ? body.paymentStatus || 'Pending Verification'
+      : body.paymentMethod === 'Zenvo Wallet'
+      ? 'Paid'
+      : 'Pending Verification';
+
+    const initialFulfillmentStatus = adminCheck.isAdmin
+      ? body.fulfillmentStatus || 'Processing'
+      : body.paymentMethod === 'Zenvo Wallet'
+      ? 'Processing'
+      : 'Pending Verification';
+
     let dbOrder = {
       id,
       orderNumber,
@@ -236,8 +263,8 @@ export async function POST(request: Request) {
       currency,
       paidAmountCurrency,
       paymentMethod: body.paymentMethod || 'bKash',
-      paymentStatus: body.paymentStatus || 'Pending Verification',
-      fulfillmentStatus: body.fulfillmentStatus || 'Processing',
+      paymentStatus: initialPaymentStatus,
+      fulfillmentStatus: initialFulfillmentStatus,
       playerId,
       serverId,
       transactionId,
