@@ -52,11 +52,11 @@ export const WhyChooseUs: React.FC = () => {
   const features = [
     {
       icon: <Zap className="w-5 h-5" />,
-      title: 'Sub-30 Sec Delivery',
+      title: 'Instant Order Delivery',
       description:
         'Automated order processing delivers gift cards, in-game credits, and voucher pins directly within seconds.',
       iconBg: 'bg-cyan-500/15 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 border-cyan-500/30',
-      stat: '<30s',
+      stat: 'FAST',
     },
     {
       icon: <ShieldCheck className="w-5 h-5" />,
@@ -94,9 +94,9 @@ export const WhyChooseUs: React.FC = () => {
       icon: <Award className="w-5 h-5" />,
       title: 'Verified Gamers Community',
       description:
-        'Over 50,000+ happy mobile & PC gamers in Bangladesh trust ZENOV for fast and reliable digital gaming top-ups.',
+        'Trusted by mobile & PC gamers across Bangladesh for reliable, verified digital gaming top-ups.',
       iconBg: 'bg-rose-500/15 text-rose-400 group-hover:bg-rose-500 group-hover:text-white border-rose-500/30',
-      stat: '50K+',
+      stat: 'TOP',
     },
   ];
 

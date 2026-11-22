@@ -89,7 +89,7 @@ function RegisterContent() {
           <div className="relative space-y-6">
             <div className="space-y-3">
               <h2 className="text-4xl font-black text-zenov-text leading-tight">
-                Join 1M+<br />Gamers Worldwide.
+                Join the Next-Gen<br />Gaming Community.
               </h2>
               <p className="text-zenov-text-secondary text-sm max-w-sm">
                 Create an account to manage your wallet, track all orders, unlock VIP tiers and enjoy exclusive member-only promo codes.
@@ -97,8 +97,8 @@ function RegisterContent() {
             </div>
             <div className="space-y-3">
               {[
-                { I: Zap, t: '24/7 Instant Top-Ups', s: 'Automated sub-30s delivery' },
-                { I: ShieldCheck, t: 'Verified by 1M+ Users', s: 'Official licensed reseller' },
+                { I: Zap, t: '24/7 Instant Top-Ups', s: 'Automated instant delivery' },
+                { I: ShieldCheck, t: '100% Authorized Reseller', s: 'Official verified source' },
                 { I: Sparkles, t: 'Tiered VIP Rewards', s: 'Earn cashback & bonuses' },
               ].map(({ I, t, s }) => (
                 <div key={t} className="flex items-start gap-3 p-3 rounded-xl bg-zenov-bg/30 border border-zenov-border/50 backdrop-blur">

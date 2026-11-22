@@ -35,9 +35,14 @@ export interface ProductDenomination {
 
 export interface Product {
   id: string;
+  slug?: string;
   title: string;
   category: CategoryType;
+  categoryId?: string;
+  categorySlug?: string;
   productType?: 'physical' | 'virtual';
+  price?: number;
+  salePrice?: number;
   unitId?: string;
   unitName?: string;
   image: string;
@@ -61,6 +66,8 @@ export interface Product {
   serverIdLabel?: string;
   denominations: ProductDenomination[];
   tags: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type CurrencyCode = 'USD' | 'BDT';

@@ -1012,7 +1012,7 @@ export default function AdminDashboardPage() {
       </aside>
 
       {/* 4. Main Content Area */}
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-7xl w-full mx-auto space-y-6">
+      <main className="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-7xl w-full mx-auto space-y-6">
         
         {/* Clean Admin Header Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zenov-border/60">
@@ -1616,7 +1616,15 @@ export default function AdminDashboardPage() {
                               <button onClick={() => setEditingProduct(p)} className="p-1.5 rounded-lg bg-zenov-surface hover:bg-zenov-primary hover:text-white border border-zenov-border transition-colors">
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
-                              <button onClick={() => deleteProduct(p.id)} className="p-1.5 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white border border-zenov-error/20 text-zenov-error transition-all">
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`Are you sure you want to permanently delete "${p.title}"?`)) {
+                                    deleteProduct(p.id);
+                                  }
+                                }}
+                                className="p-1.5 rounded-lg bg-zenov-error-soft/30 hover:bg-zenov-error hover:text-white border border-zenov-error/20 text-zenov-error transition-all"
+                                title="Delete Product"
+                              >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -1660,7 +1668,15 @@ export default function AdminDashboardPage() {
                           <button onClick={() => setEditingProduct(p)} className="p-2 rounded-xl bg-zenov-surface border border-zenov-border text-zenov-text-secondary hover:text-zenov-primary hover:border-zenov-primary-border transition-colors">
                             <Edit className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => deleteProduct(p.id)} className="p-2 rounded-xl bg-zenov-error-soft/30 border border-zenov-error/20 text-zenov-error hover:bg-zenov-error hover:text-white transition-all">
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to permanently delete "${p.title}"?`)) {
+                                deleteProduct(p.id);
+                              }
+                            }}
+                            className="p-2 rounded-xl bg-zenov-error-soft/30 border border-zenov-error/20 text-zenov-error hover:bg-zenov-error hover:text-white transition-all"
+                            title="Delete Product"
+                          >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -1857,17 +1873,17 @@ export default function AdminDashboardPage() {
 
             {/* Orders Table (Desktop View) */}
             <div className="hidden lg:block rounded-2xl overflow-hidden bg-zenov-card border border-zenov-border shadow-xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-zenov-border hover:scrollbar-thumb-zenov-primary/40 scrollbar-track-transparent">
+                <table className="w-full min-w-[1020px] text-sm text-left table-auto">
                   <thead>
-                    <tr className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted bg-zenov-surface/80 border-b border-zenov-border">
-                      <th className="p-4">Order ID & Date</th>
-                      <th className="p-4">Customer</th>
-                      <th className="p-4">Game & Player UID</th>
-                      <th className="p-4">Payment & TrxID</th>
-                      <th className="p-4 text-right">Amount</th>
-                      <th className="p-4 text-center">Status</th>
-                      <th className="p-4 text-right">Actions</th>
+                    <tr className="text-[10px] font-bold uppercase tracking-wider text-zenov-text-muted bg-zenov-surface/80 border-b border-zenov-border whitespace-nowrap">
+                      <th className="p-4 min-w-[150px]">Order ID & Date</th>
+                      <th className="p-4 min-w-[180px]">Customer</th>
+                      <th className="p-4 min-w-[200px]">Game & Player UID</th>
+                      <th className="p-4 min-w-[180px]">Payment & TrxID</th>
+                      <th className="p-4 text-right min-w-[100px]">Amount</th>
+                      <th className="p-4 text-center min-w-[140px]">Status</th>
+                      <th className="p-4 text-right min-w-[140px]">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zenov-border/40">
@@ -1893,9 +1909,9 @@ export default function AdminDashboardPage() {
                             className="hover:bg-zenov-surface/40 transition-colors cursor-pointer group"
                           >
                             {/* 1. Order ID & Date */}
-                            <td className="p-4">
+                            <td className="p-4 whitespace-nowrap min-w-[150px]">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-zenov-text font-mono text-xs">
+                                <span className="font-bold text-zenov-text font-mono text-xs whitespace-nowrap">
                                   {o.orderNumber}
                                 </span>
                                 <button
@@ -1905,7 +1921,7 @@ export default function AdminDashboardPage() {
                                     setCopiedKey(`ord_${o.id}`);
                                     setTimeout(() => setCopiedKey(null), 2000);
                                   }}
-                                  className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all"
+                                  className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all shrink-0"
                                   title="Copy Order #"
                                 >
                                   {copiedKey === `ord_${o.id}` ? (
@@ -1915,7 +1931,7 @@ export default function AdminDashboardPage() {
                                   )}
                                 </button>
                               </div>
-                              <div className="text-[10px] text-zenov-text-muted mt-0.5">
+                              <div className="text-[10px] text-zenov-text-muted mt-0.5 whitespace-nowrap">
                                 {new Date(o.createdAt).toLocaleString([], {
                                   month: 'short',
                                   day: 'numeric',
@@ -1925,11 +1941,11 @@ export default function AdminDashboardPage() {
                               </div>
                               <div className="mt-1.5">
                                 {isGuest ? (
-                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300 whitespace-nowrap">
                                     👤 GUEST
                                   </span>
                                 ) : (
-                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-blue-500/15 border border-blue-500/30 text-blue-300">
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-blue-500/15 border border-blue-500/30 text-blue-300 whitespace-nowrap">
                                     👑 MEMBER
                                   </span>
                                 )}
@@ -1937,22 +1953,22 @@ export default function AdminDashboardPage() {
                             </td>
 
                             {/* 2. Customer */}
-                            <td className="p-4 max-w-[200px]">
-                              <div className="text-xs font-bold text-zenov-text truncate">
+                            <td className="p-4 min-w-[180px] max-w-[220px]">
+                              <div className="text-xs font-bold text-zenov-text truncate" title={o.customerName || (isGuest ? 'Guest Gamer' : 'Customer')}>
                                 {o.customerName || (isGuest ? 'Guest Gamer' : 'Customer')}
                               </div>
-                              <div className="text-[10px] text-zenov-primary truncate mt-0.5">
+                              <div className="text-[10px] text-zenov-primary truncate mt-0.5" title={o.userEmail}>
                                 {o.userEmail}
                               </div>
                               {o.customerPhone && (
-                                <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold mt-1">
+                                <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold mt-1 whitespace-nowrap">
                                   <span>📞 {o.customerPhone}</span>
                                 </div>
                               )}
                             </td>
 
                             {/* 3. Product & UID */}
-                            <td className="p-4 max-w-[240px]">
+                            <td className="p-4 min-w-[200px] max-w-[240px]">
                               <div className="flex items-center gap-2.5">
                                 {o.items[0]?.productImage && (
                                   <img
@@ -1961,8 +1977,8 @@ export default function AdminDashboardPage() {
                                     className="w-8 h-8 rounded-lg object-cover bg-zenov-surface shrink-0"
                                   />
                                 )}
-                                <div className="min-w-0">
-                                  <p className="font-bold text-zenov-text text-xs leading-snug truncate">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-bold text-zenov-text text-xs leading-snug truncate" title={o.items[0]?.productTitle || 'Top Up Package'}>
                                     {o.items[0]?.productTitle || 'Top Up Package'}
                                   </p>
                                   <p className="text-[10px] text-zenov-text-secondary truncate">
@@ -1971,7 +1987,7 @@ export default function AdminDashboardPage() {
                                 </div>
                               </div>
                               <div className="mt-1.5 flex items-center gap-1">
-                                <span className="px-2 py-0.5 rounded bg-zenov-surface border border-zenov-border font-mono text-[11px] font-bold text-zenov-text truncate max-w-[160px]">
+                                <span className="px-2 py-0.5 rounded bg-zenov-surface border border-zenov-border font-mono text-[11px] font-bold text-zenov-text truncate max-w-[160px]" title={o.playerId}>
                                   🎮 {o.playerId}
                                 </span>
                                 <button
@@ -1981,7 +1997,7 @@ export default function AdminDashboardPage() {
                                     setCopiedKey(`uid_${o.id}`);
                                     setTimeout(() => setCopiedKey(null), 2000);
                                   }}
-                                  className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all"
+                                  className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all shrink-0"
                                   title="Copy Player UID"
                                 >
                                   {copiedKey === `uid_${o.id}` ? (
@@ -1992,28 +2008,28 @@ export default function AdminDashboardPage() {
                                 </button>
                               </div>
                               {o.serverId && (
-                                <p className="text-[9px] font-mono text-zenov-text-muted mt-0.5">
+                                <p className="text-[9px] font-mono text-zenov-text-muted mt-0.5 whitespace-nowrap">
                                   Zone: {o.serverId}
                                 </p>
                               )}
                             </td>
 
                             {/* 4. Payment & TrxID */}
-                            <td className="p-4 max-w-[200px]">
+                            <td className="p-4 min-w-[180px] max-w-[220px] whitespace-nowrap">
                               <div className="flex items-center gap-1.5">
-                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zenov-surface border border-zenov-border font-bold text-xs text-zenov-text">
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zenov-surface border border-zenov-border font-bold text-xs text-zenov-text whitespace-nowrap">
                                   <PaymentLogo method={o.paymentMethod} className="w-4 h-4 rounded shrink-0 shadow-sm" />
                                   <span>{o.paymentMethod}</span>
                                 </span>
                               </div>
                               {o.senderNumber && (
-                                <p className="text-[10px] font-mono text-amber-400 mt-1">
+                                <p className="text-[10px] font-mono text-amber-400 mt-1 whitespace-nowrap">
                                   Sender: <span className="font-bold">{o.senderNumber}</span>
                                 </p>
                               )}
                               {o.transactionId && (
                                 <div className="mt-1 flex items-center gap-1">
-                                  <span className="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 font-mono text-[10px] font-bold truncate max-w-[140px]">
+                                  <span className="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 font-mono text-[10px] font-bold truncate max-w-[140px] whitespace-nowrap" title={o.transactionId}>
                                     TX: {o.transactionId}
                                   </span>
                                   <button
@@ -2023,7 +2039,7 @@ export default function AdminDashboardPage() {
                                       setCopiedKey(`tx_${o.id}`);
                                       setTimeout(() => setCopiedKey(null), 2000);
                                     }}
-                                    className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all"
+                                    className="p-1 rounded hover:bg-zenov-surface text-zenov-text-muted hover:text-zenov-text transition-all shrink-0"
                                     title="Copy TrxID"
                                   >
                                     {copiedKey === `tx_${o.id}` ? (
@@ -2037,19 +2053,19 @@ export default function AdminDashboardPage() {
                             </td>
 
                             {/* 5. Amount */}
-                            <td className="p-4 text-right">
-                              <p className="font-black font-mono text-sm text-zenov-success">
+                            <td className="p-4 text-right whitespace-nowrap min-w-[100px]">
+                              <p className="font-black font-mono text-sm text-zenov-success whitespace-nowrap">
                                 {formatCurrency(o.totalUSD, o.currency as any)}
                               </p>
-                              <p className="text-[10px] font-mono text-zenov-text-muted mt-0.5">
+                              <p className="text-[10px] font-mono text-zenov-text-muted mt-0.5 whitespace-nowrap">
                                 ৳{o.paidAmountCurrency || Math.round(o.totalUSD * 120)}
                               </p>
                             </td>
 
                             {/* 6. Status */}
-                            <td className="p-4 text-center">
+                            <td className="p-4 text-center whitespace-nowrap min-w-[140px]">
                               <span
-                                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider ${
+                                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider whitespace-nowrap ${
                                   o.fulfillmentStatus === 'Delivered'
                                     ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                                     : o.fulfillmentStatus === 'Pending Verification'
@@ -2061,31 +2077,31 @@ export default function AdminDashboardPage() {
                               >
                                 {o.fulfillmentStatus}
                               </span>
-                              <div className="text-[9px] font-medium text-zenov-text-muted mt-1 uppercase">
+                              <div className="text-[9px] font-medium text-zenov-text-muted mt-1 uppercase whitespace-nowrap">
                                 Payment: <span className="font-bold">{o.paymentStatus}</span>
                               </div>
                             </td>
 
                             {/* 7. Actions */}
-                            <td className="p-4 text-right">
+                            <td className="p-4 text-right whitespace-nowrap min-w-[140px]">
                               <div
-                                className="inline-flex items-center gap-1.5"
+                                className="inline-flex items-center justify-end gap-1.5 whitespace-nowrap"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {o.fulfillmentStatus !== 'Delivered' && (
                                   <button
                                     onClick={() => updateOrderStatus(o.id, 'Delivered', 'Paid')}
-                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] uppercase tracking-wider shadow-sm transition-all flex items-center gap-1 active:scale-95"
+                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] uppercase tracking-wider shadow-sm transition-all flex items-center gap-1 active:scale-95 shrink-0"
                                     title="Approve & Deliver"
                                   >
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                                     <span>Approve</span>
                                   </button>
                                 )}
 
                                 <button
                                   onClick={() => setSelectedOrderForDetails(o)}
-                                  className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border hover:border-zenov-primary text-zenov-text-muted hover:text-zenov-text transition-all"
+                                  className="p-1.5 rounded-lg bg-zenov-surface border border-zenov-border hover:border-zenov-primary text-zenov-text-muted hover:text-zenov-text transition-all shrink-0"
                                   title="View Full Details"
                                 >
                                   <Eye className="w-3.5 h-3.5" />
@@ -2094,7 +2110,7 @@ export default function AdminDashboardPage() {
                                 {o.fulfillmentStatus !== 'Refunded' && (
                                   <button
                                     onClick={() => updateOrderStatus(o.id, 'Refunded', 'Failed')}
-                                    className="p-1.5 rounded-lg bg-zenov-surface border border-red-500/30 hover:bg-red-500 hover:text-white text-red-400 transition-all"
+                                    className="p-1.5 rounded-lg bg-zenov-surface border border-red-500/30 hover:bg-red-500 hover:text-white text-red-400 transition-all shrink-0"
                                     title="Reject / Refund"
                                   >
                                     <X className="w-3.5 h-3.5" />

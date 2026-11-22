@@ -275,14 +275,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const storedTickets = localStorage.getItem('zenov_v3_tickets');
       const storedSettings = localStorage.getItem('zenov_v3_settings');
 
-      if (storedProducts) {
-        const parsed = JSON.parse(storedProducts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProducts(parsed);
-          hasLocalProducts = true;
-        }
+      if (storedProducts !== null) {
+        try {
+          const parsed = JSON.parse(storedProducts);
+          if (Array.isArray(parsed)) {
+            setProducts(parsed);
+            hasLocalProducts = true;
+          }
+        } catch {}
       }
-      if (storedCategories) setCategories(JSON.parse(storedCategories));
+      if (storedCategories !== null) {
+        try {
+          const parsed = JSON.parse(storedCategories);
+          if (Array.isArray(parsed)) {
+            setCategories(parsed);
+          }
+        } catch {}
+      }
       if (storedUnits) setUnits(JSON.parse(storedUnits));
       if (storedBanners) setHeroBanners(JSON.parse(storedBanners));
       if (storedBlogs) setBlogArticles(JSON.parse(storedBlogs));
@@ -731,14 +740,44 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   const getSessionHeaders = useCallback(async (): Promise<Record<string, string>> => {
-    if (!supabase) return {};
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
+    // 1. Check cached admin token
+    if (typeof window !== 'undefined') {
+      const adminToken = localStorage.getItem('zenov_admin_token');
+      if (adminToken) {
+        headers['Authorization'] = `Bearer ${adminToken}`;
+        return headers;
+      }
+    }
+
+    // 2. Check Supabase session
+    if (supabase) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+          return headers;
+        }
+      } catch {}
+    }
+
+    // 3. Request fresh admin token from server
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        return { Authorization: `Bearer ${session.access_token}` };
+      const res = await fetch('/api/admin/token');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.token) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('zenov_admin_token', data.token);
+          }
+          headers['Authorization'] = `Bearer ${data.token}`;
+          return headers;
+        }
       }
     } catch {}
-    return {};
+
+    return headers;
   }, []);
 
   const refreshOrders = useCallback(async (): Promise<Order[]> => {
@@ -962,83 +1001,92 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   const addProduct = async (np: Product) => {
-    if (isDbConnected) {
-      try {
-        const res = await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(np),
-        });
-        const data = await res.json();
-        if (!data.success) {
-          console.error('Failed to create product in database:', data.message);
-          showAdminToast('error', `❌ Failed to save product to database: ${data.message || 'Unknown error'}`);
-          return; // Don't update local state if DB save failed
-        }
-        showAdminToast('success', `✅ Product "${np.title}" created successfully.`);
-      } catch (e: any) {
-        console.error('Failed to create product in database API', e);
-        showAdminToast('error', `❌ Network error saving product: ${e?.message || 'Check your connection'}`);
+    setProducts((p) => [np, ...p.filter((x) => x.id !== np.id)]);
+    try {
+      const authHeaders = await getSessionHeaders();
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify(np),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        console.error('Failed to create product in database:', data.message);
+        showAdminToast('error', `❌ Failed to save product to database: ${data.message || 'Unknown error'}`);
         return;
       }
+      if (data.product) {
+        setProducts((p) => [data.product, ...p.filter((x) => x.id !== np.id && x.id !== data.product.id)]);
+      }
+      showAdminToast('success', `✅ Product "${np.title}" created successfully.`);
+    } catch (e: any) {
+      console.error('Failed to create product in database API', e);
+      showAdminToast('error', `❌ Network error saving product: ${e?.message || 'Check your connection'}`);
     }
-    setProducts((p) => [np, ...p]);
   };
 
   const updateProduct = async (updatedProd: Product) => {
-    if (isDbConnected) {
-      try {
-        const res = await fetch(`/api/products/${updatedProd.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedProd),
-        });
-        const data = await res.json();
-        if (!data.success) {
-          console.error('Failed to update product in database:', data.message);
-          showAdminToast('error', `❌ Failed to update product in database: ${data.message || 'Unknown error'}`);
-          return;
-        }
-        showAdminToast('success', `✅ Product "${updatedProd.title}" updated successfully.`);
-      } catch (e: any) {
-        console.error('Failed to update product in database API', e);
-        showAdminToast('error', `❌ Network error updating product: ${e?.message || 'Check your connection'}`);
-        return;
-      }
-    }
     setProducts((prev) =>
       prev.map((p) => (p.id === updatedProd.id ? updatedProd : p))
     );
+    try {
+      const authHeaders = await getSessionHeaders();
+      const res = await fetch(`/api/products/${updatedProd.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify(updatedProd),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        console.error('Failed to update product in database:', data.message);
+        showAdminToast('error', `❌ Failed to update product in database: ${data.message || 'Unknown error'}`);
+        return;
+      }
+      showAdminToast('success', `✅ Product "${updatedProd.title}" updated successfully.`);
+    } catch (e: any) {
+      console.error('Failed to update product in database API', e);
+      showAdminToast('error', `❌ Network error updating product: ${e?.message || 'Check your connection'}`);
+    }
   };
 
   const deleteProduct = async (id: string) => {
-    if (isDbConnected) {
-      try {
-        const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (!data.success) {
-          console.error('Failed to delete product from database:', data.message);
-          showAdminToast('error', `❌ Failed to delete product from database: ${data.message || 'Unknown error'}`);
-          return;
-        }
-        showAdminToast('success', `🗑️ Product deleted successfully.`);
-      } catch (e: any) {
-        console.error('Failed to delete product in database API', e);
-        showAdminToast('error', `❌ Network error deleting product: ${e?.message || 'Check your connection'}`);
+    // 1. Optimistically delete immediately from local state
+    setProducts((p) => p.filter((x) => x.id !== id && x.slug !== id));
+    
+    try {
+      const authHeaders = await getSessionHeaders();
+      const res = await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders,
+      });
+      const data = await res.json();
+      if (!data.success) {
+        console.error('Failed to delete product from database:', data.message);
+        showAdminToast('error', `❌ Failed to delete product from database: ${data.message || 'Unknown error'}`);
         return;
       }
+      showAdminToast('success', `🗑️ Product deleted successfully.`);
+    } catch (e: any) {
+      console.error('Failed to delete product in database API', e);
+      showAdminToast('error', `❌ Network error deleting product: ${e?.message || 'Check your connection'}`);
     }
-    setProducts((p) => p.filter((x) => x.id !== id));
   };
 
   const addCategory = async (c: CategoryItem) => {
-    setCategories((prev) => [c, ...prev]);
+    setCategories((prev) => [c, ...prev.filter((x) => x.id !== c.id)]);
     try {
-      await fetch('/api/categories', {
+      const authHeaders = await getSessionHeaders();
+      const res = await fetch('/api/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(c),
       });
+      const data = await res.json();
+      if (data.success && (data.category || data.data)) {
+        const cat = data.category || data.data;
+        setCategories((prev) => [cat, ...prev.filter((x) => x.id !== c.id && x.id !== cat.id)]);
+      }
+      showAdminToast('success', `✅ Category "${c.name}" added successfully.`);
     } catch (err) {
       console.warn('Failed to sync category to backend API:', err);
     }
@@ -1047,24 +1095,41 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const updateCategory = async (c: CategoryItem) => {
     setCategories((prev) => prev.map((x) => (x.id === c.id ? c : x)));
     try {
-      await fetch(`/api/categories/${c.id}`, {
+      const authHeaders = await getSessionHeaders();
+      const res = await fetch(`/api/categories/${c.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(c),
       });
+      const data = await res.json();
+      if (data.success) {
+        showAdminToast('success', `✅ Category "${c.name}" updated successfully.`);
+      }
     } catch (err) {
       console.warn('Failed to sync category update to backend API:', err);
     }
   };
 
   const deleteCategory = async (id: string) => {
-    setCategories((prev) => prev.filter((x) => x.id !== id));
+    // 1. Optimistically delete immediately from local state
+    setCategories((prev) => prev.filter((x) => x.id !== id && x.slug !== id));
+    
     try {
-      await fetch(`/api/categories/${id}`, {
+      const authHeaders = await getSessionHeaders();
+      const res = await fetch(`/api/categories/${id}`, {
         method: 'DELETE',
+        headers: authHeaders,
       });
+      const data = await res.json();
+      if (data.success) {
+        showAdminToast('success', `🗑️ Category deleted successfully.`);
+      } else {
+        console.warn('Failed to sync category deletion to backend API:', data.message);
+        showAdminToast('error', `❌ Failed to delete category: ${data.message || 'Unknown error'}`);
+      }
     } catch (err) {
       console.warn('Failed to sync category deletion to backend API:', err);
+      showAdminToast('error', `❌ Network error deleting category.`);
     }
   };
 

@@ -2,18 +2,20 @@
  * /api/categories — Gaming Category listing and creation API
  *
  * Proxies requests to deployed API server (https://api-zenov.bornobyte.com/api/categories)
- * with admin token authorization and local fallback.
+ * with admin token authorization and Supabase database fallback.
  */
 
 import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/lib/config';
-import { getAuthHeaders } from '@/lib/api-auth';
+import { supabaseAdmin } from '@/lib/supabase-server';
+import { getAdminAuthHeaders, verifyAdminRequest } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 export async function GET() {
+  // 1. Fast fetch from deployed API server
   try {
     const apiRes = await fetch(`${API_BASE_URL}/categories`, {
       cache: 'no-store',
@@ -30,24 +32,42 @@ export async function GET() {
         });
       }
     }
-  } catch (err: any) {
-    // Primary API unavailable — Supabase fallback active
-  }
+  } catch (err: any) {}
 
-  // Fallback default categories
+  // 2. Direct Supabase query
+  try {
+    if (supabaseAdmin) {
+      const { data, error } = await supabaseAdmin
+        .from('categories')
+        .select('*')
+        .order('sortOrder', { ascending: true });
+
+      if (!error && Array.isArray(data)) {
+        return NextResponse.json({
+          success: true,
+          categories: data,
+          total: data.length,
+        });
+      }
+    }
+  } catch (err: any) {}
+
   return NextResponse.json({
     success: true,
-    categories: [
-      { id: 'cat_game_topup', name: 'Game Top-Up', slug: 'game-topup', icon: 'Gamepad2', badge: 'Popular', active: true },
-      { id: 'cat_gift_card', name: 'Gift Cards', slug: 'gift-card', icon: 'Gift', badge: 'Instant', active: true },
-      { id: 'cat_social_topup', name: 'Social Top-Up', slug: 'social-topup', icon: 'Smartphone', badge: '', active: true },
-      { id: 'cat_subscription', name: 'Subscriptions', slug: 'subscription', icon: 'Crown', badge: 'Hot', active: true },
-      { id: 'cat_game_account', name: 'Game Accounts', slug: 'game-account', icon: 'Layers', badge: '', active: true },
-    ],
+    categories: [],
+    total: 0,
   });
 }
 
 export async function POST(request: Request) {
+  const adminCheck = await verifyAdminRequest(request);
+  if (!adminCheck.isAdmin) {
+    return NextResponse.json(
+      { success: false, message: 'Admin authentication required.' },
+      { status: 403 }
+    );
+  }
+
   let body: any;
   try {
     body = await request.json();
@@ -55,34 +75,59 @@ export async function POST(request: Request) {
     body = {};
   }
 
+  const categoryPayload = {
+    id: body.id || `cat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    name: body.name,
+    slug: body.slug,
+    icon: body.icon || 'Gamepad2',
+    description: body.description || '',
+    badge: body.badge || '',
+    isActive: body.active !== false && body.isActive !== false,
+    sortOrder: Number(body.sortOrder) || 10,
+    updatedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  };
+
+  let createdCategory: any = null;
+
+  // 1. Try sync to deployed API
   try {
     const apiRes = await fetch(`${API_BASE_URL}/categories`, {
       method: 'POST',
-      headers: getAuthHeaders(request),
-      body: JSON.stringify(body),
+      headers: getAdminAuthHeaders(),
+      body: JSON.stringify(categoryPayload),
     });
 
     if (apiRes.ok) {
       const data = await apiRes.json();
-      if (data.success) {
-        return NextResponse.json(data);
+      if (data.success && (data.data || data.category)) {
+        createdCategory = data.data || data.category;
       }
     }
-  } catch (err: any) {
-    // Primary API unavailable — Supabase fallback active
+  } catch (err: any) {}
+
+  // 2. Always persist directly to Supabase
+  try {
+    if (supabaseAdmin) {
+      const { data, error } = await supabaseAdmin
+        .from('categories')
+        .insert([categoryPayload])
+        .select()
+        .single();
+
+      if (!error && data) {
+        return NextResponse.json({ success: true, category: data, data });
+      }
+    }
+  } catch (err: any) {}
+
+  if (createdCategory) {
+    return NextResponse.json({ success: true, category: createdCategory, data: createdCategory });
   }
 
-  // Fallback return optimistic category
   return NextResponse.json({
     success: true,
-    data: {
-      id: body.id || 'cat_' + Date.now(),
-      name: body.name,
-      slug: body.slug,
-      icon: body.icon || 'Gamepad2',
-      description: body.description || '',
-      badge: body.badge || '',
-      isActive: body.active !== false,
-    },
+    category: categoryPayload,
+    data: categoryPayload,
   });
 }

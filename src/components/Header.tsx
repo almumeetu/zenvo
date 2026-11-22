@@ -255,13 +255,13 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="font-semibold text-zenov-text">24/7 Instant Delivery</span>
               </div>
               <span className="text-zenov-border">•</span>
-              <span>Sub-30 Second Automated Fulfillment</span>
+              <span>Official Gaming Codes & Top-Ups</span>
               <span className="text-zenov-border">•</span>
-              <span>1M+ Trusted Gamers Worldwide</span>
+              <span>100% Authorized & Verified Reseller</span>
             </div>
-            <div className="flex items-center gap-1 text-zenov-text-muted">
-              <Zap className="w-3 h-3 text-zenov-accent" />
-              <span className="font-medium">5,000+ orders delivered today</span>
+            <div className="flex items-center gap-1.5 text-zenov-text-muted">
+              <ShieldCheck className="w-3.5 h-3.5 text-zenov-success" />
+              <span className="font-medium">Direct In-Game Top-Up & Gift Cards</span>
             </div>
           </div>
         </div>

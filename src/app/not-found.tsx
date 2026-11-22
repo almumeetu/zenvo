@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { Gamepad2, ArrowLeft, Search, Home } from 'lucide-react';
 

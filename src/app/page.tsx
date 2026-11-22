@@ -3,8 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '@/lib/AppStateContext';
 import { HeroBanner } from '@/components/HeroBanner';
-import { NewArrivalMarquee } from '@/components/NewArrivalMarquee';
-import { CategoryFilter } from '@/components/CategoryFilter';
+import { FeaturedCategoryBanners } from '@/components/FeaturedCategoryBanners';
 import { ProductGrid } from '@/components/ProductGrid';
 import { WhyChooseUs } from '@/components/WhyChooseUs';
 import { PromotionsBlog } from '@/components/PromotionsBlog';
@@ -79,16 +78,16 @@ export default function HomePage() {
         />
       </section>
 
-      {/* LIVE MARQUEE WITH NEON ACCENT */}
-      <section className="relative z-10 border-y border-cyan-500/20 bg-gradient-to-r from-blue-950/40 via-zenov-surface/70 to-amber-950/30 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.08)]">
-        <NewArrivalMarquee />
-      </section>
-
-      {/* CATEGORY FILTER */}
-      <section id="shop-categories" className="relative z-10">
-        <CategoryFilter
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
+      {/* FEATURED PROMO BANNERS: DIGITAL & PHYSICAL */}
+      <section className="relative z-10">
+        <FeaturedCategoryBanners
+          onSelectType={(type) => {
+            if (type === 'digital') {
+              router.push('/shop?type=digital');
+            } else {
+              router.push('/shop?type=physical');
+            }
+          }}
         />
       </section>
 

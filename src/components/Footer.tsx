@@ -223,7 +223,7 @@ export const Footer: React.FC = () => {
                 </div>
                 <div className="text-xs leading-snug">
                   <span className="font-bold text-white">4.9/5</span>{' '}
-                  <span className="text-slate-400">Trusted by 1M+ gamers</span>
+                  <span className="text-slate-400">Trusted Gaming Store</span>
                 </div>
               </div>
             </div>

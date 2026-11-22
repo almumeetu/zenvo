@@ -73,8 +73,8 @@ function LoginContent() {
             </div>
             <div className="space-y-3">
               {[
-                { I: Zap, t: '24/7 Instant Top-Ups', s: 'Automated sub-30s delivery' },
-                { I: ShieldCheck, t: 'Verified by 1M+ Users', s: 'Official licensed reseller' },
+                { I: Zap, t: '24/7 Instant Top-Ups', s: 'Automated instant delivery' },
+                { I: ShieldCheck, t: '100% Authorized Reseller', s: 'Official verified source' },
                 { I: Sparkles, t: 'Tiered VIP Rewards', s: 'Earn cashback & bonuses' },
               ].map(({ I, t, s }) => (
                 <div key={t} className="flex items-start gap-3 p-3 rounded-xl bg-zenov-bg/30 border border-zenov-border/50 backdrop-blur">

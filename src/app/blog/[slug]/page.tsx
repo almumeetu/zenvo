@@ -160,7 +160,7 @@ export default function BlogDetailPage() {
                       Why Gamers Trust ZENOV Games?
                     </h4>
                     <ul className="space-y-1.5 text-xs text-slate-300 font-medium">
-                      <li>⚡ Sub-30-second automated instant code dispatch</li>
+                      <li>⚡ Instant automated code dispatch</li>
                       <li>🛡️ 100% genuine codes sourced directly from verified publishers</li>
                       <li>💳 Seamless payment via bKash, Nagad, Rocket, Bank &amp; Crypto</li>
                       <li>💬 24/7 dedicated WhatsApp support squad in Bangladesh</li>

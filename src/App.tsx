@@ -3,7 +3,6 @@ import { Product, CategoryType, CurrencyCode, UserProfile, CartItem, Order, Supp
 import { INITIAL_PRODUCTS, INITIAL_USER, INITIAL_ORDERS, INITIAL_TICKETS, HERO_BANNERS, BLOG_ARTICLES } from './data/initialData';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
-import { NewArrivalMarquee } from './components/NewArrivalMarquee';
 import { CategoryFilter } from './components/CategoryFilter';
 import { ProductGrid } from './components/ProductGrid';
 import { QuickTopUpModal } from './components/QuickTopUpModal';
@@ -240,14 +239,13 @@ export default function App() {
           }}
         />
 
-        {/* Live Top-Up Ticker Marquee */}
-        <NewArrivalMarquee />
-
         {/* Category Tabs Filter */}
-        <CategoryFilter
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <CategoryFilter
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+        </div>
 
         {/* Product Grids */}
         <div id="shop-products">

@@ -257,6 +257,10 @@ body {
   to { transform: scaleX(1); }
 }
 
+.animate-hero-progress {
+  animation: progress-slide linear forwards;
+}
+
 /* Bounce subtle */
 @keyframes bounce-subtle {
   0%, 100% { transform: translateY(0); }
